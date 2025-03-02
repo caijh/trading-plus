@@ -28,12 +28,11 @@ def handle_at_exit(lock):
         deregister_service_with_consul()
 
 
-# 注册退出处理函数
-atexit.register(handle_at_exit, g_lock)
-
 if __name__ == '__main__':
     try:
         register_service_with_consul()
+        # 注册退出处理函数
+        atexit.register(handle_at_exit, g_lock)
         app.run()
     except Exception as e:
-        print(f"Failed to start or register service: {e}")
+        print(f"Failed to start: {e}")
