@@ -1,5 +1,3 @@
-from socket import gethostname, gethostbyname  # 明确导入
-
 import consul
 
 # Consul 客户端和服务信息
@@ -7,19 +5,20 @@ consul_client = None
 service_id = None
 
 
-def register_service_with_consul():
+def register_service_with_consul(env_vars):
     global consul_client, service_id
     # 获取本机IP地址
-    hostname = gethostname()
-    ip_address = gethostbyname(hostname)
+    ip_address = env_vars.APPLICATION_CLOUD_DISCOVERY_HOST_IP
 
     # Consul 客户端
-    consul_client = consul.Consul()
+    consul_server = env_vars.APPLICATION_CLOUD_DISCOVERY_SERVER_ADDRESS
+    consul_token = env_vars.APPLICATION_CLOUD_DISCOVERY_SERVER_TOKEN
+    consul_client = consul.Consul(host=consul_server, token=consul_token)
 
     # 服务注册信息
-    service_id = f'trading-plus-{ip_address}'
+    service_id = f'trading-plus@{ip_address}'
     service_name = 'trading-plus'
-    service_port = 5000
+    service_port = env_vars.APPLICATION_CLOUD_DISCOVERY_HOST_PORT
 
     # 注册服务
     consul_client.agent.service.register(
@@ -27,10 +26,11 @@ def register_service_with_consul():
         service_id=service_id,
         address=ip_address,
         port=service_port,
+        token=consul_token,
         check={
             "name": "HTTP Check",
             "http": f"http://{ip_address}:{service_port}/actuator/health",
-            "interval": "10s",
+            "interval": "30s",
             "timeout": "5s"
         }
     )

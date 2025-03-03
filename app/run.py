@@ -3,6 +3,7 @@ from threading import Lock
 
 from flask import Flask, jsonify
 
+from env import EnvVars
 from service_registry import register_service_with_consul, deregister_service_with_consul
 
 app = Flask(__name__)
@@ -30,9 +31,10 @@ def handle_at_exit(lock):
 
 if __name__ == '__main__':
     try:
-        register_service_with_consul()
+        env_vars = EnvVars()
+        register_service_with_consul(env_vars)
         # 注册退出处理函数
         atexit.register(handle_at_exit, g_lock)
-        app.run()
+        app.run(host='0.0.0.0', port=5000)
     except Exception as e:
-        print(f"Failed to start: {e}")
+        print(f"Failed to start App: {e}")
