@@ -1,11 +1,13 @@
 import consul
 
+from env import env_vars
+
 # Consul 客户端和服务信息
 consul_client = None
 service_id = None
 
 
-def register_service_with_consul(env_vars):
+def register_service_with_consul():
     global consul_client, service_id
     # 获取本机IP地址
     ip_address = env_vars.APPLICATION_CLOUD_DISCOVERY_HOST_IP

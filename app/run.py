@@ -3,7 +3,7 @@ from threading import Lock
 
 from flask import Flask, jsonify
 
-from env import EnvVars
+from index import do_analysis_index
 from service_registry import register_service_with_consul, deregister_service_with_consul
 
 app = Flask(__name__)
@@ -14,6 +14,12 @@ exit_handled = False
 @app.route('/actuator/health', methods=['GET'])
 def health():
     return jsonify({'status': 'UP'}), 200
+
+
+@app.route('/analysis/index', methods=['GET'])
+def analysis_index():
+    do_analysis_index()
+    return jsonify({'status': 'OK'}), 200
 
 
 def handle_at_exit(lock):
@@ -31,8 +37,7 @@ def handle_at_exit(lock):
 
 if __name__ == '__main__':
     try:
-        env_vars = EnvVars()
-        register_service_with_consul(env_vars)
+        register_service_with_consul()
         # 注册退出处理函数
         atexit.register(handle_at_exit, g_lock)
         app.run(host='0.0.0.0', port=5000)
