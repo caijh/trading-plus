@@ -1,7 +1,7 @@
 import requests
 
 from env import env_vars
-from stock import get_stock_price
+from stock import KType, analyze_stock
 
 
 def get_stock_index_list():
@@ -18,11 +18,6 @@ def get_stock_index_list():
 def do_analysis_index():
     data = get_stock_index_list()
     for index in data:
-        print(f'Start analysis {index}')
-        prices = get_stock_price(index['code'])
-        if not prices:
-            continue
-        else:
-            print(f'End analysis {index}')
+        analyze_stock(index, k_type=KType.DAY)
 
     return None
