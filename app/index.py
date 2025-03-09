@@ -40,7 +40,7 @@ def analyze_index_stocks(code):
     data = get_index_stocks(code)
     stocks = []
     for item in data:
-        stock = {'code': item['index_code'], 'name': item['stock_name']}
+        stock = {'code': item['stock_code'], 'name': item['stock_name']}
         analyze_stock(stock, k_type=KType.DAY)
         if len(stock['patterns']) > 0:
             stocks.append(stock)

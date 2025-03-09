@@ -22,7 +22,10 @@ class HammerPattern(CandlestickPattern):
         lower_shadow = get_lower_shadow(price)
         upper_shadow = get_upper_shadow(price)
         real_body = get_real_body(price)
-        return (lower_shadow / (lower_shadow + real_body + upper_shadow)) > 0.618
+        h = lower_shadow + real_body + upper_shadow
+        if h == 0:
+            return False
+        return (lower_shadow / h) > 0.618
 
 
 class DojiStarPattern(CandlestickPattern):
@@ -34,7 +37,10 @@ class DojiStarPattern(CandlestickPattern):
         lower_shadow = get_lower_shadow(price)
         upper_shadow = get_upper_shadow(price)
         real_body = get_real_body(price)
-        return lower_shadow >= upper_shadow and (real_body / (lower_shadow + real_body + upper_shadow)) < 0.01
+        h = lower_shadow + real_body + upper_shadow
+        if h == 0:
+            return False
+        return lower_shadow >= upper_shadow and (real_body / h) < 0.01
 
 
 class BullishEngulfingPattern(CandlestickPattern):

@@ -43,5 +43,5 @@ class BiasPattern:
 
 
 def get_ma_patterns():
-    ma_patterns = [MaPattern(10), MaPattern(20), MaPattern(60), MaPattern(120), MaPattern(200), BiasPattern(25, 0.15)]
+    ma_patterns = [MaPattern(10), MaPattern(20), MaPattern(60), MaPattern(200), BiasPattern(25, 0.15)]
     return ma_patterns
