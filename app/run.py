@@ -1,10 +1,11 @@
 import atexit
 from threading import Lock
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 
-from index import do_analysis_index
+from index import analyze_index, analyze_index_stocks
 from service_registry import register_service_with_consul, deregister_service_with_consul
+from stock import get_stock, analyze_stock
 
 app = Flask(__name__)
 g_lock = Lock()
@@ -17,9 +18,33 @@ def health():
 
 
 @app.route('/analysis/index', methods=['GET'])
+def analysis_index_stocks():
+    indexes = analyze_index()
+    return jsonify(indexes), 200
+
+
+@app.route('/analysis/index/stock', methods=['GET'])
 def analysis_index():
-    do_analysis_index()
-    return jsonify({'status': 'OK'}), 200
+    code = request.args.get('code')
+    if code is None:
+        return jsonify({'message': 'param code is required'}), 400
+
+    stocks = analyze_index_stocks(code)
+    return jsonify(stocks), 200
+
+
+@app.route('/analysis/stock', methods=['GET'])
+def analysis_stock():
+    code = request.args.get('code')
+    if code is None:
+        return jsonify({'message': 'param code is required'}), 400
+
+    stock = get_stock(code)
+    if stock is None:
+        return jsonify({'message': 'stock not found'}), 404
+
+    analyze_stock(stock)
+    return jsonify(stock), 200
 
 
 def handle_at_exit(lock):
