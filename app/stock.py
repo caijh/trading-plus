@@ -69,17 +69,8 @@ def analyze_stock(stock, k_type=KType.DAY):
                 stock['patterns'].append(matched_ma_pattern)
             for matched_volume_pattern in matched_volume_patterns:
                 stock['patterns'].append(matched_volume_pattern)
-        # i = 1
-        # price_sum = 0
-        # loop_times = 3
-        # while i <= loop_times:
-        #     predict_prices = predict_stock_price(stock, prices)
-        #     price_sum += round(float(predict_prices[-2][0]), 2)
-        #     i = i +1
-        # stock['predict_price'] = round(price_sum/loop_times, 2)
 
-        # predict_prices = predict_stock_price(stock, prices)
-        predict_prices = predict_and_plot(stock, prices)
+        predict_prices = predict_and_plot(stock, prices, 30)
         stock['predict_price'] = round(float(predict_prices[0]), 2)
     print(
         f'Analyzing Complete code = {code}, name = {name}, patterns = {stock["patterns"]}, predict_price = {stock["predict_price"]}')

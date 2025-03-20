@@ -1,13 +1,11 @@
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
+from Lib import os
+from keras.src.saving import load_model
 
 from data_utils import load_and_preprocess_data, create_dataset
 from train_model import train_model
-
-
-# import matplotlib.pyplot as plt
-# from datetime import timedelta
-# from keras.src.saving import load_model
 
 
 def predict_future_prices(model, data, scaler, future_days=7, sequence_length=60):
@@ -51,26 +49,34 @@ def predict_and_plot(stock, prices, future_days=7):
     factor = 1
     split = int(len(x) * factor)
     x_train, y_train = x[:split], y[:split]
-
+    model_path = f'./app/model/model_{stock["stock_code"]}.keras'
+    model = None
     # 模型
-    model = train_model(x_train, y_train, time_step)
+    if os.path.exists(model_path):
+        print("✅ Model exists. Loading model...")
+        model = load_model(model_path)
+    else:
+        print("🔄 Model not found. Training a new model...")
+        model = train_model(stock, x_train, y_train, time_step)
 
     # 拆分测试集
+    factor = 0.5
     x_test = x[int(len(x) * factor):]
     y_test = y[int(len(x) * factor):]
 
-    predicted = model.predict(x_train)
-    predicted_prices = scaler.inverse_transform(predicted)
-    real_prices = scaler.inverse_transform(y_train.reshape(-1, 1))
+    predicted = model.predict(x_test)
+    predicted_prices = scaler.inverse_transform(predicted).flatten().tolist()
+    real_prices = scaler.inverse_transform(y_test.reshape(-1, 1)).flatten().tolist()
 
-    future_prices = predict_future_prices(model, scaled_data, scaler, future_days=future_days)
+    future_prices = predict_future_prices(model, scaled_data, scaler, future_days,
+                                          sequence_length=time_step).flatten().tolist()
     last_date = df.index[-1]
     future_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), periods=len(future_prices), freq='D')
 
     # 可视化
     # plt.figure(figsize=(14, 6))
-    # plt.plot(df.index[-len(y_train):], real_prices, label='Real Price')
-    # plt.plot(df.index[-len(predicted_prices):], predicted_prices, label='Predicted Price')
+    # plt.plot(df.index[-len(y_test)], real_prices, label='Real Price')
+    # plt.plot(df.index[-len(predicted_prices)], predicted_prices, label='Predicted Price')
     # plt.plot(future_dates, future_prices, label='Future Predicted Price', color='green')
     # plt.axvline(last_date, linestyle='--', color='gray', label='Prediction Start')
     # plt.title('Stock Price Prediction')
@@ -79,11 +85,63 @@ def predict_and_plot(stock, prices, future_days=7):
     # plt.legend()
     # plt.grid(True)
     # plt.tight_layout()
-    # plt.show()
+    # # plt.show()
     # plt.savefig(f"./app/static/P_{stock['stock_code']}.png")
+
+    # 创建图表
+    fig = go.Figure(data=go.Candlestick(
+        x=df.index,  # 日期和四组数据
+        open=df['open'],
+        high=df['high'],
+        low=df['low'],
+        close=df['close'],
+        increasing=dict(line=dict(color='red')),  # 涨：红色
+        decreasing=dict(line=dict(color='green'))  # 跌：绿色
+    ))
+
+    # 真实价格
+    fig.add_trace(go.Scatter(
+        x=df.index[-len(real_prices):], y=real_prices,
+        mode='lines', name='Real Price', line=dict(color='blue')
+    ))
+
+    # 历史预测价格
+    fig.add_trace(go.Scatter(
+        x=df.index[-len(predicted_prices):], y=predicted_prices,
+        mode='lines', name='Predicted Price', line=dict(color='orange')
+    ))
+
+    # 未来预测价格
+    fig.add_trace(go.Scatter(
+        x=future_dates, y=future_prices,
+        mode='lines', name='Future Predicted Price', line=dict(color='green')
+    ))
+
+    # 预测起始线
+    # ✅ 用 scatter 添加一条灰色竖线
+    fig.add_trace(go.Scatter(
+        x=[last_date, last_date],
+        y=[min(min(real_prices), min(predicted_prices), min(future_prices)),
+           max(max(real_prices), max(predicted_prices), max(future_prices))],
+        mode='lines',
+        line=dict(color='gray', dash='dash'),
+        name='Prediction Start',
+        showlegend=True
+    ))
+
+    # 设置图表布局
+    fig.update_layout(
+        title='Stock Price Prediction',
+        xaxis_title='Date',
+        yaxis_title='Price',
+        legend=dict(x=0, y=1.1, orientation='h'),
+        template='plotly_white',
+    )
+    fig.update_xaxes(rangebreaks=[dict(bounds=["sat", "sun"])])
+
+    # 保存为HTML交互式文件
+    html_path = f"./app/static/predict/{stock['stock_code']}.html"
+    fig.write_html(html_path)
 
     return future_prices
 
-
-if __name__ == '__main__':
-    predict_and_plot()
