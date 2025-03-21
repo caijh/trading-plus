@@ -3,6 +3,7 @@ import pandas as pd
 import ta.momentum as momentum
 import ta.trend as trend
 from sklearn.preprocessing import MinMaxScaler
+from ta.volatility import BollingerBands
 
 
 def load_and_preprocess_data(prices):
@@ -19,17 +20,24 @@ def load_and_preprocess_data(prices):
     df['RSI14'] = momentum.RSIIndicator(close=df['close'], window=14).rsi()
     df['RSI7'] = momentum.RSIIndicator(close=df['close'], window=7).rsi()
     df['MACD'] = trend.MACD(close=df['close']).macd()
-    df.dropna(subset=['open', 'high', 'low', 'close', 'MA10', 'RSI14', 'RSI7', 'MACD'], inplace=True)
-    features = ['open', 'high', 'low', 'close', 'MA10', 'RSI14', 'RSI7', 'MACD']
+    # ✅ BOLL 带（中轨、上轨、下轨）
+    boll = BollingerBands(close=df['close'], window=20, window_dev=2)
+    df['BOLL_MID'] = boll.bollinger_mavg()
+    df['BOLL_UP'] = boll.bollinger_hband()
+    df['BOLL_DOWN'] = boll.bollinger_lband()
+    df.dropna(
+        subset=['open', 'high', 'low', 'close', 'MA10', 'RSI14', 'RSI7', 'MACD', 'BOLL_MID', 'BOLL_UP', 'BOLL_DOWN'],
+        inplace=True)
+    features = ['open', 'high', 'low', 'close', 'MA10', 'RSI14', 'RSI7', 'MACD', 'BOLL_MID', 'BOLL_UP', 'BOLL_DOWN']
     scaler = MinMaxScaler()
     scaled_data = scaler.fit_transform(df[features])
 
     return df, scaler, scaled_data, features
 
 
-def create_dataset(data, features, sequence_length=60):
-    X, y = [], []
+def create_dataset(data, features, sequence_length, future_days):
+    x, y = [], []
     for i in range(sequence_length, len(data)):
-        X.append(data[i - sequence_length:i])
+        x.append(data[i - sequence_length:i])
         y.append(data[i, features.index('close')])
-    return np.array(X), np.array(y)
+    return np.array(x), np.array(y)

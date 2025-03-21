@@ -30,8 +30,8 @@ def predict_future_prices(model, last_sequence, scaler, close_index, features, f
 
 def predict_and_plot(stock, prices, future_days=7):
     df, scaler, scaled_data, features = load_and_preprocess_data(prices)
-    time_step = 5
-    x, y = create_dataset(scaled_data, features, time_step)
+    sequence_len = 5
+    x, y = create_dataset(scaled_data, features, sequence_len, future_days)
     # 训练集
     factor = 1
     split = int(len(x) * factor)
@@ -44,7 +44,7 @@ def predict_and_plot(stock, prices, future_days=7):
         model = load_model(model_path, custom_objects={'Attention': Attention})
     else:
         print("🔄 Model not found. Training a new model...")
-        model = train_model(stock, x_train, y_train, time_step, x.shape[2])
+        model = train_model(stock, x_train, y_train, sequence_len, future_days, x.shape[2])
 
     # 拆分测试集
     factor = 0.5
@@ -144,4 +144,3 @@ def predict_and_plot(stock, prices, future_days=7):
     fig.write_html(html_path)
 
     return future_prices
-

@@ -21,9 +21,9 @@ class Attention(Layer):
         return K.sum(output, axis=1)
 
 
-def train_model(stock, x, y, time_step, feature_dim):
+def train_model(stock, x, y, sequence_len, future_days, feature_dim):
     model = Sequential()
-    model.add(Input(shape=(time_step, feature_dim)))
+    model.add(Input(shape=(sequence_len, feature_dim)))
     model.add(LSTM(64, return_sequences=True))
     model.add(Dropout(0.2))
     model.add(BatchNormalization())
@@ -33,7 +33,7 @@ def train_model(stock, x, y, time_step, feature_dim):
     model.add(Attention())  # Attention Layer
     model.add(Dense(1))
     model.compile(optimizer='adam', loss='mean_squared_error')
-    model.fit(x, y, epochs=10000, batch_size=32, validation_split=0.1, verbose=1)
+    model.fit(x, y, epochs=1000, batch_size=32, validation_split=0.1, verbose=1)
     model.save(f'./app/model/model_{stock["stock_code"]}.keras')
 
     return model
