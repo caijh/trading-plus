@@ -5,46 +5,33 @@ from Lib import os
 from keras.src.saving import load_model
 
 from data_utils import load_and_preprocess_data, create_dataset
-from train_model import train_model
+from train_model import train_model, Attention
 
 
-def predict_future_prices(model, data, scaler, future_days=7, sequence_length=60):
-    """
-    data: 原始归一化后的数据（如：最近60天的归一化价格）
-    model: 已训练好的模型
-    scaler: 用于反归一化结果
-    future_days: 想预测几天
-    sequence_length: 每次模型输入的时间步长度，通常60
-
-    返回：未来7天的预测价格（已经反归一化）
-    """
+def predict_future_prices(model, last_sequence, scaler, close_index, features, future_days=20):
     future_predictions = []
-
-    # 创建初始输入序列（最近60天）
-    input_sequence = data[-sequence_length:].reshape(1, sequence_length, 1)
-
+    current_seq = last_sequence.copy()
     for _ in range(future_days):
-        # 模型预测下一个价格
-        next_price = model.predict(input_sequence, verbose=0)
+        next_pred_scaled = model.predict(current_seq.reshape(1, current_seq.shape[0], current_seq.shape[1]), verbose=0)
+        dummy = np.zeros((1, len(features)))
+        dummy[0, close_index] = next_pred_scaled[0][0]
+        next_full_scaled = dummy[0]
 
-        # 保存预测值（还未反归一化）
-        future_predictions.append(next_price[0][0])
+        # 假设 MA10/RSI/MACD/Volume 沿用最后一个值（保守估计）
+        new_step = current_seq[-1].copy()
+        new_step[close_index] = next_pred_scaled[0][0]
+        current_seq = np.vstack((current_seq[1:], new_step))
 
-        # 更新输入序列：去掉最早一天，加入最新预测
-        input_sequence = np.append(input_sequence[:, 1:, :], [[[next_price[0][0]]]], axis=1)
+        future_price = scaler.inverse_transform(dummy)[0, close_index]
+        future_predictions.append(future_price)
 
-    # 反归一化所有预测值
-    future_predictions = np.array(future_predictions).reshape(-1, 1)
-    future_prices = scaler.inverse_transform(future_predictions)
-
-    return future_prices
+    return future_predictions
 
 
 def predict_and_plot(stock, prices, future_days=7):
-    df, scaler, scaled_data = load_and_preprocess_data(prices)
+    df, scaler, scaled_data, features = load_and_preprocess_data(prices)
     time_step = 5
-    x, y = create_dataset(scaled_data, time_step)
-    x = x.reshape(x.shape[0], x.shape[1], 1)
+    x, y = create_dataset(scaled_data, features, time_step)
     # 训练集
     factor = 1
     split = int(len(x) * factor)
@@ -54,10 +41,10 @@ def predict_and_plot(stock, prices, future_days=7):
     # 模型
     if os.path.exists(model_path):
         print("✅ Model exists. Loading model...")
-        model = load_model(model_path)
+        model = load_model(model_path, custom_objects={'Attention': Attention})
     else:
         print("🔄 Model not found. Training a new model...")
-        model = train_model(stock, x_train, y_train, time_step)
+        model = train_model(stock, x_train, y_train, time_step, x.shape[2])
 
     # 拆分测试集
     factor = 0.5
@@ -65,11 +52,16 @@ def predict_and_plot(stock, prices, future_days=7):
     y_test = y[int(len(x) * factor):]
 
     predicted = model.predict(x_test)
-    predicted_prices = scaler.inverse_transform(predicted).flatten().tolist()
-    real_prices = scaler.inverse_transform(y_test.reshape(-1, 1)).flatten().tolist()
+    dummy_cols = np.zeros((predicted.shape[0], len(features)))
+    dummy_cols[:, features.index('close')] = predicted[:, 0]
+    predicted_prices = scaler.inverse_transform(dummy_cols)[:, features.index('close')].flatten().tolist()
 
-    future_prices = predict_future_prices(model, scaled_data, scaler, future_days,
-                                          sequence_length=time_step).flatten().tolist()
+    dummy_y = np.zeros((y_test.shape[0], len(features)))
+    dummy_y[:, features.index('close')] = y_test.flatten()
+    real_prices = scaler.inverse_transform(dummy_y)[:, features.index('close')].flatten().tolist()
+
+    last_sequence = x[-1]  # 最后一个序列
+    future_prices = predict_future_prices(model, last_sequence, scaler, features.index('close'), features, future_days)
     last_date = df.index[-1]
     future_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), periods=len(future_prices), freq='D')
 
@@ -136,8 +128,16 @@ def predict_and_plot(stock, prices, future_days=7):
         yaxis_title='Price',
         legend=dict(x=0, y=1.1, orientation='h'),
         template='plotly_white',
+        xaxis=dict(
+            type='date',
+            rangebreaks=[
+                # ⛔ 自动跳过周末
+                dict(bounds=["sat", "mon"]),
+                # ✅ 可选跳过节假日（如果你有假日列表）
+                # dict(values=holiday_dates)
+            ]
+        ),
     )
-    fig.update_xaxes(rangebreaks=[dict(bounds=["sat", "sun"])])
 
     # 保存为HTML交互式文件
     html_path = f"./app/static/predict/{stock['stock_code']}.html"
