@@ -1,6 +1,7 @@
-import tensorflow.python.keras.backend as K
+import tensorflow as tf
 from keras import Sequential, Input, Layer
-from keras.src.layers import LSTM, Dense, Dropout, BatchNormalization
+from keras.src.callbacks import EarlyStopping, ReduceLROnPlateau
+from keras.src.layers import LSTM, Dense, Dropout, BatchNormalization, Bidirectional
 
 
 class Attention(Layer):
@@ -15,29 +16,43 @@ class Attention(Layer):
         super(Attention, self).build(input_shape)
 
     def call(self, x):
-        e = K.tanh(K.dot(x, self.W) + self.b)
-        a = K.softmax(e, axis=1)
+        e = tf.tanh(tf.matmul(x, self.W) + self.b)
+        a = tf.nn.softmax(e, axis=1)
         output = x * a
-        return K.sum(output, axis=1)
+        return tf.reduce_sum(output, axis=1)
 
 
 def train_model(stock, x, y, sequence_len, future_days, feature_dim):
     model = Sequential()
     model.add(Input(shape=(sequence_len, feature_dim)))
-    model.add(LSTM(64, return_sequences=True))
+    model.add(Bidirectional(LSTM(256, return_sequences=True)))
     model.add(Dropout(0.2))
     model.add(BatchNormalization())
-    # model.add(LSTM(64))
+    model.add(Bidirectional(LSTM(128, return_sequences=True)))
     model.add(Dropout(0.2))
-    # model.add(Dense(32, activation='relu'))
-    model.add(Attention())  # Attention Layer
+    model.add(Attention())
+    model.add(Dense(128, activation='relu'))
+    model.add(Dropout(0.2))
     model.add(Dense(1))
+
     model.compile(optimizer='adam', loss='mean_squared_error')
-    model.fit(x, y, epochs=1000, batch_size=32, validation_split=0.1, verbose=1)
-    model.save(f'./app/model/model_{stock["stock_code"]}.keras')
+
+    callbacks = [
+        EarlyStopping(
+            monitor='val_loss',  # 监控验证损失
+            patience=50,  # 允许 50 轮没有改善
+            min_delta=0.001,  # 最小改善幅度
+            restore_best_weights=True  # 恢复到最佳权重
+        ),
+        ReduceLROnPlateau(
+            monitor='val_loss',  # 监控验证损失
+            factor=0.2,  # 学习率减少因子
+            patience=20,  # 允许 20 轮没有改善
+            min_lr=0.00001  # 最小学习率
+        )
+    ]
+
+    model.fit(x, y, epochs=2000, batch_size=64, validation_split=0.2, callbacks=callbacks, verbose=1)
+    model.save(f'./app/model/{stock["stock_code"]}.keras')
 
     return model
-
-
-if __name__ == '__main__':
-    train_model()
