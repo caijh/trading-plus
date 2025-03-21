@@ -39,9 +39,10 @@ def train_model(stock, x, y, sequence_len, future_days, feature_dim):
 
     callbacks = [
         EarlyStopping(
-            monitor='val_loss',  # 监控验证损失
+            monitor='val_accuracy',  # 监控验证损失
             patience=50,  # 允许 50 轮没有改善
             min_delta=0.001,  # 最小改善幅度
+            mode='max',
             restore_best_weights=True  # 恢复到最佳权重
         ),
         ReduceLROnPlateau(
@@ -52,7 +53,7 @@ def train_model(stock, x, y, sequence_len, future_days, feature_dim):
         )
     ]
 
-    model.fit(x, y, epochs=2000, batch_size=64, validation_split=0.2, callbacks=callbacks, verbose=1)
+    model.fit(x, y, epochs=10000, batch_size=64, validation_split=0.2, callbacks=callbacks, verbose=1)
     model.save(f'./app/model/{stock["stock_code"]}.keras')
 
     return model

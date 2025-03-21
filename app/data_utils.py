@@ -6,6 +6,7 @@ import ta.volatility as volatility
 from sklearn.preprocessing import StandardScaler
 from ta.volume import VolumeWeightedAveragePrice
 
+
 def load_and_preprocess_data(prices):
     df = pd.DataFrame(prices)
     df['close'] = df['close'].astype(float)
@@ -17,6 +18,7 @@ def load_and_preprocess_data(prices):
     df.set_index('date', inplace=True)
 
     # 添加更多技术指标
+    df['MA5'] = df['close'].rolling(5).mean()
     df['MA10'] = df['close'].rolling(10).mean()
     df['MA20'] = df['close'].rolling(20).mean()
     df['RSI14'] = momentum.RSIIndicator(close=df['close'], window=14).rsi()
@@ -30,9 +32,9 @@ def load_and_preprocess_data(prices):
         df['volume'] = df['volume'].astype(float)
         df['VWAP'] = VolumeWeightedAveragePrice(high=df['high'], low=df['low'], close=df['close'], volume=df['volume'],
                                                 window=14).volume_weighted_average_price()
-        features = ['open', 'high', 'low', 'close', 'MA10', 'MA20', 'RSI14', 'RSI7', 'MACD', 'ATR', 'VWAP']
+        features = ['open', 'high', 'low', 'close', 'MA5', 'MA10', 'MA20', 'RSI14', 'RSI7', 'MACD', 'ATR', 'VWAP']
     else:
-        features = ['open', 'high', 'low', 'close', 'MA10', 'MA20', 'RSI14', 'RSI7', 'MACD', 'ATR']
+        features = ['open', 'high', 'low', 'close', 'MA5', 'MA10', 'MA20', 'RSI14', 'RSI7', 'MACD', 'ATR']
 
     # 删除缺失值
     df.dropna(subset=features, inplace=True)
@@ -41,6 +43,7 @@ def load_and_preprocess_data(prices):
     scaled_data = scaler.fit_transform(df[features])
 
     return df, scaler, scaled_data, features
+
 
 def create_dataset(data, features, sequence_length, future_days):
     x, y = [], []
