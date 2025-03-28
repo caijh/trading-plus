@@ -19,41 +19,41 @@ class Attention(Layer):
         e = tf.tanh(tf.matmul(x, self.W) + self.b)
         a = tf.nn.softmax(e, axis=1)
         output = x * a
-        return tf.reduce_sum(output, axis=1)
+        return tf.reduce_sum(output, axis=1) + x[:, -1, :] * 0.2
 
 
 def train_model(stock, x, y, sequence_len, future_days, feature_dim):
     model = Sequential()
     model.add(Input(shape=(sequence_len, feature_dim)))
-    model.add(Bidirectional(LSTM(256, return_sequences=True)))
-    model.add(Dropout(0.2))
+    model.add(Bidirectional(LSTM(512, return_sequences=True)))
+    model.add(Dropout(0.3))
     model.add(BatchNormalization())
-    model.add(Bidirectional(LSTM(128, return_sequences=True)))
-    model.add(Dropout(0.2))
+    model.add(Bidirectional(LSTM(256, return_sequences=True)))
+    model.add(Dropout(0.3))
     model.add(Attention())
-    model.add(Dense(128, activation='relu'))
-    model.add(Dropout(0.2))
+    model.add(Dense(256, activation='relu'))
+    model.add(Dropout(0.3))
     model.add(Dense(1))
 
     model.compile(optimizer='adam', loss='mean_squared_error')
 
     callbacks = [
         EarlyStopping(
-            monitor='val_accuracy',  # 监控验证损失
+            monitor='loss',  # 监控验证损失
             patience=50,  # 允许 50 轮没有改善
             min_delta=0.001,  # 最小改善幅度
-            mode='max',
+            mode='min',
             restore_best_weights=True  # 恢复到最佳权重
         ),
         ReduceLROnPlateau(
-            monitor='val_loss',  # 监控验证损失
+            monitor='loss',  # 监控验证损失
             factor=0.2,  # 学习率减少因子
             patience=20,  # 允许 20 轮没有改善
             min_lr=0.00001  # 最小学习率
         )
     ]
 
-    model.fit(x, y, epochs=10000, batch_size=64, validation_split=0.2, callbacks=callbacks, verbose=1)
-    model.save(f'./app/model/{stock["stock_code"]}.keras')
+    model.fit(x, y, epochs=1000, batch_size=128, validation_split=0.0, callbacks=callbacks, verbose=1)
+    model.save(f'./app/model/{stock["code"]}.keras')
 
     return model

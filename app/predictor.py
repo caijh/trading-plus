@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 from Lib import os
 from keras.src.saving import load_model
 
-from data_utils import load_and_preprocess_data, create_dataset
+from dataset import load_and_preprocess_data, create_dataset
 from train_model import train_model, Attention
 
 
@@ -32,15 +32,12 @@ def predict_and_plot(stock, prices, future_days=7):
     sequence_len = 10
     x, y = create_dataset(scaled_data, features, sequence_len, future_days)
 
-    factor = 1
+    factor = 0.8
     split = int(len(x) * factor)
     x_train, y_train = x[:split], y[:split]
-    factor = 0.5
-    split = int(len(x) * factor)
     x_test, y_test = x[split:], y[split:]
 
-    model_path = f'./app/model/model_{stock["stock_code"]}.keras'
-    model = None
+    model_path = f'./app/model/{stock["code"]}.keras'
     if os.path.exists(model_path):
         print("✅ Model exists. Loading model...")
         model = load_model(model_path, custom_objects={'Attention': Attention})
@@ -110,6 +107,6 @@ def predict_and_plot(stock, prices, future_days=7):
             ]
         ),
     )
-    html_path = f"./app/static/predict/{stock['stock_code']}.html"
+    html_path = f"./app/static/predict/{stock['code']}.html"
     fig.write_html(html_path)
     return future_prices
