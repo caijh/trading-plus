@@ -5,10 +5,25 @@ from keras.src.layers import LSTM, Dense, Dropout, BatchNormalization, Bidirecti
 
 
 class Attention(Layer):
+    """
+    Attention层，继承自Layer类，用于在神经网络中实现注意力机制。
+    注意力机制可以帮助模型更好地聚焦于输入中的重要部分，尤其是在序列数据处理任务中。
+    """
+
     def __init__(self, **kwargs):
+        """
+        构造函数，初始化Attention层。
+        """
         super(Attention, self).__init__(**kwargs)
 
     def build(self, input_shape):
+        """
+        构建Attention层，包括初始化权重和偏置。
+
+        参数:
+        - input_shape: 输入数据的形状，用于确定权重矩阵的尺寸。
+        """
+        # 初始化权重矩阵W和偏置向量b，W用于输入特征的线性变换，b为偏置项。
         self.W = self.add_weight(name='att_weight', shape=(input_shape[-1], 1),
                                  initializer='normal', trainable=True)
         self.b = self.add_weight(name='att_bias', shape=(input_shape[1], 1),
@@ -16,9 +31,22 @@ class Attention(Layer):
         super(Attention, self).build(input_shape)
 
     def call(self, x):
+        """
+        实现Attention层的前向传播，计算带有注意力的输出。
+
+        参数:
+        - x: 输入数据，形状为(batch_size, sequence_length, input_dim)。
+
+        返回:
+        - output: 注意力机制处理后的输出。
+        """
+        # 计算注意力分数，使用tanh激活函数。
         e = tf.tanh(tf.matmul(x, self.W) + self.b)
+        # 对注意力分数进行softmax，得到注意力权重。
         a = tf.nn.softmax(e, axis=1)
+        # 应用注意力权重到输入x上，并求和，得到注意力机制处理后的输出。
         output = x * a
+        # 最终输出是注意力输出的总和与最后一个时间步的输入的加权和。
         return tf.reduce_sum(output, axis=1) + x[:, -1, :] * 0.2
 
 
