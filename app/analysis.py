@@ -8,17 +8,44 @@ analysis = Blueprint('analysis', __name__, url_prefix='/analysis')
 
 @analysis.route('/index', methods=['GET'])
 def analysis_index_stocks():
+    """
+    分析指数股票
+    该函数响应GET请求，分析索引股票数据，并以JSON格式返回分析结果
+
+    Returns:
+        tuple: 包含响应体和状态码的元组
+        - response body: 包含分析结果的JSON字符串
+        - status code: HTTP状态码，200表示成功
+    """
+    # 调用analyze_index函数进行索引分析
     indexes = analyze_index()
+    # 将分析结果序列化为JSON，并返回200状态码表示成功
     return jsonify(indexes), 200
+
 
 
 @analysis.route('/index/stock', methods=['GET'])
 def analysis_index():
-    code = request.args.get('code')
-    if code is None:
-        return jsonify({'message': 'param code is required'}), 400
+    """
+    分析指数中成分股。
 
+    该函数通过GET请求接收一个code参数，用于指定指数代码。
+    然后调用analyze_index_stocks函数来获取该指数的成分股信息，并以JSON格式返回。
+
+    Returns:
+        如果请求中缺少code参数，则返回错误信息和400状态码。
+        否则，返回指数的成分股信息和200状态码。
+    """
+    # 从请求参数中获取股票指数代码
+    code = request.args.get('code')
+    # 检查是否提供了code参数
+    if code is None:
+        # 如果没有提供code参数，返回错误信息和400状态码
+        return jsonify({'message': 'Param code is required'}), 400
+
+    # 调用analyze_index_stocks函数获取指数成分股信息
     stocks = analyze_index_stocks(code)
+    # 返回指数成分股信息和200状态码
     return jsonify(stocks), 200
 
 
