@@ -23,13 +23,29 @@ def get_stock(code):
 
 
 def get_stock_price(code, k_type=KType.DAY):
+    """
+    根据股票代码和K线类型获取股票价格数据。
+
+    参数:
+    code (str): 股票代码，用于标识特定的股票。
+    k_type (KType): K线类型，默认为日K线。这决定了返回的价格数据的时间周期。
+
+    返回:
+    list: 如果请求成功，返回包含股票价格数据的列表；如果请求失败或不支持的k_type，则返回空列表。
+    """
+    # 当请求的是日K线数据时，构造请求URL并发送请求
     if k_type == KType.DAY:
-        price_url = f'{env_vars.TRADING_DATA_URL}/stock/price/daily?code={code}'
-        data = requests.get(price_url).json()
+        url = f'{env_vars.TRADING_DATA_URL}/stock/price/daily?code={code}'
+        print(f'Get stock price from {url} , code = {code}, k_type = {k_type}')
+        data = requests.get(url).json()
+        # 根据返回的数据检查状态码，如果为0表示请求成功，返回数据
         if data['code'] == 0:
             return data['data']
         else:
+            print(data)
+            # 如果请求失败，返回空列表
             return []
+    # 如果k_type不是DAY，直接返回空列表，表示不支持的k_type
     return []
 
 
