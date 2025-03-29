@@ -86,4 +86,10 @@ class RisingWindowPattern(CandlestickPattern):
 
 
 def get_candlestick_patterns():
+    """
+    创建并返回一系列蜡烛图形态的实例列表。
+
+    这个函数负责初始化并返回一个列表，列表中包含了不同类型的蜡烛图形态实例。
+    这些形态实例包括锤头、十字星、看涨吞没、刺透和上升窗口等形态。
+    """
     return [HammerPattern(), DojiStarPattern(), BullishEngulfingPattern(), PiercingPattern(), RisingWindowPattern()]

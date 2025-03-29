@@ -43,5 +43,12 @@ class BiasPattern:
 
 
 def get_ma_patterns():
+    """
+    创建并返回一个包含常用均线和偏差率模式的列表。
+
+    这个函数初始化了一个列表，包含了不同周期的均线（如5日、10日、20日、60日、200日均线），
+    以及一个特定参数的偏差率模式。这些模式用于在金融数据分析中计算和应用各种移动平均线和偏差率指标。
+    """
+    # 初始化均线和偏差率模式列表
     ma_patterns = [MaPattern(10), MaPattern(20), MaPattern(60), MaPattern(200), BiasPattern(25, 0.15)]
     return ma_patterns

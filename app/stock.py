@@ -58,7 +58,7 @@ def analyze_stock(stock, k_type=KType.DAY):
     if not prices:
         return stock
     else:
-        print(f'Analyzing... code = {code}, name = {name}')
+        print(f'Analyzing Stock, code = {code}, name = {name}')
         candlestick_patterns = get_candlestick_patterns()
         ma_patterns = get_ma_patterns()
         volume_patterns = get_volume_patterns()
