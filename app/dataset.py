@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
 
-def load_and_preprocess_data(prices):
+def create_dataframe(prices):
     df = pd.DataFrame(prices)
     df['close'] = df['close'].astype(float)
     df['open'] = df['open'].astype(float)
@@ -12,6 +12,11 @@ def load_and_preprocess_data(prices):
     df['date'] = pd.to_datetime(df['date'], format='%Y%m%d')
     df.sort_values('date', inplace=True)
     df.set_index('date', inplace=True)
+    return df
+
+
+def load_and_preprocess_data(prices):
+    df = create_dataframe(prices)
 
     # 添加更多技术指标
     df['MA5'] = df['close'].rolling(5).mean()
