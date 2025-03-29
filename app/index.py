@@ -38,10 +38,22 @@ def get_index_stocks(code):
 
 
 def analyze_index():
+    """
+    分析股票指数
+
+    该函数通过获取股票指数列表，并对每个指数进行分析，以找出具有特定模式的指数。
+    它主要关注的是日K线图中的模式。
+
+    Returns:
+        list: 包含有效模式的股票指数列表。
+    """
+    # 获取股票指数列表
     data = get_stock_index_list()
     indexes = []
     for index in data:
+        # 分析每个指数的日K线图模式
         stock = analyze_stock(index, k_type=KType.DAY)
+        # 如果存在模式，则将该指数添加到有效指数列表中
         if len(stock['patterns']) > 0:
             indexes.append(index)
 
