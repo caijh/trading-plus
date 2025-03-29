@@ -17,7 +17,7 @@ def analysis_index_stocks():
         - response body: 包含分析结果的JSON字符串
         - status code: HTTP状态码，200表示成功
     """
-    # 调用analyze_index函数进行索引分析
+    # 调用analyze_index函数进行指数分析
     indexes = analyze_index()
     # 将分析结果序列化为JSON，并返回200状态码表示成功
     return jsonify(indexes), 200
