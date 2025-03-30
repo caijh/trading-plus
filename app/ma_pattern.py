@@ -1,5 +1,6 @@
 import pandas_ta as ta
 
+
 class MaPattern:
     ma = 5
 
@@ -10,14 +11,33 @@ class MaPattern:
         return f'MA{self.ma}'
 
     def match(self, stock, prices, df):
+        """
+        判断股票价格是否在均线之上，并且均线上升。
+
+        参数:
+        stock: 字典，包含股票信息。
+        prices: 列表，包含股票价格历史数据。
+        df: DataFrame，包含股票的DataFrame数据，至少包含['close']列。
+
+        返回:
+        布尔值，如果最新收盘价高于最新均线价，且最新均线价高于前一均线价，则返回True，否则返回False。
+        """
+        # 获取最新价格数据
         price = df.iloc[-1]
+
+        # 计算指定周期的简单移动平均线
         ma = ta.sma(df['close'], self.ma)
+
+        # 获取最新和前一均线价格，用于比较
         ma_price = round(ma.iloc[-1], 3)  # 取最后一行
         pre_ma_price = round(ma.iloc[-2], 3)
+
+        # 打印计算结果，用于调试和日志记录
         print(
             f'Cal {stock["code"]} MA{self.ma}, price = {price["close"]}, ma_price = {ma_price}, pre_ma_price = {pre_ma_price}')
-        return price['close'] > ma_price > pre_ma_price
 
+        # 判断价格是否在上升的均线上方
+        return price['close'] > ma_price > pre_ma_price
 
 
 class BiasPattern:
@@ -62,5 +82,5 @@ def get_ma_patterns():
     以及一个特定参数的偏差率模式。这些模式用于在金融数据分析中计算和应用各种移动平均线和偏差率指标。
     """
     # 初始化均线和偏差率模式列表
-    ma_patterns = [MaPattern(10), MaPattern(20), MaPattern(60), MaPattern(200), BiasPattern(25, -0.15)]
+    ma_patterns = [MaPattern(10), MaPattern(20), MaPattern(60), MaPattern(120), MaPattern(200), BiasPattern(25, -0.15)]
     return ma_patterns
