@@ -3,6 +3,7 @@ from enum import Enum
 import requests
 
 from candlestick_pattern import get_candlestick_patterns
+from dataset import create_dataframe
 from env import env_vars
 from ma_pattern import get_ma_patterns
 from predictor import predict_and_plot
@@ -65,16 +66,17 @@ def analyze_stock(stock, k_type=KType.DAY):
         matched_candlestick_patterns = []
         matched_ma_patterns = []
         matched_volume_patterns = []
+        df = create_dataframe(prices)
         for candlestick_pattern in candlestick_patterns:
-            if candlestick_pattern.match(stock, prices):
+            if candlestick_pattern.match(stock, prices, df):
                 matched_candlestick_patterns.append(candlestick_pattern.name())
 
         if len(matched_candlestick_patterns) != 0:
             for ma_pattern in ma_patterns:
-                if ma_pattern.match(stock, prices):
+                if ma_pattern.match(stock, prices, df):
                     matched_ma_patterns.append(ma_pattern.name())
             for volume_pattern in volume_patterns:
-                if volume_pattern.match(stock, prices):
+                if volume_pattern.match(stock, prices, df):
                     matched_volume_patterns.append(volume_pattern.name())
 
         if (len(matched_candlestick_patterns) != 0

@@ -9,7 +9,7 @@ class CandlestickPattern(ABC):
         pass
 
     @abstractmethod
-    def match(self, stock, prices):
+    def match(self, stock, prices, df):
         pass
 
 
@@ -17,8 +17,8 @@ class HammerPattern(CandlestickPattern):
     def name(self):
         return '锤子线'
 
-    def match(self, stock, prices):
-        price = prices[len(prices) - 1]
+    def match(self, stock, prices, df):
+        price = prices[-1]
         lower_shadow = get_lower_shadow(price)
         upper_shadow = get_upper_shadow(price)
         real_body = get_real_body(price)
@@ -32,8 +32,8 @@ class DojiStarPattern(CandlestickPattern):
     def name(self):
         return '十字线'
 
-    def match(self, stock, prices):
-        price = prices[len(prices) - 1]
+    def match(self, stock, prices, df):
+        price = prices[-1]
         lower_shadow = get_lower_shadow(price)
         upper_shadow = get_upper_shadow(price)
         real_body = get_real_body(price)
@@ -47,7 +47,7 @@ class BullishEngulfingPattern(CandlestickPattern):
     def name(self):
         return '看涨吞没'
 
-    def match(self, stock, prices):
+    def match(self, stock, prices, df):
         price = prices[len(prices) - 1]
         pre_price = prices[len(prices) - 2]
         open_price = float(price['open'])
@@ -61,7 +61,7 @@ class PiercingPattern(CandlestickPattern):
     def name(self):
         return '刺透形态'
 
-    def match(self, stock, prices):
+    def match(self, stock, prices, df):
         price = prices[len(prices) - 1]
         pre_price = prices[len(prices) - 2]
         open_price = float(price['open'])
@@ -77,7 +77,7 @@ class RisingWindowPattern(CandlestickPattern):
     def name(self):
         return '缺口向上'
 
-    def match(self, stock, prices):
+    def match(self, stock, prices, df):
         price = prices[len(prices) - 1]
         pre_price = prices[len(prices) - 2]
         low_price = float(price['low'])
