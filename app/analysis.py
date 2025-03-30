@@ -45,6 +45,7 @@ def analysis_index():
 
     # 调用analyze_index_stocks函数获取指数成分股信息
     stocks = analyze_index_stocks(code)
+    print(stocks)
     # 返回指数成分股信息和200状态码
     return jsonify(stocks), 200
 
