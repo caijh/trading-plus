@@ -48,8 +48,8 @@ class BullishEngulfingPattern(CandlestickPattern):
         return '看涨吞没'
 
     def match(self, stock, prices, df):
-        price = prices[len(prices) - 1]
-        pre_price = prices[len(prices) - 2]
+        price = prices[- 1]
+        pre_price = prices[- 2]
         open_price = float(price['open'])
         close_price = float(price['close'])
         pre_high_price = float(pre_price['high'])
@@ -62,8 +62,8 @@ class PiercingPattern(CandlestickPattern):
         return '刺透形态'
 
     def match(self, stock, prices, df):
-        price = prices[len(prices) - 1]
-        pre_price = prices[len(prices) - 2]
+        price = prices[- 1]
+        pre_price = prices[- 2]
         open_price = float(price['open'])
         close_price = float(price['close'])
         pre_open_price = float(pre_price['open'])
@@ -78,8 +78,8 @@ class RisingWindowPattern(CandlestickPattern):
         return '缺口向上'
 
     def match(self, stock, prices, df):
-        price = prices[len(prices) - 1]
-        pre_price = prices[len(prices) - 2]
+        price = prices[- 1]
+        pre_price = prices[- 2]
         low_price = float(price['low'])
         pre_high_price = float(pre_price['high'])
         return low_price > pre_high_price
