@@ -46,6 +46,40 @@ class VolumePattern:
             return price['volume'] < pre_price['volume'] < ma_volume
 
 
+class OBV:
+    def name(self):
+        return 'OBV'
+
+    def match(self, stock, prices, df):
+        """
+        判断给定股票的最新交易日的OBV指标是否上升。
+
+        参数:
+        - stock: 股票标识符，用于识别股票。
+        - prices: 包含股票历史价格的列表，每个元素是一个字典。
+        - df: 包含股票历史数据的DataFrame，包括close和volume列。
+
+        返回:
+        - 如果最新OBV值高于前一个交易日的OBV值，则返回True，否则返回False。
+        """
+        # 获取最新价格信息
+        price = prices[-1]
+        # 提取最新成交量并检查是否为正值
+        latest_volume = float(price['volume'])
+        if not latest_volume > 0:
+            # 如果成交量为负，则不进行后续判断，返回False
+            return False
+
+        # 计算OBV指标
+        obv = ta.obv(df['close'], df['volume'])
+        # 提取最新和前一个OBV值
+        latest_obv = obv.iloc[-1]
+        pre_obv = obv.iloc[-2]
+
+        # 判断最新OBV值是否较前一个交易日有所上升
+        return latest_obv > pre_obv
+
+
 def get_volume_patterns():
     """
     获取成交量模式列表。
@@ -53,4 +87,4 @@ def get_volume_patterns():
     Returns:
         list: 包含一个成交量模式对象的列表。
     """
-    return [VolumePattern(20)]
+    return [VolumePattern(20), OBV()]
