@@ -80,6 +80,25 @@ class OBV:
         return latest_obv > pre_obv
 
 
+class ADOSC:
+    def name(self):
+        return 'ADOSC'
+
+    def match(self, stock, prices, df):
+        price = prices[-1]
+        latest_volume = float(price['volume'])
+        if not latest_volume > 0:
+            return False
+
+        adosc = ta.adosc(df['high'], df['low'], df['close'], df['volume'])
+        latest_adosc = adosc.iloc[-1]
+        pre_adosc = adosc.iloc[-2]
+
+        pre_price = prices[-2]
+        close_price = float(price['close'])
+        pre_close_price = float(pre_price['close'])
+        return latest_adosc > pre_adosc and close_price > pre_close_price
+
 def get_volume_patterns():
     """
     获取成交量模式列表。
@@ -87,4 +106,4 @@ def get_volume_patterns():
     Returns:
         list: 包含一个成交量模式对象的列表。
     """
-    return [VolumePattern(20), OBV()]
+    return [VolumePattern(20), OBV(), ADOSC()]
