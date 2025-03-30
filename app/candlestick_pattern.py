@@ -1,88 +1,22 @@
-from abc import ABC, abstractmethod
-
-from candlestick import get_lower_shadow, get_upper_shadow, get_real_body, is_down, is_upper
+import pandas_ta as ta
 
 
-class CandlestickPattern(ABC):
-    @abstractmethod
-    def name(self):
-        pass
+class CandlestickPattern:
+    name = ''
+    column = ''
+    label = ''
 
-    @abstractmethod
-    def match(self, stock, prices, df):
-        pass
-
-
-class HammerPattern(CandlestickPattern):
-    def name(self):
-        return '锤子线'
+    def __init__(self, name, label, column):
+        self.name = name
+        self.label = label
+        self.column = column
 
     def match(self, stock, prices, df):
-        price = prices[-1]
-        lower_shadow = get_lower_shadow(price)
-        upper_shadow = get_upper_shadow(price)
-        real_body = get_real_body(price)
-        h = lower_shadow + real_body + upper_shadow
-        if h == 0:
-            return False
-        return (lower_shadow / h) > 0.618
-
-
-class DojiStarPattern(CandlestickPattern):
-    def name(self):
-        return '十字线'
-
-    def match(self, stock, prices, df):
-        price = prices[-1]
-        lower_shadow = get_lower_shadow(price)
-        upper_shadow = get_upper_shadow(price)
-        real_body = get_real_body(price)
-        h = lower_shadow + real_body + upper_shadow
-        if h == 0:
-            return False
-        return lower_shadow >= upper_shadow and (real_body / h) < 0.01
-
-
-class BullishEngulfingPattern(CandlestickPattern):
-    def name(self):
-        return '看涨吞没'
-
-    def match(self, stock, prices, df):
-        price = prices[- 1]
-        pre_price = prices[- 2]
-        open_price = float(price['open'])
-        close_price = float(price['close'])
-        pre_high_price = float(pre_price['high'])
-        pre_low_price = float(pre_price['low'])
-        return is_upper(price) and is_down(pre_price) and close_price >= pre_high_price and open_price <= pre_low_price
-
-
-class PiercingPattern(CandlestickPattern):
-    def name(self):
-        return '刺透形态'
-
-    def match(self, stock, prices, df):
-        price = prices[- 1]
-        pre_price = prices[- 2]
-        open_price = float(price['open'])
-        close_price = float(price['close'])
-        pre_open_price = float(pre_price['open'])
-        pre_close_price = float(pre_price['close'])
-        pre_mid_price = (pre_open_price + pre_close_price) / 2
-        return (is_upper(price) and is_down(pre_price)
-                and open_price <= pre_close_price and pre_open_price > close_price > pre_mid_price)
-
-
-class RisingWindowPattern(CandlestickPattern):
-    def name(self):
-        return '缺口向上'
-
-    def match(self, stock, prices, df):
-        price = prices[- 1]
-        pre_price = prices[- 2]
-        low_price = float(price['low'])
-        pre_high_price = float(pre_price['high'])
-        return low_price > pre_high_price
+        recent_df = df.tail(5)
+        recent_df = ta.cdl_pattern(recent_df['open'], recent_df['high'], recent_df['low'], recent_df['close'],
+                                   name=self.name)
+        pattern = recent_df[recent_df[self.column] != 0]
+        return not pattern.empty
 
 
 def get_candlestick_patterns():
@@ -92,4 +26,16 @@ def get_candlestick_patterns():
     这个函数负责初始化并返回一个列表，列表中包含了不同类型的蜡烛图形态实例。
     这些形态实例包括锤头、十字星、看涨吞没、刺透和上升窗口等形态。
     """
-    return [HammerPattern(), DojiStarPattern(), BullishEngulfingPattern(), PiercingPattern(), RisingWindowPattern()]
+    return [
+        CandlestickPattern('hammer', '锤子线', 'CDL_HAMMER'),
+        CandlestickPattern('invertedhammer', '倒锤子线', 'CDL_INVERTEDHAMMER'),
+        CandlestickPattern('morningdojistar', '十字晨星', 'CDL_MORNINGDOJISTAR'),
+        CandlestickPattern('morningstar', '晨星', 'CDL_MORNINGSTAR'),
+        CandlestickPattern('piercing', '刺透形态', 'CDL_PIERCING'),
+        CandlestickPattern('takuri', '探水杆', 'CDL_TAKURI'),
+        CandlestickPattern('engulfing', '看涨吞没', 'CDL_ENGULFING'),
+        CandlestickPattern('3whitesoldiers', '三白兵', 'CDL_3WHITESOLDIERS'),
+        CandlestickPattern('harami', '孕线', 'CDL_HARAMI'),
+        CandlestickPattern('haramicross', '十字孕线', 'CDL_HARAMICROSS'),
+        CandlestickPattern('breakaway', '突破形态', 'CDL_BREAKAWAY'),
+    ]

@@ -22,7 +22,7 @@ def get_upper_shadow(price):
         return float(price['high']) - float(price['open'])
 
 
-def get_real_body(price):
+def get_body(price):
     if is_upper(price):
         return float(price['close']) - float(price['open'])
     else:

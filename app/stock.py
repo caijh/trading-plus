@@ -69,8 +69,8 @@ def analyze_stock(stock, k_type=KType.DAY):
         df = create_dataframe(prices)
         for candlestick_pattern in candlestick_patterns:
             if candlestick_pattern.match(stock, prices, df):
-                print(f'Stock {name} Match {candlestick_pattern.name()}')
-                matched_candlestick_patterns.append(candlestick_pattern.name())
+                print(f'Stock {name} Match {candlestick_pattern.label}')
+                matched_candlestick_patterns.append(candlestick_pattern.label)
 
         if len(matched_candlestick_patterns) != 0:
             for ma_pattern in ma_patterns:
