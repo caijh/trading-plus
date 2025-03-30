@@ -3,12 +3,11 @@ import pandas_ta as ta
 
 class VolumePattern:
     ma = 20
+    label = ''
 
     def __init__(self, ma):
         self.ma = ma
-
-    def name(self):
-        return f'VOL{self.ma}'
+        self.label = f'VOL{self.ma}'
 
     def match(self, stock, prices, df):
         """
@@ -47,8 +46,10 @@ class VolumePattern:
 
 
 class OBV:
-    def name(self):
-        return 'OBV'
+    label = ''
+
+    def __init__(self):
+        self.label = 'OBV'
 
     def match(self, stock, prices, df):
         """
@@ -81,8 +82,10 @@ class OBV:
 
 
 class ADOSC:
-    def name(self):
-        return 'ADOSC'
+    label = ''
+
+    def __init__(self, ):
+        self.label = 'Chaikin A/D'
 
     def match(self, stock, prices, df):
         price = prices[-1]

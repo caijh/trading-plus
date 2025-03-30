@@ -75,12 +75,12 @@ def analyze_stock(stock, k_type=KType.DAY):
         if len(matched_candlestick_patterns) != 0:
             for ma_pattern in ma_patterns:
                 if ma_pattern.match(stock, prices, df):
-                    print(f'Stock {name} Match {ma_pattern.name()}')
-                    matched_ma_patterns.append(ma_pattern.name())
+                    print(f'Stock {name} Match {ma_pattern.label}')
+                    matched_ma_patterns.append(ma_pattern.label)
             for volume_pattern in volume_patterns:
                 if volume_pattern.match(stock, prices, df):
-                    print(f'Stock {name} Match {volume_pattern.name()}')
-                    matched_volume_patterns.append(volume_pattern.name())
+                    print(f'Stock {name} Match {volume_pattern.label}')
+                    matched_volume_patterns.append(volume_pattern.label)
 
         if (len(matched_candlestick_patterns) != 0
                 and len(matched_ma_patterns) > 1 and len(matched_volume_patterns) != 0):

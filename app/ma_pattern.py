@@ -3,12 +3,11 @@ import pandas_ta as ta
 
 class MaPattern:
     ma = 5
+    label = ''
 
     def __init__(self, ma):
         self.ma = ma
-
-    def name(self):
-        return f'MA{self.ma}'
+        self.label = f'MA{self.ma}'
 
     def match(self, stock, prices, df):
         """
@@ -43,13 +42,12 @@ class MaPattern:
 class BiasPattern:
     ma = 5
     bias = -0.15
+    label = ''
 
     def __init__(self, ma, bias):
         self.ma = ma
         self.bias = bias
-
-    def name(self):
-        return f'Bias{self.ma}'
+        self.label = f'Bias{self.ma}'
 
     def match(self, stock, prices, df):
         """
