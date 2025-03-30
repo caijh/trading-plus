@@ -77,8 +77,13 @@ class OBV:
         latest_obv = obv.iloc[-1]
         pre_obv = obv.iloc[-2]
 
+        pre_price = prices[-2]
+        close_price = float(price['close'])
+        pre_close_price = float(pre_price['close'])
+
         # 判断最新OBV值是否较前一个交易日有所上升
-        return latest_obv > pre_obv
+        # 且当前收盘价是否小于前一个交易日的收盘价
+        return latest_obv > pre_obv and close_price < pre_close_price
 
 
 class ADOSC:
