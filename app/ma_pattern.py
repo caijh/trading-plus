@@ -35,8 +35,15 @@ class MaPattern:
         print(
             f'Cal {stock["code"]} MA{self.ma}, price = {price["close"]}, ma_price = {ma_price}, pre_ma_price = {pre_ma_price}')
 
+        ema = ta.ema(df['close'], 5)
+        latest_ema = ema.iloc[-1]
+
         # 判断价格是否在上升的均线上方
-        return price['close'] > ma_price > pre_ma_price
+        # 此处的逻辑用于检测当前收盘价是否高于均线价格，同时确保均线价格正在上升
+        # 具体条件为：当前收盘价 > 当前均线价格 > 前一周期均线价格
+        # 以及当前收盘价 > 最新指数移动平均价 > 当前均线价格
+        # 这样的条件设计旨在确认价格趋势为上升，并且避免假信号
+        return (price['close'] > ma_price > pre_ma_price) and (price['close'] > latest_ema > ma_price)
 
 
 class BiasPattern:
