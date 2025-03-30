@@ -1,3 +1,5 @@
+import pandas_ta as ta
+
 class MaPattern:
     ma = 5
 
@@ -8,10 +10,13 @@ class MaPattern:
         return f'MA{self.ma}'
 
     def match(self, stock, prices, df):
-        df['ma'] = df['close'].rolling(self.ma).mean()
-        price = df.iloc[-1]  # 取最后一行
-        pre_price = df.iloc[-2]
-        return price['close'] > price['ma'] > pre_price['ma']
+        price = df.iloc[-1]
+        ma = ta.sma(df['close'], self.ma)
+        ma_price = round(ma.iloc[-1], 3)  # 取最后一行
+        pre_ma_price = round(ma.iloc[-2], 3)
+        print(
+            f'Cal {stock["code"]} MA{self.ma}, price = {price["close"]}, ma_price = {ma_price}, pre_ma_price = {pre_ma_price}')
+        return price['close'] > ma_price > pre_ma_price
 
 
 
