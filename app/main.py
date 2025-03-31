@@ -2,11 +2,9 @@ import atexit
 import os
 from threading import Lock
 
-from flask import Flask
+from flask import Flask, Blueprint
 from flask_redis import FlaskRedis
 
-from actuator import actuator
-from analysis import analysis
 from env import env_vars
 from service_registry import register_service_with_consul, deregister_service_with_consul
 
@@ -17,8 +15,9 @@ exit_handled = False
 
 app = Flask(__name__)
 app.config['REDIS_URL'] = env_vars.get_redis_url()
-
+actuator = Blueprint('actuator', __name__, url_prefix='/actuator')
 app.register_blueprint(actuator)
+analysis = Blueprint('analysis', __name__, url_prefix='/analysis')
 app.register_blueprint(analysis)
 
 redis_client = FlaskRedis(app)

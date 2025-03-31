@@ -1,9 +1,8 @@
-from flask import Blueprint, jsonify, request
+from flask import jsonify, request
 
 from index import analyze_index, analyze_index_stocks
+from main import analysis
 from stock import get_stock, analyze_stock
-
-analysis = Blueprint('analysis', __name__, url_prefix='/analysis')
 
 
 @analysis.route('/index', methods=['GET'])
@@ -21,7 +20,6 @@ def analysis_index_stocks():
     indexes = analyze_index()
     # 将分析结果序列化为JSON，并返回200状态码表示成功
     return jsonify(indexes), 200
-
 
 
 @analysis.route('/index/stock', methods=['GET'])

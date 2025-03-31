@@ -1,6 +1,6 @@
-from flask import Blueprint, jsonify
+from flask import jsonify
 
-actuator = Blueprint('actuator', __name__, url_prefix='/actuator')
+from main import actuator
 
 
 @actuator.route('/health', methods=['GET'])
