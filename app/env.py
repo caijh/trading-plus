@@ -12,6 +12,20 @@ class EnvVars:
     APPLICATION_CLOUD_DISCOVERY_HOST_IP = os.getenv('APPLICATION_CLOUD_DISCOVERY_HOST_IP', '127.0.0.1')
     APPLICATION_CLOUD_DISCOVERY_HOST_PORT = os.getenv('APPLICATION_CLOUD_DISCOVERY_HOST_PORT', 5000)
     TRADING_DATA_URL = os.getenv('TRADING_DATA_URL', 'http://127.0.0.1:8080')
+    REDIS_HOST = os.getenv('REDIS_HOST', '127.0.0.1')
+    REDIS_PORT = os.getenv('REDIS_PORT', 6379)
+    REDIS_PASSWORD = os.getenv('REDIS_PASSWORD', None)
+    REDIS_DB = os.getenv('REDIS_DB', 0)
+    REDIS_SSL = os.getenv('REDIS_SSL', 'False').lower() == 'true'
+
+    def get_redis_url(self):
+        protocol = 'redis'
+        if self.REDIS_SSL:
+            protocol = 'rediss'
+        if self.REDIS_PASSWORD is None:
+            return f'{protocol}://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}'
+        else:
+            return f'{protocol}://{self.REDIS_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}'
 
 
 env_vars = EnvVars()
