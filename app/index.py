@@ -28,12 +28,30 @@ def get_stock_index_list():
 
 
 def get_index_stocks(code):
-    trading_data_url = env_vars.TRADING_DATA_URL
-    url = f'{trading_data_url}/index/{code}/stocks'
+    """
+    根据指数代码获取指数成分股列表。
+
+    参数:
+    code (str): 指数代码。
+
+    返回:
+    list: 指数成分股列表，如果请求失败或数据不可用，则返回空列表。
+    """
+    # 从环境变量中获取交易数据URL
+    # 构造获取指数成分股的URL
+    url = f'{env_vars.TRADING_DATA_URL}/index/{code}/stocks'
+
+    print(f'从数据源获取指数成分股数据，url: {url}')
+
+    # 发起HTTP GET请求获取数据
     data = requests.get(url).json()
+
+    # 检查返回的数据中是否有错误码
     if data['code'] == 0:
+        # 如果没有错误，返回指数成分股数据
         return data['data']
     else:
+        # 如果有错误，返回空列表
         return []
 
 
