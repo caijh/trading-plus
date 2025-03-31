@@ -3,9 +3,11 @@ import os
 from threading import Lock
 
 from flask import Flask
+from flask_redis import FlaskRedis
 
 from actuator import actuator
 from analysis import analysis
+from env import env_vars
 from service_registry import register_service_with_consul, deregister_service_with_consul
 
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
@@ -14,9 +16,12 @@ g_lock = Lock()
 exit_handled = False
 
 app = Flask(__name__)
+app.config['REDIS_URL'] = env_vars.get_redis_url()
+
 app.register_blueprint(actuator)
 app.register_blueprint(analysis)
 
+redis_client = FlaskRedis(app)
 
 def handle_at_exit(lock):
     """处理退出事件"""
