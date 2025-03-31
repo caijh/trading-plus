@@ -82,6 +82,6 @@ def train_model(stock, x, y, sequence_len, future_days, feature_dim):
     ]
 
     model.fit(x, y, epochs=1000, batch_size=128, validation_split=0.0, callbacks=callbacks, verbose=1)
-    model.save(f'./app/model/{stock["code"]}.keras')
+    model.save(f'./training/model/{stock["code"]}.keras')
 
     return model
