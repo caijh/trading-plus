@@ -1,6 +1,7 @@
 from enum import Enum
 
 import requests
+import talib
 
 from candlestick_pattern import get_candlestick_patterns
 from dataset import create_dataframe
@@ -108,8 +109,57 @@ def analyze_stock(stock, k_type=KType.DAY):
             for matched_volume_pattern in matched_volume_patterns:
                 stock['patterns'].append(matched_volume_pattern)
 
+            # 计算给定股票的支持位和阻力位
+            # 参数:
+            #   stock: 包含股票数据的字典或数据框，应包括历史价格等信息
+            #   df: 用于计算支持位和阻力位的数据框，通常包含历史价格数据
+            # 返回值:
+            #   support: 计算得到的支持位价格
+            #   resistance: 计算得到的阻力位价格
+            (support, resistance) = cal_support_resistance(stock, df)
+
+            # 将计算得到的支持位和阻力位添加到股票数据中
+            stock['support'] = support
+            stock['resistance'] = resistance
+
             # predict_prices = predict_and_plot(stock, prices, 7)
             # stock['predict_price'] = round(float(predict_prices[0]), 2)
     print(
         f'Analyzing Complete code = {code}, name = {name}, patterns = {stock["patterns"]}, predict_price = {stock["predict_price"]}')
     return stock
+
+
+def cal_support_resistance(stock, df):
+    """
+    计算给定股票的支撑位和阻力位。
+
+    参数:
+    - stock: 包含股票信息的字典，至少需要包含股票代码。
+    - df: 包含股票历史数据的DataFrame，至少需要包含'high', 'low', 'close'列。
+
+    返回:
+    - s: 支撑位，计算结果四舍五入到两位小数。
+    - r: 阻力位，计算结果四舍五入到两位小数。
+    """
+    # 计算 Pivot Points
+    df['Pivot'] = (df['high'].shift(1) + df['low'].shift(1) + df['close'].shift(1)) / 3
+    df['R1'] = 2 * df['Pivot'] - df['low'].shift(1)
+    df['S1'] = 2 * df['Pivot'] - df['high'].shift(1)
+    df['R2'] = df['Pivot'] + (df['high'].shift(1) - df['low'].shift(1))
+    df['S2'] = df['Pivot'] - (df['high'].shift(1) - df['low'].shift(1))
+
+    # 计算 Fractal 阻力 & 支撑
+    df['Fractal_High'] = talib.MAX(df['high'], timeperiod=5)  # 5 天最高点
+    df['Fractal_Low'] = talib.MIN(df['low'], timeperiod=5)  # 5 天最低点
+
+    # 提取最新数据行，用于计算最终的支撑位和阻力位
+    latest_data = df.iloc[-1][['Pivot', 'R1', 'R2', 'S1', 'S2', 'Fractal_Low', 'Fractal_High']]
+
+    # 计算最终的支撑位和阻力位
+    s = round((latest_data['S1'] + latest_data['S2'] + latest_data['Fractal_Low']) / 3, 2)
+    r = round((latest_data['R1'] + latest_data['R2'] + latest_data['Fractal_High']) / 3, 2)
+
+    # 打印计算结果
+    print(f'Stock {stock["code"]} calculate Support = {s}, Resistance = {r}')
+
+    return s, r
