@@ -1,7 +1,7 @@
 import requests
 
-from env import env_vars
-from stock import KType, analyze_stock
+from environment.env import env_vars
+from stock.stock import analyze_stock, KType
 
 
 def get_stock_index_list():

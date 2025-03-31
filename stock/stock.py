@@ -3,11 +3,11 @@ from enum import Enum
 import requests
 import talib
 
-from candlestick_pattern import get_candlestick_patterns
-from dataset import create_dataframe
-from env import env_vars
-from ma_pattern import get_ma_patterns
-from volume_pattern import get_volume_patterns
+from dataset.dataset import create_dataframe
+from environment.env import env_vars
+from .candlestick_pattern import get_candlestick_patterns
+from .ma_pattern import get_ma_patterns
+from .volume_pattern import get_volume_patterns
 
 
 class KType(Enum):

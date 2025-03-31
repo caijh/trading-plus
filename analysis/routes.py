@@ -1,8 +1,10 @@
-from flask import jsonify, request
+from flask import jsonify, request, Blueprint
 
-from index import analyze_index, analyze_index_stocks
-from main import analysis
-from stock import get_stock, analyze_stock
+from extensions import executor
+from index.index import analyze_index, analyze_index_stocks
+from stock.stock import get_stock, analyze_stock
+
+analysis = Blueprint('analysis', __name__, url_prefix='/analysis')
 
 
 @analysis.route('/index', methods=['GET'])
@@ -42,11 +44,19 @@ def analysis_index():
         return jsonify({'message': 'Param code is required'}), 400
 
     # 调用analyze_index_stocks函数获取指数成分股信息
+    # stocks = analyze_index_stocks(code)
+    # print(stocks)
+    future = executor.submit(analysis_index_task, code)
+
+    # 返回任务id和200状态码
+    return jsonify({'message': 'Job running'}), 200
+
+
+def analysis_index_task(code):
+    # 调用analyze_index_stocks函数获取指数成分股信息
     stocks = analyze_index_stocks(code)
     print(stocks)
-    # 返回指数成分股信息和200状态码
-    return jsonify(stocks), 200
-
+    return stocks
 
 @analysis.route('/stock', methods=['GET'])
 def analysis_stock():

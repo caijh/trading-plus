@@ -14,6 +14,7 @@ class EnvVars:
     TRADING_DATA_URL = os.getenv('TRADING_DATA_URL', 'http://127.0.0.1:8080')
     REDIS_HOST = os.getenv('REDIS_HOST', '127.0.0.1')
     REDIS_PORT = os.getenv('REDIS_PORT', 6379)
+    REDIS_USER = os.getenv('REDIS_USER', 'default')
     REDIS_PASSWORD = os.getenv('REDIS_PASSWORD', None)
     REDIS_DB = os.getenv('REDIS_DB', 0)
     REDIS_SSL = os.getenv('REDIS_SSL', 'False').lower() == 'true'
@@ -25,7 +26,7 @@ class EnvVars:
         if self.REDIS_PASSWORD is None:
             return f'{protocol}://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}'
         else:
-            return f'{protocol}://{self.REDIS_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}'
+            return f'{protocol}://{self.REDIS_USER}:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}'
 
 
 env_vars = EnvVars()

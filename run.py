@@ -2,25 +2,14 @@ import atexit
 import os
 from threading import Lock
 
-from flask import Flask, Blueprint
-from flask_redis import FlaskRedis
-
-from env import env_vars
-from service_registry import register_service_with_consul, deregister_service_with_consul
+from app import create_app
+from registry.service_registry import register_service_with_consul, deregister_service_with_consul
 
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 
 g_lock = Lock()
 exit_handled = False
 
-app = Flask(__name__)
-app.config['REDIS_URL'] = env_vars.get_redis_url()
-actuator = Blueprint('actuator', __name__, url_prefix='/actuator')
-app.register_blueprint(actuator)
-analysis = Blueprint('analysis', __name__, url_prefix='/analysis')
-app.register_blueprint(analysis)
-
-redis_client = FlaskRedis(app)
 
 def handle_at_exit(lock):
     """处理退出事件"""
@@ -37,6 +26,7 @@ def handle_at_exit(lock):
 
 if __name__ == '__main__':
     try:
+        app = create_app()
         register_service_with_consul()
         # 注册退出处理函数
         atexit.register(handle_at_exit, g_lock)
