@@ -6,7 +6,6 @@ from candlestick_pattern import get_candlestick_patterns
 from dataset import create_dataframe
 from env import env_vars
 from ma_pattern import get_ma_patterns
-from predictor import predict_and_plot
 from volume_pattern import get_volume_patterns
 
 
@@ -15,12 +14,30 @@ class KType(Enum):
 
 
 def get_stock(code):
+    """
+    根据股票代码获取股票信息。
+
+    通过发送HTTP GET请求到TRADING_DATA_URL获取股票数据，如果请求成功，
+    则解析并返回股票信息，否则返回None。
+
+    参数:
+    code (str): 股票代码，用于唯一标识一个股票。
+
+    返回:
+    stock: 如果请求成功且数据有效，则返回股票信息，否则返回None。
+    """
+    # 构造请求URL，包含股票代码
     url = f'{env_vars.TRADING_DATA_URL}/stock?code={code}'
+    # 发送GET请求并解析响应内容为JSON格式
     data = requests.get(url).json()
+    # 检查响应状态码是否为0，表示请求成功
     if data['code'] == 0:
+        # 提取并返回股票数据
         stock = data['data']
         return stock
+    # 如果请求失败，返回None
     return None
+
 
 
 def get_stock_price(code, k_type=KType.DAY):
@@ -91,8 +108,8 @@ def analyze_stock(stock, k_type=KType.DAY):
             for matched_volume_pattern in matched_volume_patterns:
                 stock['patterns'].append(matched_volume_pattern)
 
-            predict_prices = predict_and_plot(stock, prices, 7)
-            stock['predict_price'] = round(float(predict_prices[0]), 2)
+            # predict_prices = predict_and_plot(stock, prices, 7)
+            # stock['predict_price'] = round(float(predict_prices[0]), 2)
     print(
         f'Analyzing Complete code = {code}, name = {name}, patterns = {stock["patterns"]}, predict_price = {stock["predict_price"]}')
     return stock
