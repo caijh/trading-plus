@@ -34,7 +34,7 @@ def run_generate_strategy():
 
 
 def load_start_job():
-    scheduler.add_job("generate_strategy_task", run_generate_strategy, trigger="cron", hour=22, minute=0)
+    scheduler.add_job("generate_strategy_task", run_generate_strategy, trigger="cron", hour=20, minute=0)
     scheduler.start()
 
 

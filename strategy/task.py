@@ -17,7 +17,7 @@ def generate_strategy_task():
             # 计算买入、卖出、止损价格
             buy_price = stock.support
             sell_price = stock.resistance
-            stop_loss = stock.support * 0.98
+            stop_loss = round(stock.support * 0.98, 2)
 
             # 查询是否已存在该股票的交易策略
             existing_strategy = TradingStrategy.query.filter_by(stock_code=stock.code).first()
