@@ -1,6 +1,7 @@
 from flask import jsonify, request, Blueprint
 
-from extensions import executor
+from analysis.model import AnalyzedStock
+from extensions import executor, db
 from index.index import analyze_index, analyze_index_stocks
 from stock.stock import get_stock, analyze_stock
 
@@ -55,7 +56,21 @@ def analysis_index():
 def analysis_index_task(code):
     # 调用analyze_index_stocks函数获取指数成分股信息
     stocks = analyze_index_stocks(code)
-    print(stocks)
+
+    # 把分析过股票插入数据中，根据code删除原有的，再插入AnalyzedStock对应的表中
+    with db.session.begin():
+        db.session.query(AnalyzedStock).filter_by(code=code).delete()
+
+        for stock in stocks:
+            new_stock = AnalyzedStock(
+                code=stock["code"],
+                name=stock["name"],
+                patterns=stock.get("patterns", []),
+                support=stock.get("support"),
+                resistance=stock.get("resistance")
+            )
+            db.session.add(new_stock)
+
     return stocks
 
 @analysis.route('/stock', methods=['GET'])

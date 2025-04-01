@@ -22,7 +22,4 @@ def create_app():
 
     app.register_blueprint(actuator_blueprint())
     app.register_blueprint(analysis_blueprint())
-
-
-
     return app
