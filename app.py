@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, json
 
 from actuator import create_blueprint as actuator_blueprint
 from analysis import create_blueprint as analysis_blueprint
@@ -12,7 +12,11 @@ def create_app():
 
     app.config['SQLALCHEMY_DATABASE_URI'] = env_vars.SQLALCHEMY_DATABASE_URI
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = env_vars.SQLALCHEMY_TRACK_MODIFICATIONS
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        "json_serializer": lambda obj: json.dumps(obj, ensure_ascii=False),
+    }
     app.config['REDIS_URL'] = env_vars.get_redis_url()
+    app.config["JSON_AS_ASCII"] = False
 
     executor.init_app(app)
 
