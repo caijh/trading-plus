@@ -5,7 +5,6 @@ from analysis import create_blueprint as analysis_blueprint
 from environment.env import env_vars
 from extensions import executor, db, scheduler
 from extensions import redis_client
-from strategy.task import generate_strategy_task
 
 
 def create_app():
@@ -32,8 +31,4 @@ def create_app():
 
     return app
 
-
-def load_start_job():
-    scheduler.add_job("generate_strategy_task", generate_strategy_task, trigger="cron", hour=21, minute=0)
-    scheduler.start()
 

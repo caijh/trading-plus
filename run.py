@@ -3,9 +3,10 @@ import os
 import threading
 from threading import Lock
 
-from app import create_app, load_start_job
-from extensions import db
+from app import create_app
+from extensions import db, scheduler
 from registry.service_registry import register_service_with_consul, deregister_service_with_consul
+from strategy.task import generate_strategy_task
 
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 
@@ -24,6 +25,17 @@ def handle_at_exit(lock):
         exit_handled = True  # 设置标志位
         print("Exiting...")
         deregister_service_with_consul()
+
+
+def run_generate_strategy():
+    """Wrapper function to ensure app context is available"""
+    with app.app_context():
+        generate_strategy_task()
+
+
+def load_start_job():
+    scheduler.add_job("generate_strategy_task", run_generate_strategy, trigger="cron", hour=22, minute=0)
+    scheduler.start()
 
 
 if __name__ == '__main__':

@@ -79,11 +79,25 @@ def analyze_index():
 
 
 def analyze_index_stocks(code):
+    """
+    分析指数包含的股票，并返回具有特定模式的股票列表。
+
+    参数:
+    code (str): 指数的代码。
+
+    返回:
+    list: 包含特定模式的股票信息列表。
+    """
+    # 获取指数包含的股票数据
     data = get_index_stocks(code)
     stocks = []
+    # 遍历指数中的每只股票
     for item in data:
+        # 构建股票字典，包含股票代码和名称
         stock = {'code': item['stock_code'], 'name': item['stock_name']}
+        # 分析股票的日K线图
         analyze_stock(stock, k_type=KType.DAY)
+        # 如果股票中发现有模式，则将其添加到stocks列表中
         if len(stock['patterns']) > 0:
             stocks.append(stock)
 

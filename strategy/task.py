@@ -20,7 +20,7 @@ def generate_strategy_task():
             stop_loss = stock.support * 0.98
 
             # 查询是否已存在该股票的交易策略
-            existing_strategy = TradingStrategy.query.filter_by(stock_code=stock.stock_code).first()
+            existing_strategy = TradingStrategy.query.filter_by(stock_code=stock.code).first()
 
             if existing_strategy:
                 # **更新已有策略**
@@ -28,17 +28,17 @@ def generate_strategy_task():
                 existing_strategy.sell_price = sell_price
                 existing_strategy.stop_loss = stop_loss
                 existing_strategy.updated_at = datetime.now()
-                print(f"🔄 更新策略：{stock.stock_code}")
+                print(f"🔄 更新策略：{stock.code}")
             else:
                 # **插入新策略**
                 new_strategy = TradingStrategy(
-                    stock_code=stock.stock_code,
+                    stock_code=stock.code,
                     buy_price=buy_price,
                     sell_price=sell_price,
                     stop_loss=stop_loss
                 )
                 db.session.add(new_strategy)
-                print(f"✅ 插入新策略：{stock.stock_code}")
+                print(f"✅ 插入新策略：{stock.code}")
 
         db.session.commit()
     print("🚀 交易策略同步完成！")
