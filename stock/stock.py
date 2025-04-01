@@ -5,9 +5,9 @@ import talib
 
 from dataset.dataset import create_dataframe
 from environment.env import env_vars
-from .candlestick_pattern import get_candlestick_patterns
-from .ma_pattern import get_ma_patterns
-from .volume_pattern import get_volume_patterns
+from stock.indicator.candlestick import get_candlestick_patterns
+from stock.indicator.ma import get_ma_patterns
+from stock.indicator.volume import get_volume_patterns
 
 
 class KType(Enum):

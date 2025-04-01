@@ -1,7 +1,7 @@
 import pandas_ta as ta
 
 
-class CandlestickPattern:
+class Candlestick:
     name = ''
     column = ''
     label = ''
@@ -42,15 +42,15 @@ def get_candlestick_patterns():
     这些形态实例包括锤头、十字星、看涨吞没、刺透和上升窗口等形态。
     """
     return [
-        CandlestickPattern('hammer', '锤子线', 'CDL_HAMMER'),
-        CandlestickPattern('invertedhammer', '倒锤子线', 'CDL_INVERTEDHAMMER'),
-        CandlestickPattern('morningdojistar', '十字晨星', 'CDL_MORNINGDOJISTAR'),
-        CandlestickPattern('morningstar', '晨星', 'CDL_MORNINGSTAR'),
-        CandlestickPattern('piercing', '刺透形态', 'CDL_PIERCING'),
-        CandlestickPattern('takuri', '探水杆', 'CDL_TAKURI'),
-        CandlestickPattern('engulfing', '看涨吞没', 'CDL_ENGULFING'),
-        CandlestickPattern('3whitesoldiers', '三白兵', 'CDL_3WHITESOLDIERS'),
-        CandlestickPattern('harami', '孕线', 'CDL_HARAMI'),
-        CandlestickPattern('haramicross', '十字孕线', 'CDL_HARAMICROSS'),
-        CandlestickPattern('breakaway', '突破形态', 'CDL_BREAKAWAY'),
+        Candlestick('hammer', '锤子线', 'CDL_HAMMER'),
+        Candlestick('invertedhammer', '倒锤子线', 'CDL_INVERTEDHAMMER'),
+        Candlestick('morningdojistar', '十字晨星', 'CDL_MORNINGDOJISTAR'),
+        Candlestick('morningstar', '晨星', 'CDL_MORNINGSTAR'),
+        Candlestick('piercing', '刺透形态', 'CDL_PIERCING'),
+        Candlestick('takuri', '探水杆', 'CDL_TAKURI'),
+        Candlestick('engulfing', '看涨吞没', 'CDL_ENGULFING'),
+        Candlestick('3whitesoldiers', '三白兵', 'CDL_3WHITESOLDIERS'),
+        Candlestick('harami', '孕线', 'CDL_HARAMI'),
+        Candlestick('haramicross', '十字孕线', 'CDL_HARAMICROSS'),
+        Candlestick('breakaway', '突破形态', 'CDL_BREAKAWAY'),
     ]
