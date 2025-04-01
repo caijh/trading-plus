@@ -1,7 +1,7 @@
 import pandas_ta as ta
 
 
-class VolumePattern:
+class VOL:
     ma = 20
     label = ''
 
@@ -39,10 +39,10 @@ class VolumePattern:
         # 判断当前收盘价是否高于前一个交易日的收盘价
         if price['close'] > pre_price['close']:
             # 上涨，返回当前成交量大于上一日成交量且大于均线值
-            return price['volume'] > pre_price['volume'] > (ma_volume * 1.1)
+            return price['volume'] >= pre_price['volume'] > (ma_volume * 1.1)
         else:
             # 下跌，返回当前成交量是否小于上一日成交量且小于均线值
-            return price['volume'] < pre_price['volume'] < (ma_volume * 0.9)
+            return price['volume'] <= pre_price['volume'] < (ma_volume * 0.9)
 
 
 class OBV:
@@ -136,4 +136,4 @@ def get_volume_patterns():
     Returns:
         list: 包含一个成交量模式对象的列表。
     """
-    return [VolumePattern(20), OBV(), ADOSC()]
+    return [VOL(20), OBV(), ADOSC()]
