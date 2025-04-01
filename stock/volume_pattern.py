@@ -127,7 +127,7 @@ class ADOSC:
         # 如果A/D线上升的同时，价格在下降，二者产生背离，说明价格的下降趋势减弱，有可能反转回升
         print(
             f'Stock {stock["code"]}: latest_adosc={latest_adosc}, pre_adosc={pre_adosc}, close_price={close_price}, pre_close_price={pre_close_price}')
-        return latest_adosc > pre_adosc
+        return latest_adosc > 0 and latest_adosc > pre_adosc
 
 def get_volume_patterns():
     """
