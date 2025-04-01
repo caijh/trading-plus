@@ -90,7 +90,7 @@ class ADOSC:
     label = ''
 
     def __init__(self, ):
-        self.label = 'Chaikin A/D'
+        self.label = 'A/D Line'
 
     def match(self, stock, prices, df):
         """
