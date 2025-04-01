@@ -34,5 +34,6 @@ def create_app():
 
 
 def load_start_job():
-    scheduler.add_job("task_1", generate_strategy_task, trigger="interval", seconds=10)
+    scheduler.add_job("generate_strategy_task", generate_strategy_task, trigger="cron", hour=21, minute=0)
     scheduler.start()
+
