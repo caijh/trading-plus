@@ -1,5 +1,7 @@
 from flask_executor import Executor
 from flask_redis import FlaskRedis
+from flask_sqlalchemy import SQLAlchemy
 
-redis_client = FlaskRedis()
 executor = Executor()
+db = SQLAlchemy()
+redis_client = FlaskRedis()

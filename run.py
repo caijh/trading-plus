@@ -3,6 +3,7 @@ import os
 from threading import Lock
 
 from app import create_app
+from extensions import db
 from registry.service_registry import register_service_with_consul, deregister_service_with_consul
 
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
@@ -27,9 +28,13 @@ def handle_at_exit(lock):
 if __name__ == '__main__':
     try:
         app = create_app()
+
+        with app.app_context():
+            db.create_all()
+        # 注册服务实例
         register_service_with_consul()
         # 注册退出处理函数
         atexit.register(handle_at_exit, g_lock)
         app.run(host='0.0.0.0', port=5000)
     except Exception as e:
-        print(f"Failed to start App: {e}")
+        print(f"Start App failed: {e}")
