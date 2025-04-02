@@ -6,10 +6,10 @@ WORKDIR /app
 COPY requirements.txt .
 # Install the dependencies specified in the requirements file
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install pip install TA-Lib
 # Copy the rest of the application code into the container
 COPY . .
 
-RUN pip install lib/ta_lib-0.6.3-cp311-cp311-win_amd64.whl
 
 # Set the environment variable to tell Flask to run in production
 ENV FLASK_ENV=production
