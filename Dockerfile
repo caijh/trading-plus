@@ -11,7 +11,7 @@ WORKDIR /ta-lib-0.6.3
 RUN ./configure
 RUN make
 RUN make install
-RUN pip install --no-cache-dir TA-Lib
+RUN pip install --no-cache-dir TA-Lib=0.6.3
 
 # Set the working directory in the container
 WORKDIR /app
