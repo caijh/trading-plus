@@ -79,6 +79,78 @@ class BIAS:
         return latest_bias < 0 and latest_bias < self.bias
 
 
+class MACD:
+    label = ''
+
+    def __init__(self):
+        self.label = 'MACD'
+
+    def match(self, stock, prices, df):
+        macd_df = ta.macd(df['close'])
+
+        # 重命名列
+        macd_df.rename(columns={'MACD_12_26_9': 'MACD', 'MACDs_12_26_9': 'Signal', 'MACDh_12_26_9': 'Histogram'},
+                       inplace=True)
+
+        # 识别交易信号
+        macd_df['Buy_Signal'] = (macd_df['MACD'].shift(1) < macd_df['Signal'].shift(1)) & (
+                macd_df['MACD'] > macd_df['Signal'])  # 金叉
+        recent_signals = macd_df.tail(5)
+        macd_buy_signal = recent_signals['Buy_Signal'].any()
+        print(f'{stock["code"]} MACD 是否金叉 = {macd_buy_signal}')
+        return macd_buy_signal
+
+
+class KDJ:
+    label = ''
+
+    def __init__(self):
+        self.label = 'KDJ'
+
+    def match(self, stock, prices, df):
+        # 计算 KDJ 指标
+        kdj_df = df.ta.stoch(high='high', low='low', close='close', k=9, d=3, smooth_d=3)
+
+        # 重命名列
+        kdj_df.rename(columns={'STOCHk_9_3_3': 'K', 'STOCHd_9_3_3': 'D'}, inplace=True)
+
+        # 识别交易信号（K 线上穿 D 线，并且 K < 20）
+        kdj_df['Buy_Signal'] = (kdj_df['K'].shift(1) < kdj_df['D'].shift(1)) & (kdj_df['K'] > kdj_df['D']) & (
+                kdj_df['K'] < 20)
+
+        # 取最近 5 天数据
+        recent_signals = kdj_df.tail(5)
+
+        # 判断是否有买入信号
+        kdj_buy_signal = recent_signals['Buy_Signal'].any()
+
+        print(f'{stock["code"]} KDJ 是否金叉（K < 20）= {kdj_buy_signal}')
+        return kdj_buy_signal
+
+
+class RSI:
+    label = ''
+
+    def __init__(self):
+        self.label = 'RSI'
+
+    def match(self, stock, prices, df):
+        # 计算 RSI 指标
+        rsi_df = ta.rsi(df['close'], length=14)
+
+        # 识别买入信号（RSI < 30 且 RSI 开始上升）
+        rsi_df['Buy_Signal'] = (rsi_df['RSI'].shift(1) < 30) & (rsi_df['RSI'] > rsi_df['RSI'].shift(1))
+
+        # 取最近 5 天数据
+        recent_signals = rsi_df.tail(5)
+
+        # 判断是否有买入信号
+        rsi_buy_signal = recent_signals['Buy_Signal'].any()
+
+        print(f'{stock["code"]} RSI 是否低于30并反弹 = {rsi_buy_signal}')
+        return rsi_buy_signal
+
+
 def get_ma_patterns():
     """
     创建并返回一个包含常用均线和偏差率模式的列表。
@@ -87,5 +159,5 @@ def get_ma_patterns():
     以及一个特定参数的偏差率模式。这些模式用于在金融数据分析中计算和应用各种移动平均线和偏差率指标。
     """
     # 初始化均线和偏差率模式列表
-    ma_patterns = [MA(10), MA(20), MA(60), MA(120), MA(200), BIAS(25, -0.10)]
+    ma_patterns = [MA(10), MA(20), MA(60), MA(120), MA(200), BIAS(20, -0.10), MACD(), KDJ()]
     return ma_patterns
