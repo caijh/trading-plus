@@ -31,8 +31,11 @@ class MA:
         ma_price = round(ma.iloc[-1], 3)  # 取最后一行
         pre_ma_price = round(ma.iloc[-2], 3)
 
+        # 使用Technical Analysis库计算收盘价的5日指数移动平均(EMA)
         ema = ta.ema(df['close'], 5)
+        # 获取最新的EMA值
         latest_ema = ema.iloc[-1]
+        # 获取次新的EMA值
         pre_latest_ema = ema.iloc[-2]
 
         # 打印计算结果，用于调试和日志记录

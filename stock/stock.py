@@ -75,6 +75,7 @@ def analyze_stock(stock, k_type=KType.DAY):
     stock['predict_price'] = None
     prices = get_stock_price(code, k_type)
     if not prices:
+        print(f'No prices get for  stock {code}')
         return stock
     else:
         print(f'Analyzing Stock, code = {code}, name = {name}')

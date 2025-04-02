@@ -51,6 +51,7 @@ def get_index_stocks(code):
         # 如果没有错误，返回指数成分股数据
         return data['data']
     else:
+        print(data)
         # 如果有错误，返回空列表
         return []
 
