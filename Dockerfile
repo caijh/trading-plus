@@ -6,7 +6,7 @@ WORKDIR /app
 COPY requirements.txt .
 # Install the dependencies specified in the requirements file
 RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install pip install TA-Lib
+RUN pip install TA-Lib
 # Copy the rest of the application code into the container
 COPY . .
 
