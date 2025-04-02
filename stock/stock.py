@@ -136,7 +136,7 @@ def cal_support_resistance(stock, df):
 
     参数:
     - stock: 包含股票信息的字典，至少需要包含股票代码。
-    - df: 包含股票历史数据的DataFrame，至少需要包含'high', 'low', 'close'列。
+    - df: 包含股票历史数据的DataFrame，至少需要包含high, low, close列。
 
     返回:
     - s: 支撑位，计算结果四舍五入到两位小数。
@@ -157,8 +157,10 @@ def cal_support_resistance(stock, df):
     latest_data = df.iloc[-1][['Pivot', 'R1', 'R2', 'S1', 'S2', 'Fractal_Low', 'Fractal_High']]
 
     # 计算最终的支撑位和阻力位
-    s = round((latest_data['S1'] + latest_data['S2'] + latest_data['Fractal_Low']) / 3, 2)
-    r = round((latest_data['R1'] + latest_data['R2'] + latest_data['Fractal_High']) / 3, 2)
+    # s = round((latest_data['S1'] + latest_data['S2'] + latest_data['Fractal_Low']) / 3, 2)
+    s = round((latest_data['S1'] + latest_data['S2']) / 2, 2)
+    # r = round((latest_data['R1'] + latest_data['R2'] + latest_data['Fractal_High']) / 3, 2)
+    r = round((latest_data['R1'] + latest_data['R2']) / 2, 2)
 
     # 打印计算结果
     print(f'Stock {stock["code"]} calculate Support = {s}, Resistance = {r}')
