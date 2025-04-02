@@ -42,6 +42,7 @@ class MA:
         print(
             f'Cal {stock["code"]} MA{self.ma}, price = {price["close"]}, ma_price = {ma_price}, pre_ma_price = {pre_ma_price}, latest_ema = {latest_ema}, pre_latest_ema = {pre_latest_ema}')
 
+        # 返回最新EMA值高于MA价格且前一EMA值低于前一MA价格的情况
         return (latest_ema > ma_price) and (pre_latest_ema < pre_ma_price)
 
 
