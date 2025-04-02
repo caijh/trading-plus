@@ -3,7 +3,7 @@ FROM python:3.11.11-slim
 
 RUN apt-get update
 RUN apt-get install -y build-essential
-#RUN apt-get install -y wget
+RUN apt-get install -y wget
 
 RUN wget https://github.com/ta-lib/ta-lib/releases/download/v0.6.3/ta-lib-0.6.3-src.tar.gz
 RUN tar -xvf ta-lib-0.6.3-src.tar.gz
