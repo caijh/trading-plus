@@ -5,7 +5,7 @@ import talib
 
 from dataset.dataset import create_dataframe
 from environment.env import env_vars
-from stock.indicator.candlestick import get_candlestick_patterns
+from stock.indicator.candlestick import get_bullish_candlestick_patterns
 from stock.indicator.ma import get_ma_patterns
 from stock.indicator.volume import get_volume_patterns
 
@@ -79,7 +79,7 @@ def analyze_stock(stock, k_type=KType.DAY):
         return stock
     else:
         print(f'Analyzing Stock, code = {code}, name = {name}')
-        candlestick_patterns = get_candlestick_patterns()
+        candlestick_patterns = get_bullish_candlestick_patterns()
         ma_patterns = get_ma_patterns()
         volume_patterns = get_volume_patterns()
         matched_candlestick_patterns = []
