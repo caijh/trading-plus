@@ -22,6 +22,10 @@ RUN apt-get update && \
     apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/* /ta-lib-0.6.3*
 
+# Copy the rest of the application code into the container
+COPY . .
+
+
 # Use a smaller base image for the final runtime
 FROM python:3.11.11-alpine
 
