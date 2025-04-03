@@ -72,9 +72,7 @@ def analyze_index():
     for index in data:
         # 分析每个指数的日K线图模式
         stock = analyze_stock(index, k_type=KType.DAY)
-        # 如果存在模式，则将该指数添加到有效指数列表中
-        if len(stock['patterns']) > 0:
-            indexes.append(index)
+        indexes.append(stock)
 
     return indexes
 
