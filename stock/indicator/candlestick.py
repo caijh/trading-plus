@@ -36,7 +36,7 @@ class Candlestick:
             pattern = recent_df[recent_df[self.column] < 0]
         # 如果存在匹配的K线形态，则返回True，否则返回False
         result = not pattern.empty
-        print(f"{stock['code']} {'看跌' if self.signal != 1 else '看涨'}形态 {self.name} 是否出现: {result}")
+        print(f"{stock['code']} {'看跌' if self.signal != 1 else '看涨'}形态-{self.label} 是否出现: {result}")
         return result
 
 

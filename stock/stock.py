@@ -107,7 +107,7 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1):
                     matched_volume_patterns.append(volume_pattern.label)
 
         if (len(matched_candlestick_patterns) != 0
-                and len(matched_ma_patterns) != 0 and len(matched_volume_patterns) != 0):
+                and len(matched_ma_patterns) > 1 and len(matched_volume_patterns) != 0):
             for matched_candlestick_pattern in matched_candlestick_patterns:
                 stock['patterns'].append(matched_candlestick_pattern)
             for matched_ma_pattern in matched_ma_patterns:
