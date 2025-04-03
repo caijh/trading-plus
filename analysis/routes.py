@@ -1,9 +1,11 @@
 from flask import jsonify, request, Blueprint
 
 from analysis.model import AnalyzedStock
+from analysis.service import write_db
 from extensions import executor, db
-from index.index import analyze_index, analyze_index_stocks
-from stock.stock import get_stock, analyze_stock
+from fund.service import analyze_funds
+from index.service import analyze_index, analyze_index_stocks
+from stock.service import get_stock, analyze_stock
 
 analysis = Blueprint('analysis', __name__, url_prefix='/analysis')
 
@@ -53,13 +55,13 @@ def analysis_index():
     return jsonify({'message': 'Job running'}), 200
 
 
-def analysis_index_task(code):
+def analysis_index_task(index):
     # 调用analyze_index_stocks函数获取指数成分股信息
-    stocks = analyze_index_stocks(code)
+    stocks = analyze_index_stocks(index)
 
     # 把分析过股票插入数据中，根据code删除原有的，再插入AnalyzedStock对应的表中
     with db.session.begin():
-        db.session.query(AnalyzedStock).filter_by(code=code).delete()
+        db.session.query(AnalyzedStock).filter_by(code=index).delete()
 
         for stock in stocks:
             new_stock = AnalyzedStock(
@@ -71,7 +73,12 @@ def analysis_index_task(code):
             )
             db.session.add(new_stock)
 
+        db.session.commit()
+
+    print("analysis_index_task done!!!")
+
     return stocks
+
 
 @analysis.route('/stock', methods=['GET'])
 def analysis_stock():
@@ -102,3 +109,41 @@ def analysis_stock():
     analyze_stock(stock)
     # 返回分析后的股票信息
     return jsonify(stock), 200
+
+
+def analysis_funds_task(exchange):
+    """
+    分析基金任务
+
+    该函数负责调用分析基金的函数，并将分析结果写入数据库
+
+    参数:
+    exchange (str): 交易所名称，用于指定要分析的市场
+
+    返回:
+    stocks (list): 分析后的股票列表
+    """
+    stocks = analyze_funds(exchange)
+
+    # 将分析后的股票列表写入数据库
+    write_db(stocks)
+
+    print("analysis_funds_task Done.")
+
+    # 返回分析后的股票列表
+    return stocks
+
+
+@analysis.route('/funds', methods=['GET'])
+def analysis_funds():
+    # 从请求参数中获取股票指数代码
+    exchange = request.args.get('exchange')
+    # 检查是否提供了code参数
+    if exchange is None:
+        # 如果没有提供code参数，返回错误信息和400状态码
+        return jsonify({'message': 'Param exchange is required'}), 400
+
+    executor.submit(analysis_funds_task, exchange)
+
+    # 返回任务id和200状态码
+    return jsonify({'message': 'Job running'}), 200

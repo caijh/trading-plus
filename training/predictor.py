@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 from Lib import os
 from keras.src.saving import load_model
 
-from dataset.dataset import load_and_preprocess_data, create_dataset
+from dataset.service import load_and_preprocess_data, create_dataset
 from training.train_model import train_model, Attention
 
 

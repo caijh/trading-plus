@@ -3,7 +3,7 @@ from enum import Enum
 import requests
 import talib
 
-from dataset.dataset import create_dataframe
+from dataset.service import create_dataframe
 from environment.env import env_vars
 from stock.indicator.candlestick import get_bullish_candlestick_patterns, get_bearish_candlestick_patterns
 from stock.indicator.ma import get_up_ma_patterns, get_down_ma_patterns
