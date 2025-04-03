@@ -29,4 +29,4 @@ ENV FLASK_ENV=production
 # Expose the port on which the Flask app will run
 EXPOSE 5000
 # Command to run the Flask application
-CMD ["flask", "run", "--host=0.0.0.0"]
+CMD ["python", "run.py"]
