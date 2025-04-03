@@ -32,7 +32,6 @@ class MA:
 
         # 计算指定周期的简单移动平均线
         ma = ta.sma(df['close'], self.ma)
-        print(ma)
         # 获取最新和前一均线价格，用于比较
         ma_price = round(ma.iloc[-1], 3)  # 取最后一行
         pre_ma_price = round(ma.iloc[-2], 3)
