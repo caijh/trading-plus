@@ -29,14 +29,19 @@ def get_stock(code):
     """
     # 构造请求URL，包含股票代码
     url = f'{env_vars.TRADING_DATA_URL}/stock?code={code}'
-    # 发送GET请求并解析响应内容为JSON格式
-    data = requests.get(url).json()
-    # 检查响应状态码是否为0，表示请求成功
-    if data['code'] == 0:
-        # 提取并返回股票数据
-        stock = data['data']
-        return stock
-    # 如果请求失败，返回None
+    # 尝试最多3次请求
+    for attempt in range(3):
+        try:
+            # 发送GET请求并解析响应内容为JSON格式
+            data = requests.get(url).json()
+            # 检查响应状态码是否为0，表示请求成功
+            if data['code'] == 0:
+                # 提取并返回股票数据
+                stock = data['data']
+                return stock
+        except requests.RequestException as e:
+            print(f'Request failed: {e}. Retrying... {attempt + 1}')
+    # 如果所有尝试都失败，返回None
     return None
 
 
@@ -55,14 +60,20 @@ def get_stock_price(code, k_type=KType.DAY):
     if k_type == KType.DAY:
         url = f'{env_vars.TRADING_DATA_URL}/stock/price/daily?code={code}'
         print(f'Get stock price from {url} , code = {code}, k_type = {k_type}')
-        data = requests.get(url).json()
-        # 根据返回的数据检查状态码，如果为0表示请求成功，返回数据
-        if data['code'] == 0:
-            return data['data']
-        else:
-            print(data)
-            # 如果请求失败，返回空列表
-            return []
+        for attempt in range(3):
+            try:
+                data = requests.get(url).json()
+                # 根据返回的数据检查状态码，如果为0表示请求成功，返回数据
+                if data['code'] == 0:
+                    return data['data']
+                else:
+                    print(data)
+                    # 如果请求失败，返回空列表
+                    return []
+            except requests.RequestException as e:
+                print(f'Request failed: {e}. Retrying...')
+        # 如果所有尝试都失败，返回空列表
+        return []
     # 如果k_type不是DAY，直接返回空列表，表示不支持的k_type
     return []
 
