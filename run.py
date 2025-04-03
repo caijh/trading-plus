@@ -6,7 +6,7 @@ from threading import Lock
 from app import create_app
 from extensions import db, scheduler
 from registry.service_registry import register_service_with_consul, deregister_service_with_consul
-from strategy.task import generate_strategy_task
+from strategy.task import generate_strategy_task, check_strategy_reverse_task
 
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 
@@ -31,6 +31,7 @@ def run_generate_strategy():
     """Wrapper function to ensure app context is available"""
     with app.app_context():
         generate_strategy_task()
+        check_strategy_reverse_task()
 
 
 def load_start_job():
