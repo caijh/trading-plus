@@ -4,8 +4,7 @@ FROM python:3.11.11-slim AS builder
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy the requirements file into the container
-COPY requirements.txt .
+COPY . .
 
 # Install the dependencies specified in the requirements file
 RUN apt-get update && \
@@ -21,19 +20,6 @@ RUN apt-get update && \
     apt-get purge -y build-essential wget && \
     apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/* /ta-lib-0.6.3*
-
-# Copy the rest of the application code into the container
-COPY . .
-
-
-# Use a smaller base image for the final runtime
-FROM python:3.11.11-alpine
-
-# Set the working directory in the container
-WORKDIR /app
-
-# Copy the built artifacts from the builder stage
-COPY --from=builder /app /app
 
 # Set the environment variable to tell Flask to run in production
 ENV FLASK_ENV=production
