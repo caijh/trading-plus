@@ -1,6 +1,6 @@
 import consul
 
-from environment.env import env_vars
+from environment.service import env_vars
 
 # Consul 客户端和服务信息
 consul_client = None

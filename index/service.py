@@ -1,6 +1,6 @@
 import requests
 
-from environment.env import env_vars
+from environment.service import env_vars
 from stock.service import analyze_stock, KType
 
 

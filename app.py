@@ -2,7 +2,7 @@ from flask import Flask, json
 
 from actuator import create_blueprint as actuator_blueprint
 from analysis import create_blueprint as analysis_blueprint
-from environment.env import env_vars
+from environment.service import env_vars
 from extensions import executor, db, scheduler
 from extensions import redis_client
 
