@@ -166,7 +166,6 @@ class RSI:
         rsi_df = ta.rsi(df['close'], length=14, signal_indicators=True)
         # 重命名列
         rsi_df.rename(columns={'RSI_14': 'RSI'}, inplace=True)
-        print(rsi_df['RSI'])
         if self.signal == 1:
             # 识别 RSI 低于 30 且反弹（买入信号）
             rsi_df['Signal'] = (rsi_df['RSI'].shift(1) < 30) & (rsi_df['RSI'] > rsi_df['RSI'].shift(1))
