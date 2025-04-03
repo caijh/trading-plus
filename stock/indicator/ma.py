@@ -4,9 +4,11 @@ import pandas_ta as ta
 class MA:
     ma = 5
     label = ''
+    signal = 1
 
-    def __init__(self, ma):
+    def __init__(self, ma, signal):
         self.ma = ma
+        self.signal = signal
         self.label = f'MA{self.ma}'
 
     def match(self, stock, prices, df):
@@ -40,18 +42,23 @@ class MA:
 
         # 打印计算结果，用于调试和日志记录
         print(
-            f'Cal {stock["code"]} MA{self.ma}, price = {price["close"]}, ma_price = {ma_price}, pre_ma_price = {pre_ma_price}, latest_ema = {latest_ema}, pre_latest_ema = {pre_latest_ema}')
+            f'{stock["code"]} MA{self.ma}, price = {price["close"]}, ma_price = {ma_price}, pre_ma_price = {pre_ma_price}, latest_ema = {latest_ema}, pre_latest_ema = {pre_latest_ema}')
 
-        # 返回最新EMA值高于MA价格且前一EMA值低于前一MA价格的情况
-        return (latest_ema > ma_price) and (pre_latest_ema < pre_ma_price)
+        if self.signal == 1:
+            # 返回最新EMA值高于MA价格且前一EMA值低于前一MA价格的情况
+            return (latest_ema > ma_price) and (pre_latest_ema < pre_ma_price)
+        else:
+            return (latest_ema < ma_price) and (pre_latest_ema > pre_ma_price)
 
 
 class BIAS:
     ma = 5
     bias = -0.15
     label = ''
+    signal = 1
 
-    def __init__(self, ma, bias):
+    def __init__(self, ma, bias, signal):
+        self.signal = signal
         self.ma = ma
         self.bias = bias
         self.label = f'Bias{self.ma}'
@@ -76,13 +83,17 @@ class BIAS:
         latest_bias = bias.iloc[-1]
         print(f'Stock {stock["code"]} 偏差率值为{latest_bias}, 期望值为{self.bias}')
         # 判断最新偏差率是否满足买入条件
-        return latest_bias < 0 and latest_bias < self.bias
+        if self.signal == 1:
+            return latest_bias < 0 and latest_bias < self.bias
+        else:
+            return latest_bias > 0 and latest_bias > self.bias
 
 
 class MACD:
     label = ''
+    signal = 1
 
-    def __init__(self):
+    def __init__(self, signal):
         self.label = 'MACD'
 
     def match(self, stock, prices, df):
@@ -93,18 +104,27 @@ class MACD:
                        inplace=True)
 
         # 识别交易信号
-        macd_df['Buy_Signal'] = (macd_df['MACD'].shift(1) < macd_df['Signal'].shift(1)) & (
-                macd_df['MACD'] > macd_df['Signal'])  # 金叉
-        recent_signals = macd_df.tail(5)
-        macd_buy_signal = recent_signals['Buy_Signal'].any()
-        print(f'{stock["code"]} MACD 是否金叉 = {macd_buy_signal}')
-        return macd_buy_signal
+        if self.signal == 1:
+            macd_df['Buy_Signal'] = (macd_df['MACD'].shift(1) < macd_df['Signal'].shift(1)) & (
+                    macd_df['MACD'] > macd_df['Signal'])  # 金叉
+            recent_signals = macd_df.tail(5)
+            macd_buy_signal = recent_signals['Buy_Signal'].any()
+            print(f'{stock["code"]} MACD 是否金叉 = {macd_buy_signal}')
+            return macd_buy_signal
+        else:
+            macd_df['Sell_Signal'] = (macd_df['MACD'].shift(1) > macd_df['Signal'].shift(1)) & (
+                    macd_df['MACD'] < macd_df['Signal'])  # 死叉
+            recent_signals = macd_df.tail(5)
+            macd_sell_signal = recent_signals['Sell_Signal'].any()
+            print(f'{stock["code"]} MACD 是否死叉 = {macd_sell_signal}')
 
 
 class KDJ:
     label = ''
+    signal = 1
 
-    def __init__(self):
+    def __init__(self, signal):
+        self.signal = signal
         self.label = 'KDJ'
 
     def match(self, stock, prices, df):
@@ -114,44 +134,60 @@ class KDJ:
         # 重命名列
         kdj_df.rename(columns={'STOCHk_9_3_3': 'K', 'STOCHd_9_3_3': 'D'}, inplace=True)
 
-        # 识别交易信号（K 线上穿 D 线，并且 K < 20）
-        kdj_df['Buy_Signal'] = (kdj_df['K'].shift(1) < kdj_df['D'].shift(1)) & (kdj_df['K'] > kdj_df['D']) & (
-                kdj_df['K'] < 20)
+        if self.signal == 1:
+            # 识别 KDJ 金叉（K 上穿 D，且 K < 20）
+            kdj_df['Signal'] = (kdj_df['K'].shift(1) < kdj_df['D'].shift(1)) & (kdj_df['K'] > kdj_df['D']) & (
+                    kdj_df['K'] < 20)
+        elif self.signal == -1:
+            # 识别 KDJ 死叉（K 下穿 D，且 K > 80）
+            kdj_df['Signal'] = (kdj_df['K'].shift(1) > kdj_df['D'].shift(1)) & (kdj_df['K'] < kdj_df['D']) & (
+                    kdj_df['K'] > 80)
+        else:
+            raise ValueError("signal 参数只能是 1（金叉）或 -1（死叉）")
 
         # 取最近 5 天数据
         recent_signals = kdj_df.tail(5)
 
-        # 判断是否有买入信号
-        kdj_buy_signal = recent_signals['Buy_Signal'].any()
+        # 判断是否有交易信号
+        kdj_signal = recent_signals['Signal'].any()
 
-        print(f'{stock["code"]} KDJ 是否金叉（K < 20）= {kdj_buy_signal}')
-        return kdj_buy_signal
+        action = "金叉 (买入)" if self.signal == 1 else "死叉 (卖出)"
+        print(f'{stock["code"]} KDJ 是否 {action} = {kdj_signal}')
+        return kdj_signal
 
 
 class RSI:
-    label = ''
-
-    def __init__(self):
+    def __init__(self, signal=1):
+        self.signal = signal
         self.label = 'RSI'
 
     def match(self, stock, prices, df):
         # 计算 RSI 指标
-        rsi_df = ta.rsi(df['close'], length=14)
-
-        # 识别买入信号（RSI < 30 且 RSI 开始上升）
-        rsi_df['Buy_Signal'] = (rsi_df['RSI'].shift(1) < 30) & (rsi_df['RSI'] > rsi_df['RSI'].shift(1))
+        rsi_df = ta.rsi(df['close'], length=14, signal_indicators=True)
+        # 重命名列
+        rsi_df.rename(columns={'RSI_14': 'RSI'}, inplace=True)
+        print(rsi_df['RSI'])
+        if self.signal == 1:
+            # 识别 RSI 低于 30 且反弹（买入信号）
+            rsi_df['Signal'] = (rsi_df['RSI'].shift(1) < 30) & (rsi_df['RSI'] > rsi_df['RSI'].shift(1))
+        elif self.signal == -1:
+            # 识别 RSI 高于 70 且下跌（卖出信号）
+            rsi_df['Signal'] = (rsi_df['RSI'].shift(1) > 70) & (rsi_df['RSI'] < rsi_df['RSI'].shift(1))
+        else:
+            raise ValueError("signal 参数只能是 1（买入）或 -1（卖出）")
 
         # 取最近 5 天数据
         recent_signals = rsi_df.tail(5)
 
-        # 判断是否有买入信号
-        rsi_buy_signal = recent_signals['Buy_Signal'].any()
+        # 判断是否有交易信号
+        rsi_signal = recent_signals['Signal'].any()
 
-        print(f'{stock["code"]} RSI 是否低于30并反弹 = {rsi_buy_signal}')
-        return rsi_buy_signal
+        action = "买入" if self.signal == 1 else "卖出"
+        print(f'{stock["code"]} RSI 是否 {action} = {rsi_signal}')
+        return rsi_signal
 
 
-def get_ma_patterns():
+def get_up_ma_patterns():
     """
     创建并返回一个包含常用均线和偏差率模式的列表。
 
@@ -159,5 +195,18 @@ def get_ma_patterns():
     以及一个特定参数的偏差率模式。这些模式用于在金融数据分析中计算和应用各种移动平均线和偏差率指标。
     """
     # 初始化均线和偏差率模式列表
-    ma_patterns = [MA(10), MA(20), MA(60), MA(120), MA(200), BIAS(20, -0.10), MACD(), KDJ()]
+    ma_patterns = [MA(10, 1), MA(20, 1), MA(60, 1), MA(120, 1), MA(200, 1), BIAS(20, -0.10, 1), MACD(1), KDJ(1), RSI(1)]
+    return ma_patterns
+
+
+def get_down_ma_patterns():
+    """
+    创建并返回一个包含常用均线和偏差率模式的列表。
+
+    这个函数初始化了一个列表，包含了不同周期的均线（如5日、10日、20日、60日、200日均线），
+    以及一个特定参数的偏差率模式。这些模式用于在金融数据分析中计算和应用各种移动平均线和偏差率指标。
+    """
+    # 初始化均线和偏差率
+    ma_patterns = [MA(10, -1), MA(20, -1), MA(60, -1), MA(120, -1), MA(200, -1), BIAS(20, 0.10, -1), MACD(-1), KDJ(-1),
+                   RSI(-1)]
     return ma_patterns

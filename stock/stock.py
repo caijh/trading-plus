@@ -5,9 +5,9 @@ import talib
 
 from dataset.dataset import create_dataframe
 from environment.env import env_vars
-from stock.indicator.candlestick import get_bullish_candlestick_patterns
-from stock.indicator.ma import get_ma_patterns
-from stock.indicator.volume import get_volume_patterns
+from stock.indicator.candlestick import get_bullish_candlestick_patterns, get_bearish_candlestick_patterns
+from stock.indicator.ma import get_up_ma_patterns, get_down_ma_patterns
+from stock.indicator.volume import get_up_volume_patterns, get_down_volume_patterns
 
 
 class KType(Enum):
@@ -40,7 +40,6 @@ def get_stock(code):
     return None
 
 
-
 def get_stock_price(code, k_type=KType.DAY):
     """
     根据股票代码和K线类型获取股票价格数据。
@@ -68,7 +67,7 @@ def get_stock_price(code, k_type=KType.DAY):
     return []
 
 
-def analyze_stock(stock, k_type=KType.DAY):
+def analyze_stock(stock, k_type=KType.DAY, signal=1):
     code = stock['code']
     name = stock['name']
     stock['patterns'] = []
@@ -79,9 +78,15 @@ def analyze_stock(stock, k_type=KType.DAY):
         return stock
     else:
         print(f'Analyzing Stock, code = {code}, name = {name}')
-        candlestick_patterns = get_bullish_candlestick_patterns()
-        ma_patterns = get_ma_patterns()
-        volume_patterns = get_volume_patterns()
+        if signal == 1:
+            candlestick_patterns = get_bullish_candlestick_patterns()
+            ma_patterns = get_up_ma_patterns()
+            volume_patterns = get_up_volume_patterns()
+        else:
+            candlestick_patterns = get_bearish_candlestick_patterns()
+            ma_patterns = get_down_ma_patterns()
+            volume_patterns = get_down_volume_patterns()
+
         matched_candlestick_patterns = []
         matched_ma_patterns = []
         matched_volume_patterns = []
