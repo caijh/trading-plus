@@ -115,21 +115,22 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1):
             for matched_volume_pattern in matched_volume_patterns:
                 stock['patterns'].append(matched_volume_pattern)
 
-            # 计算给定股票的支持位和阻力位
-            # 参数:
-            #   stock: 包含股票数据的字典或数据框，应包括历史价格等信息
-            #   df: 用于计算支持位和阻力位的数据框，通常包含历史价格数据
-            # 返回值:
-            #   support: 计算得到的支持位价格
-            #   resistance: 计算得到的阻力位价格
-            (support, resistance) = cal_support_resistance(stock, df)
-
-            # 将计算得到的支持位和阻力位添加到股票数据中
-            stock['support'] = support
-            stock['resistance'] = resistance
-
             # predict_prices = predict_and_plot(stock, prices, 7)
             # stock['predict_price'] = round(float(predict_prices[0]), 2)
+
+        # 计算给定股票的支持位和阻力位
+        # 参数:
+        #   stock: 包含股票数据的字典或数据框，应包括历史价格等信息
+        #   df: 用于计算支持位和阻力位的数据框，通常包含历史价格数据
+        # 返回值:
+        #   support: 计算得到的支持位价格
+        #   resistance: 计算得到的阻力位价格
+        (support, resistance) = cal_support_resistance(stock, df)
+
+        # 将计算得到的支持位和阻力位添加到股票数据中
+        stock['support'] = support
+        stock['resistance'] = resistance
+
     print(
         f'Analyzing Complete code = {code}, name = {name}, patterns = {stock["patterns"]}, predict_price = {stock["predict_price"]}')
     return stock
