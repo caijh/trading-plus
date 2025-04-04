@@ -8,7 +8,7 @@ COPY . .
 
 # Install the dependencies specified in the requirements file
 RUN apt-get update && \
-    apt-get install -y build-essential && \
+    apt-get install -y build-essential git && \
     dpkg -i lib/ta-lib_0.6.3_amd64.deb && \
     pip install --no-cache-dir TA-Lib==0.6.3 -r requirements.txt && \
     apt-get autoremove -y
