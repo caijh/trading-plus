@@ -1,0 +1,8 @@
+services:
+  app:
+    image: caijunhui/trading-plus:latest
+    container_name: trading-plus
+    ports:
+      - "18086:8080"
+    env_file:
+      - .env
