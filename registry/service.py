@@ -15,7 +15,10 @@ def register_service_with_consul():
     # Consul 客户端
     consul_server = env_vars.APPLICATION_CLOUD_DISCOVERY_SERVER_ADDRESS
     consul_token = env_vars.APPLICATION_CLOUD_DISCOVERY_SERVER_TOKEN
-    consul_client = consul.Consul(host=consul_server, token=consul_token)
+    port = 8500
+    if consul_server.index('https') > -1:
+        port = 443
+    consul_client = consul.Consul(host=consul_server, port=port, token=consul_token)
 
     # 服务注册信息
     service_id = f'trading-plus@{ip_address}'
