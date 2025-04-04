@@ -1,5 +1,5 @@
 # Use the official Python image from the Docker Hub
-FROM python:3.11.11-slim AS builder
+FROM python:3.11-alpine
 
 # Set the working directory in the container
 WORKDIR /app
@@ -11,8 +11,7 @@ RUN apt-get update && \
     apt-get install -y build-essential && \
     dpkg -i lib/ta-lib_0.6.3_amd64.deb && \
     pip install --no-cache-dir TA-Lib==0.6.3 -r requirements.txt && \
-    apt-get autoremove -y && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get autoremove -y
 
 # Set the environment variable to tell Flask to run in production
 ENV FLASK_ENV=production
