@@ -24,7 +24,7 @@ def register_service_with_consul():
     # 服务注册信息
     service_id = f'trading-plus@{ip_address}'
     service_name = 'trading-plus'
-    service_port = env_vars.APPLICATION_CLOUD_DISCOVERY_HOST_PORT
+    service_port = int(env_vars.APPLICATION_CLOUD_DISCOVERY_HOST_PORT)
 
     # 注册服务
     consul_client.agent.service.register(
