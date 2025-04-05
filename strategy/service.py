@@ -35,6 +35,8 @@ def generate_strategy_task():
                 # **插入新策略**
                 new_strategy = TradingStrategy(
                     stock_code=stock.code,
+                    stock_name=stock.name,
+                    exchange=stock.exchange,
                     buy_price=buy_price,
                     sell_price=sell_price,
                     stop_loss=stop_loss,

@@ -5,6 +5,7 @@ from analysis import create_blueprint as analysis_blueprint
 from environment.service import env_vars
 from extensions import executor, db, scheduler
 from extensions import redis_client
+from strategy import create_blueprint as strategy_blueprint
 
 
 def create_app():
@@ -28,7 +29,6 @@ def create_app():
 
     app.register_blueprint(actuator_blueprint())
     app.register_blueprint(analysis_blueprint())
+    app.register_blueprint(strategy_blueprint())
 
     return app
-
-

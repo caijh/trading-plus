@@ -67,6 +67,7 @@ def analysis_index_task(index):
             new_stock = AnalyzedStock(
                 code=stock["code"],
                 name=stock["name"],
+                exchange=stock["exchange"],
                 patterns=stock.get("patterns", []),
                 support=stock.get("support"),
                 resistance=stock.get("resistance")

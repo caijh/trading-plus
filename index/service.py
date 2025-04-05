@@ -1,7 +1,7 @@
 import requests
 
 from environment.service import env_vars
-from stock.service import analyze_stock, KType
+from stock.service import analyze_stock, KType, get_stock
 
 
 def get_stock_index_list():
@@ -93,7 +93,8 @@ def analyze_index_stocks(code):
     # 遍历指数中的每只股票
     for item in data:
         # 构建股票字典，包含股票代码和名称
-        stock = {'code': item['stock_code'], 'name': item['stock_name']}
+        # 根据代码获取股票信息
+        stock = get_stock(code)
         # 分析股票的日K线图
         analyze_stock(stock, k_type=KType.DAY)
         # 如果股票中发现有模式，则将其添加到stocks列表中

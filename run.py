@@ -6,7 +6,7 @@ from threading import Lock
 from app import create_app
 from extensions import db, scheduler
 from registry.service import register_service_with_consul, deregister_service_with_consul
-from strategy.task import generate_strategy_task, check_strategy_reverse_task
+from strategy.service import generate_strategy_task, check_strategy_reverse_task
 
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 
