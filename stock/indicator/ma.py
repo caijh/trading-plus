@@ -226,7 +226,7 @@ class ROC:
         # 根据signal值确定买入或卖出操作
         action = "买入" if self.signal == 1 else "卖出"
         # 输出股票代码和是否发出交易信号
-        print(f'{stock["code"]} RSI 是否 {action} = {roc_signal}')
+        print(f'{stock["code"]} ROC 是否 {action} = {roc_signal}')
 
         # 返回是否有符合条件的交易信号
         return roc_signal
