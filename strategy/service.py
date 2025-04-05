@@ -95,3 +95,8 @@ def check_strategy_reverse_task():
     # 打印任务完成的日志信息
     print("🚀 check_strategy_reverse_task: 交易策略同步完成！")
     return None
+
+
+def run_generate_strategy():
+    generate_strategy_task()
+    check_strategy_reverse_task()

@@ -1,7 +1,7 @@
 from flask import jsonify, Blueprint
 
 from extensions import executor
-from run import run_generate_strategy
+from strategy.service import run_generate_strategy
 
 strategy = Blueprint('strategy', __name__, url_prefix='/strategy')
 

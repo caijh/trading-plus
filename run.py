@@ -1,12 +1,10 @@
 import atexit
 import os
-import threading
 from threading import Lock
 
 from app import create_app
-from extensions import db, scheduler
+from extensions import db
 from registry.service import register_service_with_consul, deregister_service_with_consul
-from strategy.service import generate_strategy_task, check_strategy_reverse_task
 
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 
@@ -27,18 +25,6 @@ def handle_at_exit(lock):
         deregister_service_with_consul()
 
 
-def run_generate_strategy():
-    """Wrapper function to ensure app context is available"""
-    with app.app_context():
-        generate_strategy_task()
-        check_strategy_reverse_task()
-
-
-def load_start_job():
-    scheduler.add_job("generate_strategy_task", run_generate_strategy, trigger="cron", hour=20, minute=0)
-    scheduler.start()
-
-
 if __name__ == '__main__':
     try:
         app = create_app()
@@ -50,7 +36,6 @@ if __name__ == '__main__':
         register_service_with_consul()
         # 注册退出处理函数
         atexit.register(handle_at_exit, g_lock)
-        threading.Thread(target=load_start_job, daemon=True).start()  # 🔥 启动后台任务
         app.run(host='0.0.0.0', port=5000)
     except Exception as e:
         print(f"Start App failed: {e}")
