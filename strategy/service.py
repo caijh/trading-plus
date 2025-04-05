@@ -46,7 +46,7 @@ def generate_strategy_task():
                 print(f"✅ 插入新策略：{stock.code}")
 
         db.session.commit()
-    print("🚀 交易策略同步完成！")
+    print("🚀 generate_strategy_task: 交易策略同步完成！")
 
 
 def check_strategy_reverse_task():
@@ -93,5 +93,5 @@ def check_strategy_reverse_task():
         db.session.commit()
 
     # 打印任务完成的日志信息
-    print("🚀 交易策略同步完成！")
+    print("🚀 check_strategy_reverse_task: 交易策略同步完成！")
     return None
