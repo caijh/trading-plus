@@ -94,7 +94,8 @@ def analyze_index_stocks(code):
     for item in data:
         # 构建股票字典，包含股票代码和名称
         # 根据代码获取股票信息
-        stock = get_stock(code)
+        stock_code = item['stock_code']
+        stock = get_stock(stock_code)
         # 分析股票的日K线图
         analyze_stock(stock, k_type=KType.DAY)
         # 如果股票中发现有模式，则将其添加到stocks列表中
