@@ -210,16 +210,14 @@ class ROC:
         """
         # 计算20日价格变动速率(ROC)
         roc_df = ta.roc(df['close'], 20)
-        # 重命名ROC列为ROC以便后续处理
-        roc_df.rename(columns={'ROC_20': 'ROC'}, inplace=True)
 
         # 根据当前signal值设定交易信号生成规则
         if self.signal == 1:
             # 买入信号：ROC从负转正
-            roc_df['Signal'] = (roc_df['ROC'].shift(1) < 0) & (roc_df['ROC'] > roc_df['ROC'].shift(1))
+            roc_df['Signal'] = (roc_df.shift(1) < 0) & (roc_df > roc_df.shift(1))
         else:
             # 卖出信号：ROC从正转负
-            roc_df['Signal'] = (roc_df['ROC'].shift(1) > 0) & (roc_df['ROC'] < roc_df['ROC'].shift(1))
+            roc_df['Signal'] = (roc_df.shift(1) > 0) & (roc_df < roc_df.shift(1))
 
         # 检查最近的五个信号中是否有符合条件的交易信号
         recent_signals = roc_df.tail(5)
@@ -326,6 +324,7 @@ class BOP:
         print(f'{stock["code"]} BOP 是否{action}信号 = {bop_signal}')
 
         return bop_signal
+
 
 def get_up_ma_patterns():
     """
