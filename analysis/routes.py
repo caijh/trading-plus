@@ -59,11 +59,12 @@ def analysis_index_task(index):
     # 调用analyze_index_stocks函数获取指数成分股信息
     stocks = analyze_index_stocks(index)
 
+    print(stocks)
+
     # 把分析过股票插入数据中，根据code删除原有的，再插入AnalyzedStock对应的表中
     with db.session.begin():
-        db.session.query(AnalyzedStock).filter_by(code=index).delete()
-
         for stock in stocks:
+            db.session.query(AnalyzedStock).filter_by(code=stock["code"]).delete()
             new_stock = AnalyzedStock(
                 code=stock["code"],
                 name=stock["name"],
