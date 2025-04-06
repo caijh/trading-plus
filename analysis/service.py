@@ -12,23 +12,22 @@ def write_db(stocks):
                    和其他分析数据如模式、支撑位和阻力位。
     """
     # 开始一个数据库会话
-    print(stocks)
+    # 把分析过股票插入数据中，根据code删除原有的，再插入AnalyzedStock对应的表中
     with db.session.begin():
-        # 遍历股票列表
         for stock in stocks:
-            # 获取股票代码
-            code = stock["code"]
-            # 删除已存在的相同代码的股票数据
-            db.session.query(AnalyzedStock).filter_by(code=code).delete()
-            # 创建新的股票数据对象
-            new_stock = AnalyzedStock(
-                code=stock["code"],
-                name=stock["name"],
-                patterns=stock.get("patterns", []),
-                support=stock.get("support"),
-                resistance=stock.get("resistance")
-            )
-            # 将新的股票数据添加到会话
-            db.session.add(new_stock)
-        # 提交会话，确保所有更改都保存到数据库中
-        db.session.commit()
+            try:
+                db.session.query(AnalyzedStock).filter_by(code=stock["code"]).delete()
+                new_stock = AnalyzedStock(
+                    code=stock["code"],
+                    name=stock["name"],
+                    exchange=stock["exchange"],
+                    patterns=stock.get("patterns", []),
+                    support=stock.get("support"),
+                    resistance=stock.get("resistance")
+                )
+                db.session.add(new_stock)
+                print(f"Add {new_stock} to AnalyzedStock")
+            except Exception as e:
+                print(f"处理 stock 出错: {stock['code']}, 错误信息: {e}")
+
+    print("analysis_index_task done!!!")

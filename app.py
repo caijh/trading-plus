@@ -15,6 +15,11 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = env_vars.SQLALCHEMY_TRACK_MODIFICATIONS
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
         "json_serializer": lambda obj: json.dumps(obj, ensure_ascii=False),
+        "pool_pre_ping": True,
+        "pool_size": 10,
+        "max_overflow": 20,
+        "pool_timeout": 30,
+        "pool_recycle": 1800,  # 每隔30分钟回收连接，避免被服务器断开
     }
     app.config['REDIS_URL'] = env_vars.get_redis_url()
     app.config["JSON_AS_ASCII"] = False
