@@ -11,4 +11,4 @@ def generate_next_check_history():
     executor.submit(run_generate_strategy)
 
     # 返回任务id和200状态码
-    return jsonify({'message': 'Job running'}), 200
+    return jsonify({'code': 0, 'message': 'Job running'}), 200

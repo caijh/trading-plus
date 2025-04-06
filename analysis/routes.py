@@ -24,7 +24,7 @@ def analysis_index_stocks():
     # 调用analyze_index函数进行指数分析
     indexes = analyze_index()
     # 将分析结果序列化为JSON，并返回200状态码表示成功
-    return jsonify(indexes), 200
+    return jsonify({'code': 0, 'data': indexes, 'msg': 'success'}), 200
 
 
 @analysis.route('/index/stock', methods=['GET'])
@@ -52,7 +52,7 @@ def analysis_index():
     future = executor.submit(analysis_index_task, code)
 
     # 返回任务id和200状态码
-    return jsonify({'message': 'Job running'}), 200
+    return jsonify({'code': 0, 'message': 'Job running'}), 200
 
 
 def analysis_index_task(index):
@@ -109,7 +109,7 @@ def analysis_stock():
     # 分析股票信息
     analyze_stock(stock)
     # 返回分析后的股票信息
-    return jsonify(stock), 200
+    return jsonify({'code': 0, 'data': stock, 'msg': 'success'}), 200
 
 
 def analysis_funds_task(exchange):
@@ -147,4 +147,4 @@ def analysis_funds():
     executor.submit(analysis_funds_task, exchange)
 
     # 返回任务id和200状态码
-    return jsonify({'message': 'Job running'}), 200
+    return jsonify({'code': 0, 'message': 'Job running'}), 200
