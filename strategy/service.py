@@ -25,6 +25,7 @@ def generate_strategy_task():
 
             if existing_strategy:
                 # **更新已有策略**
+                existing_strategy.patterns = stock.patterns
                 existing_strategy.buy_price = buy_price
                 existing_strategy.sell_price = sell_price
                 existing_strategy.stop_loss = stop_loss
@@ -37,6 +38,7 @@ def generate_strategy_task():
                     stock_code=stock.code,
                     stock_name=stock.name,
                     exchange=stock.exchange,
+                    patterns=stock.patterns,
                     buy_price=buy_price,
                     sell_price=sell_price,
                     stop_loss=stop_loss,
@@ -45,7 +47,6 @@ def generate_strategy_task():
                 db.session.add(new_strategy)
                 print(f"✅ 插入新策略：{stock.code}")
 
-        db.session.commit()
     print("🚀 generate_strategy_task: 交易策略同步完成！")
 
 

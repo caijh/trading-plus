@@ -7,6 +7,7 @@ class TradingStrategy(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)  # 主键
     stock_code = db.Column(db.String(10), nullable=False, index=True)  # 股票代码
     stock_name = db.Column(db.String(255), nullable=False)
+    patterns = db.Column(db.JSON, nullable=True)  # 存储 JSON 格式的技术指标
     exchange = db.Column(db.String(10), nullable=False)
     buy_price = db.Column(db.Float, nullable=False)  # 买入价格
     sell_price = db.Column(db.Float, nullable=True)  # 卖出价格（目标价）
