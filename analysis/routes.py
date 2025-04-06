@@ -44,7 +44,7 @@ def analysis_index():
     # 检查是否提供了code参数
     if code is None:
         # 如果没有提供code参数，返回错误信息和400状态码
-        return jsonify({'message': 'Param code is required'}), 400
+        return jsonify({'msg': 'Param code is required'}), 400
 
     # 调用analyze_index_stocks函数获取指数成分股信息
     # stocks = analyze_index_stocks(code)
@@ -52,7 +52,7 @@ def analysis_index():
     future = executor.submit(analysis_index_task, code)
 
     # 返回任务id和200状态码
-    return jsonify({'code': 0, 'message': 'Job running'}), 200
+    return jsonify({'code': 0, 'msg': 'Job running'}), 200
 
 
 def analysis_index_task(index):
@@ -98,13 +98,13 @@ def analysis_stock():
     code = request.args.get('code')
     # 检查股票代码是否提供
     if code is None:
-        return jsonify({'message': 'param code is required'}), 400
+        return jsonify({'msg': 'param code is required'}), 400
 
     # 根据代码获取股票信息
     stock = get_stock(code)
     # 检查股票信息是否找到
     if stock is None:
-        return jsonify({'message': 'stock not found'}), 404
+        return jsonify({'msg': 'stock not found'}), 404
 
     # 分析股票信息
     analyze_stock(stock)
@@ -142,9 +142,9 @@ def analysis_funds():
     # 检查是否提供了code参数
     if exchange is None:
         # 如果没有提供code参数，返回错误信息和400状态码
-        return jsonify({'message': 'Param exchange is required'}), 400
+        return jsonify({'msg': 'Param exchange is required'}), 400
 
     executor.submit(analysis_funds_task, exchange)
 
     # 返回任务id和200状态码
-    return jsonify({'code': 0, 'message': 'Job running'}), 200
+    return jsonify({'code': 0, 'msg': 'Job running'}), 200
