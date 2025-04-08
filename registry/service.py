@@ -22,9 +22,12 @@ def register_service_with_consul():
     consul_client = consul.Consul(scheme=consul_schema, host=consul_host, port=consul_port, token=consul_token)
 
     # 服务注册信息
-    service_id = f'trading-plus@{ip_address}'
     service_name = 'trading-plus'
+    service_id = f'{service_name}@{ip_address}'
     service_port = int(env_vars.APPLICATION_CLOUD_DISCOVERY_HOST_PORT)
+    service_schema = 'http'
+    if service_port == 443:
+        service_schema = 'https'
 
     # 注册服务
     consul_client.agent.service.register(
@@ -35,7 +38,7 @@ def register_service_with_consul():
         token=consul_token,
         check={
             "name": "HTTP Check",
-            "http": f"http://{ip_address}:{service_port}/actuator/health",
+            "http": f"{service_schema}://{ip_address}:{service_port}/actuator/health",
             "interval": "30s",
             "timeout": "5s"
         }
