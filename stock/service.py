@@ -105,27 +105,56 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1):
         for candlestick_pattern in candlestick_patterns:
             if candlestick_pattern.match(stock, prices, df):
                 print(f'Stock {name} Match {candlestick_pattern.label}')
-                matched_candlestick_patterns.append(candlestick_pattern.label)
+                matched_candlestick_patterns.append(candlestick_pattern)
 
+        # 如果存在匹配的K线形态模式
         if len(matched_candlestick_patterns) != 0:
+            # 初始化均线模式权重
+            ma_weight = 0
+            # 遍历所有均线模式
             for ma_pattern in ma_patterns:
+                # 如果当前均线模式与股票数据匹配
                 if ma_pattern.match(stock, prices, df):
+                    # 打印匹配信息
                     print(f'Stock {name} Match {ma_pattern.label}')
-                    matched_ma_patterns.append(ma_pattern.label)
-            for volume_pattern in volume_patterns:
-                if volume_pattern.match(stock, prices, df):
-                    print(f'Stock {name} Match {volume_pattern.label}')
-                    matched_volume_patterns.append(volume_pattern.label)
+                    # 将匹配的均线模式添加到列表中
+                    matched_ma_patterns.append(ma_pattern)
+                    # 累加当前均线模式的权重
+                    ma_weight += ma_pattern.weight
 
-        volume_limit = 1 if signal == 1 else 0
-        if (len(matched_candlestick_patterns) != 0
-                and len(matched_ma_patterns) > 1 and len(matched_volume_patterns) > volume_limit):
-            for matched_candlestick_pattern in matched_candlestick_patterns:
-                stock['patterns'].append(matched_candlestick_pattern)
-            for matched_ma_pattern in matched_ma_patterns:
-                stock['patterns'].append(matched_ma_pattern)
-            for matched_volume_pattern in matched_volume_patterns:
-                stock['patterns'].append(matched_volume_pattern)
+            # 初始化量能模式权重
+            volume_weight = 0
+            # 遍历所有量能模式
+            for volume_pattern in volume_patterns:
+                # 如果当前量能模式与股票数据匹配
+                if volume_pattern.match(stock, prices, df):
+                    # 打印匹配信息
+                    print(f'Stock {name} Match {volume_pattern.label}')
+                    # 将匹配的量能模式添加到列表中
+                    matched_volume_patterns.append(volume_pattern)
+                    # 累加当前量能模式的权重
+                    volume_weight += volume_pattern.weight
+
+            # 如果信号为1，且均线和量能的权重都大于1
+            if signal == 1:
+                if ma_weight > 1 and volume_weight > 1:
+                    # 将所有匹配的K线形态、均线和量能模式的标签添加到股票的模式列表中
+                    for matched_candlestick_pattern in matched_candlestick_patterns:
+                        stock['patterns'].append(matched_candlestick_pattern.label)
+                    for matched_ma_pattern in matched_ma_patterns:
+                        stock['patterns'].append(matched_ma_pattern.label)
+                    for matched_volume_pattern in matched_volume_patterns:
+                        stock['patterns'].append(matched_volume_pattern.label)
+            # 如果信号不为1，但均线和量能的权重都大于0
+            else:
+                if ma_weight > 0 and volume_weight > 0:
+                    # 同样将所有匹配的模式标签添加到股票的模式列表中
+                    for matched_candlestick_pattern in matched_candlestick_patterns:
+                        stock['patterns'].append(matched_candlestick_pattern.label)
+                    for matched_ma_pattern in matched_ma_patterns:
+                        stock['patterns'].append(matched_ma_pattern.label)
+                    for matched_volume_pattern in matched_volume_patterns:
+                        stock['patterns'].append(matched_volume_pattern.label)
 
             # predict_prices = predict_and_plot(stock, prices, 7)
             # stock['predict_price'] = round(float(predict_prices[0]), 2)

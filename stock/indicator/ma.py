@@ -5,6 +5,7 @@ class MA:
     ma = 5
     label = ''
     signal = 1
+    weight = 1
 
     def __init__(self, ma, signal):
         self.ma = ma
@@ -59,6 +60,7 @@ class BIAS:
     bias = -0.15
     label = ''
     signal = 1
+    weight = 1
 
     def __init__(self, ma, bias, signal):
         self.signal = signal
@@ -95,6 +97,7 @@ class BIAS:
 class MACD:
     label = ''
     signal = 1
+    weight = 1
 
     def __init__(self, signal):
         self.label = 'MACD'
@@ -125,6 +128,7 @@ class MACD:
 class KDJ:
     label = ''
     signal = 1
+    weight = 1
 
     def __init__(self, signal):
         self.signal = signal
@@ -160,6 +164,7 @@ class KDJ:
 
 
 class RSI:
+    weight = 1
     def __init__(self, signal=1):
         self.signal = signal
         self.label = 'RSI'
@@ -192,6 +197,7 @@ class RSI:
 class ROC:
     signal = 1
     label = 'ROC'
+    weight = 0
 
     def __init__(self, signal):
         self.signal = signal
@@ -234,7 +240,7 @@ class ROC:
 
 class CCI:
     signal = 1  # 1 表示买入信号，-1 表示卖出信号
-
+    weight = 0
     def __init__(self, signal):
         self.signal = signal
         self.label = "CCI"
@@ -281,7 +287,7 @@ class CCI:
 
 class BOP:
     signal = 1  # 1 表示买入信号，-1 表示卖出信号
-
+    weight = 0
     def __init__(self, signal):
         self.signal = signal
         self.label = "BOP"
@@ -334,7 +340,7 @@ def get_up_ma_patterns():
     以及一个特定参数的偏差率模式。这些模式用于在金融数据分析中计算和应用各种移动平均线和偏差率指标。
     """
     # 初始化均线和偏差率模式列表
-    ma_patterns = [MA(10, 1), MA(20, 1), MA(60, 1), MA(120, 1), MA(200, 1), BIAS(20, -0.10, 1), MACD(1), KDJ(1), RSI(1),
+    ma_patterns = [MA(10, 1), MA(20, 1), MA(60, 1), MA(200, 1), BIAS(20, -0.10, 1), MACD(1), KDJ(1), RSI(1),
                    ROC(1), CCI(1), BOP(1)]
     return ma_patterns
 
@@ -347,6 +353,6 @@ def get_down_ma_patterns():
     以及一个特定参数的偏差率模式。这些模式用于在金融数据分析中计算和应用各种移动平均线和偏差率指标。
     """
     # 初始化均线和偏差率
-    ma_patterns = [MA(10, -1), MA(20, -1), MA(60, -1), MA(120, -1), MA(200, -1), BIAS(20, 0.10, -1), MACD(-1), KDJ(-1),
+    ma_patterns = [MA(10, -1), MA(20, -1), MA(60, -1), MA(200, -1), BIAS(20, 0.10, -1), MACD(-1), KDJ(-1),
                    RSI(-1), ROC(-1), CCI(-1), BOP(-1)]
     return ma_patterns

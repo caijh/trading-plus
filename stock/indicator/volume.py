@@ -5,6 +5,7 @@ class VOL:
     ma = 20
     label = ''
     signal = 1
+    weight = 1
 
     def __init__(self, ma, signal):
         self.ma = ma
@@ -58,6 +59,7 @@ class VOL:
 class OBV:
     label = ''
     signal = 1
+    weight = 1
 
     def __init__(self, signal):
         self.signal = signal
@@ -101,6 +103,7 @@ class OBV:
 class ADOSC:
     label = ''
     signal = 1
+    weight = 1
 
     def __init__(self, signal):
         self.signal = signal
