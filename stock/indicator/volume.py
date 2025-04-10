@@ -153,6 +153,53 @@ class ADOSC:
             return latest_adosc < pre_adosc
 
 
+class VWAP:
+    label = ''
+    signal = 1
+    weight = 1
+
+    def __init__(self, signal):
+        self.signal = signal
+        self.label = 'VWAP'
+
+    def match(self, stock, prices, df):
+        """
+        使用 VWAP 判断买卖点。
+
+        参数:
+        - stock: 股票代码（字典格式）
+        - prices: 历史价格列表，包含 close, volume 等字段
+        - df: pandas DataFrame，包含 open/high/low/close/volume
+
+        返回:
+        - 是否满足买入或卖出条件（True / False）
+        """
+
+        # 确保 volume 有效
+        if df['volume'].iloc[-1] <= 0:
+            return False
+
+        # 计算 VWAP
+        df_vwap = df.ta.vwap(high='high', low='low', close='close', volume='volume')
+
+        # 获取最新价格与 VWAP 值
+        close_price = float(prices[-1]['close'])
+        pre_close_price = float(prices[-2]['close'])
+        latest_vwap = df_vwap.iloc[-1]
+        pre_vwap = df_vwap.iloc[-2]
+
+        # 输出调试信息
+        print(f'Stock {stock["code"]}: VWAP={latest_vwap:.2f}, Close={close_price:.2f}')
+
+        # 判断信号
+        if self.signal == 1:
+            # 买入信号：价格上穿 VWAP 且当前价格高于上一日 VWAP
+            return close_price > latest_vwap and pre_close_price <= pre_vwap
+        else:
+            # 卖出信号：价格下穿 VWAP 且当前价格低于上一日 VWAP
+            return close_price < latest_vwap and pre_close_price >= pre_vwap
+
+
 def get_up_volume_patterns():
     """
     获取成交量模式列表。
@@ -160,7 +207,7 @@ def get_up_volume_patterns():
     Returns:
         list: 包含一个成交量模式对象的列表。
     """
-    return [VOL(20, 1), OBV(1), ADOSC(1)]
+    return [VOL(20, 1), OBV(1), ADOSC(1), VWAP(1)]
 
 
 def get_down_volume_patterns():
@@ -170,4 +217,4 @@ def get_down_volume_patterns():
     Returns:
         list: 包含一个成交量模式对象的列表。
     """
-    return [VOL(20, -1), OBV(-1), ADOSC(-1)]
+    return [VOL(20, -1), OBV(-1), ADOSC(-1), VWAP(-1)]
