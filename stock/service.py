@@ -102,13 +102,14 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1):
         matched_ma_patterns = []
         matched_volume_patterns = []
         df = create_dataframe(prices)
+        candlestick_weight = 0
         for candlestick_pattern in candlestick_patterns:
             if candlestick_pattern.match(stock, prices, df):
                 print(f'Stock {name} Match {candlestick_pattern.label}')
+                candlestick_weight += candlestick_pattern.weight
                 matched_candlestick_patterns.append(candlestick_pattern)
-
         # 如果存在匹配的K线形态模式
-        if len(matched_candlestick_patterns) != 0:
+        if candlestick_weight > 0:
             # 初始化均线模式权重
             ma_weight = 0
             # 遍历所有均线模式
