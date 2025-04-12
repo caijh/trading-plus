@@ -6,9 +6,15 @@ WORKDIR /app
 
 COPY . .
 
+RUN apt-get update
+
+RUN apk add --no-cache tzdata \
+    && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+    && echo "Asia/Shanghai" > /etc/timezone \
+    && apk del tzdata
+
 # Install the dependencies specified in the requirements file
-RUN apt-get update && \
-    apt-get install -y build-essential git && \
+RUN apt-get install -y build-essential git && \
     dpkg -i lib/ta-lib_0.6.3_amd64.deb && \
     pip install --no-cache-dir TA-Lib==0.6.3 -r requirements.txt && \
     apt-get autoremove -y
