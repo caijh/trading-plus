@@ -108,8 +108,10 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1):
                 print(f'Stock {name} Match {candlestick_pattern.label}')
                 candlestick_weight += candlestick_pattern.weight
                 matched_candlestick_patterns.append(candlestick_pattern)
+
+        min_candlestick_weight = 1 if signal == 1 else 0
         # 如果存在匹配的K线形态模式
-        if candlestick_weight > 0:
+        if candlestick_weight > min_candlestick_weight:
             # 初始化均线模式权重
             ma_weight = 0
             # 遍历所有均线模式
