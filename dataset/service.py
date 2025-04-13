@@ -28,6 +28,9 @@ def create_dataframe(prices):
     df['high'] = df['high'].astype(float)
     df['volume'] = df['volume'].astype(float)
 
+    # 过滤掉close为0的数据
+    df = df[df['close'] != 0]
+
     # 将日期格式从字符串转换为datetime对象
     df['date'] = pd.to_datetime(df['date'], format='%Y%m%d')
 
