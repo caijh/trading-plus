@@ -56,7 +56,7 @@ def get_index_stocks(code):
         return []
 
 
-def analyze_index():
+def analyze_index(signal):
     """
     分析股票指数
 
@@ -71,7 +71,11 @@ def analyze_index():
     indexes = []
     for index in data:
         # 分析每个指数的日K线图模式
-        stock = analyze_stock(index, k_type=KType.DAY)
+        if signal is not None:
+            signal = int(signal)
+        else:
+            signal = 1
+        stock = analyze_stock(index, k_type=KType.DAY, signal=signal)
         indexes.append(stock)
 
     return indexes
