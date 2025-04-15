@@ -1,6 +1,5 @@
-import requests
-
 from environment.service import env_vars
+from request.service import http_get_with_retries
 from stock.service import analyze_stock, KType, get_stock
 
 
@@ -17,14 +16,7 @@ def get_stock_index_list():
     url = f'{env_vars.TRADING_DATA_URL}/index/list'
     print(f'从数据源获指示列表数据，url: {url}')
     # 发起GET请求，获取数据，并将响应内容解析为JSON格式
-    data = requests.get(url).json()
-    # 检查返回的数据中状态码是否为0，表示请求成功
-    if data['code'] == 0:
-        # 如果请求成功，返回数据中的股票指数列表
-        return data['data']
-    else:
-        # 如果请求失败，返回空列表
-        return []
+    return http_get_with_retries(url, 3, [])
 
 
 def get_index_stocks(code):
@@ -43,17 +35,7 @@ def get_index_stocks(code):
 
     print(f'从数据源获取指数成分股数据，url: {url}')
 
-    # 发起HTTP GET请求获取数据
-    data = requests.get(url).json()
-
-    # 检查返回的数据中是否有错误码
-    if data['code'] == 0:
-        # 如果没有错误，返回指数成分股数据
-        return data['data']
-    else:
-        print(data)
-        # 如果有错误，返回空列表
-        return []
+    return http_get_with_retries(url, 3, [])
 
 
 def analyze_index(signal):

@@ -1,10 +1,10 @@
 from enum import Enum
 
-import requests
 import talib
 
 from dataset.service import create_dataframe
 from environment.service import env_vars
+from request.service import http_get_with_retries
 from stock.indicator.candlestick import get_bullish_candlestick_patterns, get_bearish_candlestick_patterns
 from stock.indicator.ma import get_up_ma_patterns, get_down_ma_patterns
 from stock.indicator.volume import get_up_volume_patterns, get_down_volume_patterns
@@ -29,20 +29,7 @@ def get_stock(code):
     """
     # 构造请求URL，包含股票代码
     url = f'{env_vars.TRADING_DATA_URL}/stock?code={code}'
-    # 尝试最多3次请求
-    for attempt in range(3):
-        try:
-            # 发送GET请求并解析响应内容为JSON格式
-            data = requests.get(url).json()
-            # 检查响应状态码是否为0，表示请求成功
-            if data['code'] == 0:
-                # 提取并返回股票数据
-                stock = data['data']
-                return stock
-        except requests.RequestException as e:
-            print(f'Request failed: {e}. Retrying... {attempt + 1}')
-    # 如果所有尝试都失败，返回None
-    return None
+    return http_get_with_retries(url, 3, None)
 
 
 def get_stock_price(code, k_type=KType.DAY):
@@ -60,20 +47,7 @@ def get_stock_price(code, k_type=KType.DAY):
     if k_type == KType.DAY:
         url = f'{env_vars.TRADING_DATA_URL}/stock/price/daily?code={code}'
         print(f'Get stock price from {url} , code = {code}, k_type = {k_type}')
-        for attempt in range(3):
-            try:
-                data = requests.get(url).json()
-                # 根据返回的数据检查状态码，如果为0表示请求成功，返回数据
-                if data['code'] == 0:
-                    return data['data']
-                else:
-                    print(data)
-                    # 如果请求失败，返回空列表
-                    return []
-            except requests.RequestException as e:
-                print(f'Request failed: {e}. Retrying...')
-        # 如果所有尝试都失败，返回空列表
-        return []
+        return http_get_with_retries(url, 3, [])
     # 如果k_type不是DAY，直接返回空列表，表示不支持的k_type
     return []
 
