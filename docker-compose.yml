@@ -6,3 +6,4 @@ services:
       - "18086:8080"
     env_file:
       - .env
+    stop_grace_period: 30s
