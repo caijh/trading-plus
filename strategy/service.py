@@ -31,7 +31,7 @@ def generate_strategy_task():
                 existing_strategy.stop_loss = stop_loss
                 existing_strategy.signal = 1
                 existing_strategy.updated_at = datetime.now()
-                print(f"🔄 更新策略：{stock.code}")
+                print(f"🔄 更新交易策略：{stock.code}")
             else:
                 # **插入新策略**
                 new_strategy = TradingStrategy(
@@ -45,9 +45,10 @@ def generate_strategy_task():
                     signal=1
                 )
                 db.session.add(new_strategy)
-                print(f"✅ 插入新策略：{stock.code}")
+                print(f"✅ 插入新交易策略：{stock.code}")
+        db.session.commit()
 
-    print("🚀 generate_strategy_task: 交易策略同步完成！")
+    print("🚀 generate_strategy_task: 交易策略生成完成！")
 
 
 def check_strategy_reverse_task():
@@ -90,13 +91,13 @@ def check_strategy_reverse_task():
                 strategy.sell_price = stock['resistance']
                 strategy.updated_at = datetime.now()
             # 打印更新策略的日志信息
-            print(f"🔄 更新策略：{stock.code}")
+            print(f"🔄 更新交易策略：{code}")
 
         # 提交数据库会话，保存所有更新
         db.session.commit()
 
     # 打印任务完成的日志信息
-    print("🚀 check_strategy_reverse_task: 交易策略同步完成！")
+    print("🚀 check_strategy_reverse_task: 交易策略检查更新完成！")
     return None
 
 
