@@ -161,12 +161,13 @@ def get_patterns(signal):
 
 
 def get_match_patterns(patterns, stock, prices, df):
+    code = stock['code']
     name = stock['name']
     weight = 0
     matched_patterns = []
     for pattern in patterns:
         if pattern.match(stock, prices, df):
-            print(f'Stock {name} Match {pattern.label}')
+            print(f'{code} {name} Match {pattern.label}')
             weight += pattern.weight
             matched_patterns.append(pattern)
     return matched_patterns, weight
@@ -205,6 +206,6 @@ def cal_support_resistance(stock, df):
     r = round((latest_data['R1'] + latest_data['R2']) / 2, 2)
 
     # 打印计算结果
-    print(f'Stock {stock["code"]} calculate Support = {s}, Resistance = {r}')
+    print(f'{stock["code"]} calculate Support = {s}, Resistance = {r}')
 
     return s, r
