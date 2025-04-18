@@ -40,7 +40,7 @@ class VOL:
         ma_volume = ma.iloc[-1]
         if self.signal == 1:
             # 判断当前收盘价是否高于前一个交易日的收盘价
-            if price['close'] > pre_price['close']:
+            if price['close'] >= pre_price['close']:
                 # 上涨，有量
                 return price['volume'] >= pre_price['volume'] > (ma_volume * 1.1)
             else:
@@ -48,7 +48,7 @@ class VOL:
                 return price['volume'] <= pre_price['volume'] < (ma_volume * 0.9)
         else:
             # 判断当前收盘价是否高于前一个交易日的收盘价
-            if price['close'] > pre_price['close']:
+            if price['close'] >= pre_price['close']:
                 # 上涨，返回当前成交量大于上一日成交量且大于均线值
                 return price['volume'] <= pre_price['volume'] < ma_volume
             else:
@@ -94,8 +94,8 @@ class OBV:
         # 当OBV和股价同时上升时，这意味着上涨趋势不仅仅是价格上的变动，而是得到了交易量的支持，这增加了趋势持续的可能性。
         # 相反，如果股价上升但OBV没有同步增长，或者股价下跌而OBV没有同步下降，这可能表明趋势没有得到广泛的市场支持，因此趋势可能会减弱或反转。
         pre_price = prices[-2]
-        close_price = price['close']
-        pre_close_price = pre_price['close']
+        close_price = float(price['close'])
+        pre_close_price = float(pre_price['close'])
         if self.signal == 1:
             return close_price <= pre_close_price and latest_obv > pre_obv
         else:
@@ -148,7 +148,7 @@ class ADOSC:
         # 如果A/D线上升的同时，价格也在上升，则说明上升趋势被确认，产生买入信号
         # 如果A/D线上升的同时，价格在下降，二者产生背离，说明价格的下降趋势减弱，有可能反转回升
         print(
-            f'Stock {stock["code"]}: latest_adosc={latest_adosc}, pre_adosc={pre_adosc}, close_price={close_price}, pre_close_price={pre_close_price}')
+            f'{stock["code"]}: latest_adosc={latest_adosc}, pre_adosc={pre_adosc}, close_price={close_price}, pre_close_price={pre_close_price}')
         if self.signal == 1:
             return latest_adosc > 0 and latest_adosc > pre_adosc
         else:
