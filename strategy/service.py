@@ -8,11 +8,8 @@ from strategy.model import TradingStrategy
 
 def generate_strategy_task():
     """读取 AnalyzedStock 表中今天的数据，更新或插入交易策略"""
-    today = datetime.today().date()
-
     with db.session.begin():
-        # 获取今天的 AnalyzedStock 数据
-        analyzed_stocks = AnalyzedStock.query.filter(db.func.date(AnalyzedStock.created_at) == today).all()
+        analyzed_stocks = get_analyzed_stocks()
 
         for stock in analyzed_stocks:
             # 计算买入、卖出、止损价格
@@ -51,20 +48,23 @@ def generate_strategy_task():
     print("🚀 generate_strategy_task: 交易策略生成完成！")
 
 
+def get_analyzed_stocks():
+    # 获取今天的 AnalyzedStock 数据
+    today = datetime.today().date()
+    analyzed_stocks = AnalyzedStock.query.filter(db.func.date(AnalyzedStock.created_at) == today).all()
+    return analyzed_stocks
+
+
 def check_strategy_reverse_task():
     """
     检查并更新交易策略的任务函数。
 
-    本函数旨在更新数据库中所有交易策略，针对那些更新日期不是今天的策略进行更新。
+    本函数旨在更新数据库中所有交易策略。
     它通过分析股票的最新数据来更新策略的买入价、卖出价和止损价，并设置信号为-1，表示卖出交易信号。
     """
-    # 获取今天的日期，用于判断策略是否已经更新
-    today = datetime.today().date()
 
-    # 开始一个数据库会话
     with db.session.begin():
-        # 查询所有更新日期不是今天的交易策略
-        strategies = TradingStrategy.query.filter(db.func.date(TradingStrategy.updated_at) != today).all()
+        strategies = get_trading_strategies()
 
         for strategy in strategies:
             # 打印正在更新的策略信息
@@ -99,6 +99,23 @@ def check_strategy_reverse_task():
     # 打印任务完成的日志信息
     print("🚀 check_strategy_reverse_task: 交易策略检查更新完成！")
     return None
+
+
+def get_trading_strategies():
+    """
+    获取所有的交易策略。
+
+    此函数通过查询数据库中的TradingStrategy表来获取所有的交易策略。
+    它不接受任何参数，并返回一个包含所有交易策略的列表。
+
+    Returns:
+        list: 包含所有交易策略的列表。
+    """
+    # 查询数据库中的所有交易策略
+    strategies = TradingStrategy.query.all()
+    # 返回查询结果
+    return strategies
+
 
 
 def run_generate_strategy():
