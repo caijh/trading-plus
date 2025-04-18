@@ -3,7 +3,7 @@ services:
     image: caijunhui/trading-plus:latest
     container_name: trading-plus
     ports:
-      - "18086:8080"
+      - "18086:5000"
     env_file:
       - .env
     stop_grace_period: 30s
