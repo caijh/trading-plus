@@ -88,10 +88,11 @@ class BIAS:
         # 获取最新的偏差率值
         latest_bias = bias.iloc[-1]
         print(f'Stock {stock["code"]} 偏差率值为{latest_bias}, 期望值为{self.bias}')
-        # 判断最新偏差率是否满足买入条件
         if self.signal == 1:
+            # 下跌，达到偏差值
             return latest_bias < 0 and latest_bias < self.bias
         else:
+            # 上涨，达到偏差值
             return latest_bias > 0 and latest_bias > self.bias
 
 
