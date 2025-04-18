@@ -4,7 +4,7 @@ from analysis.service import write_db
 from extensions import executor
 from fund.service import analyze_funds
 from index.service import analyze_index, analyze_index_stocks
-from stock.service import get_stock, analyze_stock
+from stock.service import get_stock, analyze_stock, KType
 
 analysis = Blueprint('analysis', __name__, url_prefix='/analysis')
 
@@ -89,8 +89,12 @@ def analysis_stock():
     if stock is None:
         return jsonify({'msg': 'stock not found'}), 404
 
-    # 分析股票信息
+    # 分析股票信息, 是否有买入信号
     analyze_stock(stock)
+    if len(stock['patterns']) == 0:
+        # 分析股票是否有卖出信号
+        analyze_stock(stock, k_type=KType.DAY, signal=-1)
+
     # 返回分析后的股票信息
     return jsonify({'code': 0, 'data': stock, 'msg': 'success'}), 200
 
