@@ -77,7 +77,7 @@ class BIAS:
         参数:
         - stock: 股票对象，可能包含股票的基本信息（未在本函数中使用）。
         - prices: 股票价格数据（未在本函数中使用，可能为未来扩展保留）。
-        - df: 包含股票历史数据的DataFrame，必须至少包含'close'列，代表收盘价。
+        - df: 包含股票历史数据的DataFrame，必须至少包含['close']列，代表收盘价。
 
         返回:
         - True：如果股票满足买入条件，即最新收盘价的偏差率小于0且小于预设的偏差阈值。
@@ -106,23 +106,40 @@ class MACD:
         self.signal = signal
 
     def match(self, stock, prices, df):
+        """
+        根据MACD指标匹配买卖信号。
+
+        参数:
+        - stock: 股票信息字典，包含股票代码等信息。
+        - prices: 价格数据，未在函数中使用，可考虑移除。
+        - df: 包含股票收盘价等数据的DataFrame。
+
+        返回:
+        - 如果signal为1，则返回MACD金叉信号。
+        - 否则返回MACD死叉信号。
+        """
+        # 计算MACD指标
         macd_df = ta.macd(df['close'])
 
         # 重命名列
         macd_df.rename(columns={'MACD_12_26_9': 'MACD', 'MACDs_12_26_9': 'Signal', 'MACDh_12_26_9': 'Histogram'},
                        inplace=True)
 
-        # 识别交易信号
+        # 根据self.signal识别是买卖信号
         if self.signal == 1:
+            # 识别并标记MACD金叉信号
             macd_df['Buy_Signal'] = (macd_df['MACD'].shift(1) < macd_df['Signal'].shift(1)) & (
-                    macd_df['MACD'] > macd_df['Signal'])  # 金叉
+                    macd_df['MACD'] > macd_df['Signal'])
+            # 检查最近5个信号中是否有金叉
             recent_signals = macd_df.tail(5)
             macd_buy_signal = recent_signals['Buy_Signal'].any()
             print(f'{stock["code"]} MACD 是否金叉 = {macd_buy_signal}')
             return macd_buy_signal
         else:
+            # 识别并标记MACD死叉信号
             macd_df['Sell_Signal'] = (macd_df['MACD'].shift(1) > macd_df['Signal'].shift(1)) & (
-                    macd_df['MACD'] < macd_df['Signal'])  # 死叉
+                    macd_df['MACD'] < macd_df['Signal'])
+            # 检查最近5个信号中是否有死叉
             recent_signals = macd_df.tail(5)
             macd_sell_signal = recent_signals['Sell_Signal'].any()
             print(f'{stock["code"]} MACD 是否死叉 = {macd_sell_signal}')
