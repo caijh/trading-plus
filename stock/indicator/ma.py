@@ -44,16 +44,17 @@ class MA:
         # 获取次新的EMA值
         pre_latest_ema = ema.iloc[-2]
 
+        close_price = price['close']
         # 打印计算结果，用于调试和日志记录
         print(
-            f'{stock["code"]} MA{self.ma}, price = {price["close"]}, ma_price = {ma_price}, pre_ma_price = {pre_ma_price}, latest_ema = {latest_ema}, pre_latest_ema = {pre_latest_ema}')
+            f'{stock["code"]} MA{self.ma}, price = {close_price}, ma_price = {ma_price}, pre_ma_price = {pre_ma_price}, latest_ema = {latest_ema}, pre_latest_ema = {pre_latest_ema}')
 
         if self.signal == 1:
             # ema大于sam,并且向上
-            return (latest_ema > ma_price) and (pre_latest_ema < pre_ma_price)
+            return close_price > latest_ema and (latest_ema > ma_price) and (pre_latest_ema < pre_ma_price)
         else:
             # ema小于sma,并且向下
-            return (latest_ema < ma_price) and (pre_latest_ema > pre_ma_price)
+            return close_price < latest_ema and (latest_ema < ma_price) and (pre_latest_ema > pre_ma_price)
 
 
 class BIAS:
@@ -264,6 +265,7 @@ class ROC:
 class CCI:
     signal = 1  # 1 表示买入信号，-1 表示卖出信号
     weight = 0
+
     def __init__(self, signal):
         self.signal = signal
         self.label = "CCI"
@@ -311,6 +313,7 @@ class CCI:
 class BOP:
     signal = 1  # 1 表示买入信号，-1 表示卖出信号
     weight = 0
+
     def __init__(self, signal):
         self.signal = signal
         self.label = "BOP"
