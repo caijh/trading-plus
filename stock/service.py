@@ -63,75 +63,33 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1):
         return stock
     else:
         print(f'Analyzing Stock, code = {code}, name = {name}')
-        if signal == 1:
-            candlestick_patterns = get_bullish_candlestick_patterns()
-            ma_patterns = get_up_ma_patterns()
-            volume_patterns = get_up_volume_patterns()
-        else:
-            candlestick_patterns = get_bearish_candlestick_patterns()
-            ma_patterns = get_down_ma_patterns()
-            volume_patterns = get_down_volume_patterns()
+        candlestick_patterns, ma_patterns, volume_patterns = get_patterns(signal)
 
-        matched_candlestick_patterns = []
-        matched_ma_patterns = []
-        matched_volume_patterns = []
         df = create_dataframe(prices)
-        candlestick_weight = 0
-        for candlestick_pattern in candlestick_patterns:
-            if candlestick_pattern.match(stock, prices, df):
-                print(f'Stock {name} Match {candlestick_pattern.label}')
-                candlestick_weight += candlestick_pattern.weight
-                matched_candlestick_patterns.append(candlestick_pattern)
 
+        matched_candlestick_patterns, candlestick_weight = get_match_patterns(candlestick_patterns, stock, prices, df)
+
+        # 买入，需要满足k线形态大于1，卖出，k线形态需要满足大于0
         min_candlestick_weight = 1 if signal == 1 else 0
         # 如果存在匹配的K线形态模式
         if candlestick_weight > min_candlestick_weight:
-            # 初始化均线模式权重
-            ma_weight = 0
-            # 遍历所有均线模式
-            for ma_pattern in ma_patterns:
-                # 如果当前均线模式与股票数据匹配
-                if ma_pattern.match(stock, prices, df):
-                    # 打印匹配信息
-                    print(f'Stock {name} Match {ma_pattern.label}')
-                    # 将匹配的均线模式添加到列表中
-                    matched_ma_patterns.append(ma_pattern)
-                    # 累加当前均线模式的权重
-                    ma_weight += ma_pattern.weight
-
-            # 初始化量能模式权重
-            volume_weight = 0
-            # 遍历所有量能模式
-            for volume_pattern in volume_patterns:
-                # 如果当前量能模式与股票数据匹配
-                if volume_pattern.match(stock, prices, df):
-                    # 打印匹配信息
-                    print(f'Stock {name} Match {volume_pattern.label}')
-                    # 将匹配的量能模式添加到列表中
-                    matched_volume_patterns.append(volume_pattern)
-                    # 累加当前量能模式的权重
-                    volume_weight += volume_pattern.weight
+            matched_ma_patterns, ma_weight = get_match_patterns(ma_patterns, stock, prices, df)
+            matched_volume_patterns, volume_weight = get_match_patterns(volume_patterns, stock, prices, df)
 
             # 如果信号为1，且均线和量能的权重都大于1
             if signal == 1:
                 if ma_weight > 1 and volume_weight > 1:
                     # 将所有匹配的K线形态、均线和量能模式的标签添加到股票的模式列表中
-                    for matched_candlestick_pattern in matched_candlestick_patterns:
-                        stock['patterns'].append(matched_candlestick_pattern.label)
-                    for matched_ma_pattern in matched_ma_patterns:
-                        stock['patterns'].append(matched_ma_pattern.label)
-                    for matched_volume_pattern in matched_volume_patterns:
-                        stock['patterns'].append(matched_volume_pattern.label)
+                    append_matched_pattern_label(matched_candlestick_patterns, stock)
+                    append_matched_pattern_label(matched_ma_patterns, stock)
+                    append_matched_pattern_label(matched_volume_patterns, stock)
             # 如果信号不为1，但均线和量能的权重都大于0
             else:
                 if ma_weight > 0 and volume_weight > 0:
                     # 同样将所有匹配的模式标签添加到股票的模式列表中
-                    for matched_candlestick_pattern in matched_candlestick_patterns:
-                        stock['patterns'].append(matched_candlestick_pattern.label)
-                    for matched_ma_pattern in matched_ma_patterns:
-                        stock['patterns'].append(matched_ma_pattern.label)
-                    for matched_volume_pattern in matched_volume_patterns:
-                        stock['patterns'].append(matched_volume_pattern.label)
+                    append_matched_pattern_label(matched_candlestick_patterns, stock)
+                    append_matched_pattern_label(matched_ma_patterns, stock)
+                    append_matched_pattern_label(matched_volume_patterns, stock)
 
             # predict_prices = predict_and_plot(stock, prices, 7)
             # stock['predict_price'] = round(float(predict_prices[0]), 2)
@@ -152,6 +110,66 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1):
     print(
         f'Analyzing Complete code = {code}, name = {name}, patterns = {stock["patterns"]}, predict_price = {stock["predict_price"]}')
     return stock
+
+
+def append_matched_pattern_label(matched_patterns, stock):
+    """
+    将匹配到的模式标签添加到股票信息中。
+
+    遍历匹配到的模式列表，将每个模式的标签添加到指定的股票信息字典中的 'patterns' 键下。
+
+    参数:
+    matched_patterns: 匹配到的模式对象列表，每个模式对象包含一个 'label' 属性，用于表示模式的标签。
+    stock: 包含股票信息的字典，必须包含一个 'patterns' 键，用于存储模式标签的列表。
+
+    返回:
+    无返回值。此函数直接修改传入的股票信息字典。
+    """
+    # 遍历匹配到的模式列表
+    for matched_pattern in matched_patterns:
+        # 将模式的标签添加到股票信息的 'patterns' 列表中
+        stock['patterns'].append(matched_pattern.label)
+
+
+def get_patterns(signal):
+    """
+    根据信号获取相应的K线模式、均线模式和成交量模式。
+
+    本函数根据输入的signal值（1或非1），来决定市场是处于上升趋势还是下降趋势，
+    然后分别调用对应的函数获取K线模式、均线模式和成交量模式。
+
+    参数:
+    signal (int): 市场信号，1代表上升趋势，非1代表下降趋势。
+
+    返回:
+    tuple: 包含三个元素的元组，分别是K线模式列表、均线模式列表和成交量模式列表。
+    """
+    # 根据信号判断市场趋势并获取相应的模式
+    if signal == 1:
+        # 上升趋势时的模式
+        candlestick_patterns = get_bullish_candlestick_patterns()
+        ma_patterns = get_up_ma_patterns()
+        volume_patterns = get_up_volume_patterns()
+    else:
+        # 下降趋势时的模式
+        candlestick_patterns = get_bearish_candlestick_patterns()
+        ma_patterns = get_down_ma_patterns()
+        volume_patterns = get_down_volume_patterns()
+
+    # 返回获取到的三种模式
+    return candlestick_patterns, ma_patterns, volume_patterns
+
+
+def get_match_patterns(patterns, stock, prices, df):
+    name = stock['name']
+    weight = 0
+    matched_patterns = []
+    for pattern in patterns:
+        if pattern.match(stock, prices, df):
+            print(f'Stock {name} Match {pattern.label}')
+            weight += pattern.weight
+            matched_patterns.append(pattern)
+    return matched_patterns, weight
 
 
 def cal_support_resistance(stock, df):
