@@ -101,6 +101,7 @@ class MACD:
 
     def __init__(self, signal):
         self.label = 'MACD'
+        self.signal = signal
 
     def match(self, stock, prices, df):
         macd_df = ta.macd(df['close'])
@@ -123,6 +124,7 @@ class MACD:
             recent_signals = macd_df.tail(5)
             macd_sell_signal = recent_signals['Sell_Signal'].any()
             print(f'{stock["code"]} MACD 是否死叉 = {macd_sell_signal}')
+            return macd_sell_signal
 
 
 class KDJ:
@@ -165,7 +167,9 @@ class KDJ:
 
 class RSI:
     weight = 1
-    def __init__(self, signal=1):
+    signal = 1
+
+    def __init__(self, signal):
         self.signal = signal
         self.label = 'RSI'
 
