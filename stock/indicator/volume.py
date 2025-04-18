@@ -93,10 +93,13 @@ class OBV:
 
         # 当OBV和股价同时上升时，这意味着上涨趋势不仅仅是价格上的变动，而是得到了交易量的支持，这增加了趋势持续的可能性。
         # 相反，如果股价上升但OBV没有同步增长，或者股价下跌而OBV没有同步下降，这可能表明趋势没有得到广泛的市场支持，因此趋势可能会减弱或反转。
+        pre_price = prices[-2]
+        close_price = price['close']
+        pre_close_price = pre_price['close']
         if self.signal == 1:
-            return latest_obv > pre_obv
+            return close_price <= pre_close_price and latest_obv > pre_obv
         else:
-            return latest_obv < pre_obv
+            return close_price >= pre_close_price and latest_obv < pre_obv
 
 
 class ADOSC:
