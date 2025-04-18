@@ -34,7 +34,7 @@ class MA:
         # 计算指定周期的简单移动平均线
         ma = ta.sma(df['close'], self.ma)
         # 获取最新和前一均线价格，用于比较
-        ma_price = round(ma.iloc[-1], 3)  # 取最后一行
+        ma_price = round(ma.iloc[-1], 3)
         pre_ma_price = round(ma.iloc[-2], 3)
 
         # 使用Technical Analysis库计算收盘价的5日指数移动平均(EMA)
@@ -49,9 +49,10 @@ class MA:
             f'{stock["code"]} MA{self.ma}, price = {price["close"]}, ma_price = {ma_price}, pre_ma_price = {pre_ma_price}, latest_ema = {latest_ema}, pre_latest_ema = {pre_latest_ema}')
 
         if self.signal == 1:
-            # 返回最新EMA值高于MA价格且前一EMA值低于前一MA价格的情况
+            # ema大于sam,并且向上
             return (latest_ema > ma_price) and (pre_latest_ema < pre_ma_price)
         else:
+            # ema小于sma,并且向下
             return (latest_ema < ma_price) and (pre_latest_ema > pre_ma_price)
 
 
