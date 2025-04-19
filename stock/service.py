@@ -67,8 +67,7 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1):
 
         matched_candlestick_patterns, candlestick_weight = get_match_patterns(candlestick_patterns, stock, prices, df)
 
-        # 买入，需要满足k线形态大于1，卖出，k线形态需要满足大于0
-        min_candlestick_weight = 1 if signal == 1 else 0
+        min_candlestick_weight = 0
         # 如果存在匹配的K线形态模式
         if candlestick_weight > min_candlestick_weight:
             matched_ma_patterns, ma_weight = get_match_patterns(ma_patterns, stock, prices, df)
