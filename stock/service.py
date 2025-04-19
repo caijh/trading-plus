@@ -1,7 +1,5 @@
 from enum import Enum
 
-import talib
-
 from dataset.service import create_dataframe
 from environment.service import env_vars
 from request.service import http_get_with_retries
@@ -187,23 +185,21 @@ def cal_support_resistance(stock, df):
     """
     # 计算 Pivot Points
     df['Pivot'] = (df['high'].shift(1) + df['low'].shift(1) + df['close'].shift(1)) / 3
-    df['R1'] = 2 * df['Pivot'] - df['low'].shift(1)
     df['S1'] = 2 * df['Pivot'] - df['high'].shift(1)
-    df['R2'] = df['Pivot'] + (df['high'].shift(1) - df['low'].shift(1))
+    df['R1'] = 2 * df['Pivot'] - df['low'].shift(1)
     df['S2'] = df['Pivot'] - (df['high'].shift(1) - df['low'].shift(1))
+    df['R2'] = df['Pivot'] + (df['high'].shift(1) - df['low'].shift(1))
 
-    # 计算 Fractal 阻力 & 支撑
-    df['Fractal_High'] = talib.MAX(df['high'], timeperiod=5)  # 5 天最高点
-    df['Fractal_Low'] = talib.MIN(df['low'], timeperiod=5)  # 5 天最低点
+    # 计算 S3 和 R3（进一步的支撑和阻力水平）
+    df['S3'] = df['S2'] - (df['high'].shift(1) - df['low'].shift(1))
+    df['R3'] = df['R2'] + (df['high'].shift(1) - df['low'].shift(1))
 
     # 提取最新数据行，用于计算最终的支撑位和阻力位
-    latest_data = df.iloc[-1][['Pivot', 'R1', 'R2', 'S1', 'S2', 'Fractal_Low', 'Fractal_High']]
+    latest_data = df.iloc[-1][['Pivot', 'S1', 'R1', 'S2', 'R2', 'S3', 'R3']]
 
     # 计算最终的支撑位和阻力位
-    # s = round((latest_data['S1'] + latest_data['S2'] + latest_data['Fractal_Low']) / 3, 2)
-    s = round((latest_data['S1'] + latest_data['S2']) / 2, 2)
-    # r = round((latest_data['R1'] + latest_data['R2'] + latest_data['Fractal_High']) / 3, 2)
-    r = round((latest_data['R1'] + latest_data['R2']) / 2, 2)
+    s = round((latest_data['S1'] + latest_data['S2'] + latest_data['S3']) / 3, 2)
+    r = round((latest_data['R1'] + latest_data['R2'] + latest_data['R3']) / 3, 2)
 
     # 打印计算结果
     print(f'{stock["code"]} calculate Support = {s}, Resistance = {r}')
