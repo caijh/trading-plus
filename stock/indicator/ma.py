@@ -50,11 +50,11 @@ class SMA:
             f'{stock["code"]} MA{self.ma}, price = {close_price}, ma_price = {ma_price}, pre_ma_price = {pre_ma_price}, latest_ema = {latest_ema}, pre_latest_ema = {pre_latest_ema}')
 
         if self.signal == 1:
-            # ema大于sam,并且向上拐
-            return close_price > latest_ema and (latest_ema > ma_price) and (pre_latest_ema < pre_ma_price)
+            # ema大于sam,并且向上拐, 股价在ema上方
+            return (close_price > latest_ema) and (latest_ema > ma_price) and (pre_latest_ema <= pre_ma_price)
         else:
-            # ema小于sma,并且向下拐
-            return close_price < latest_ema and (latest_ema < ma_price) and (pre_latest_ema > pre_ma_price)
+            # ema小于sma,并且向下拐, 股价在ema下方
+            return (close_price < latest_ema) and (latest_ema < ma_price) and (pre_latest_ema >= pre_ma_price)
 
 
 class BIAS:
