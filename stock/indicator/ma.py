@@ -1,7 +1,7 @@
 import pandas_ta as ta
 
 
-class MA:
+class SMA:
     ma = 5
     label = ''
     signal = 1
@@ -50,10 +50,10 @@ class MA:
             f'{stock["code"]} MA{self.ma}, price = {close_price}, ma_price = {ma_price}, pre_ma_price = {pre_ma_price}, latest_ema = {latest_ema}, pre_latest_ema = {pre_latest_ema}')
 
         if self.signal == 1:
-            # ema大于sam,并且向上
+            # ema大于sam,并且向上拐
             return close_price > latest_ema and (latest_ema > ma_price) and (pre_latest_ema < pre_ma_price)
         else:
-            # ema小于sma,并且向下
+            # ema小于sma,并且向下拐
             return close_price < latest_ema and (latest_ema < ma_price) and (pre_latest_ema > pre_ma_price)
 
 
@@ -366,7 +366,7 @@ def get_up_ma_patterns():
     以及一个特定参数的偏差率模式。这些模式用于在金融数据分析中计算和应用各种移动平均线和偏差率指标。
     """
     # 初始化均线和偏差率模式列表
-    ma_patterns = [MA(10, 1), MA(20, 1), MA(60, 1), MA(200, 1), BIAS(20, -0.10, 1), MACD(1), KDJ(1), RSI(1),
+    ma_patterns = [SMA(10, 1), SMA(20, 1), SMA(60, 1), SMA(200, 1), BIAS(20, -0.10, 1), MACD(1), KDJ(1), RSI(1),
                    ROC(1), CCI(1), BOP(1)]
     return ma_patterns
 
@@ -379,6 +379,6 @@ def get_down_ma_patterns():
     以及一个特定参数的偏差率模式。这些模式用于在金融数据分析中计算和应用各种移动平均线和偏差率指标。
     """
     # 初始化均线和偏差率
-    ma_patterns = [MA(10, -1), MA(20, -1), MA(60, -1), MA(200, -1), BIAS(20, 0.10, -1), MACD(-1), KDJ(-1),
+    ma_patterns = [SMA(10, -1), SMA(20, -1), SMA(60, -1), SMA(200, -1), BIAS(20, 0.10, -1), MACD(-1), KDJ(-1),
                    RSI(-1), ROC(-1), CCI(-1), BOP(-1)]
     return ma_patterns
