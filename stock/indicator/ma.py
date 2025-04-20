@@ -221,7 +221,7 @@ class RSI:
 class ROC:
     signal = 1
     label = 'ROC'
-    weight = 0
+    weight = 0.1
 
     def __init__(self, signal):
         self.signal = signal
@@ -264,7 +264,7 @@ class ROC:
 
 class CCI:
     signal = 1  # 1 表示买入信号，-1 表示卖出信号
-    weight = 0
+    weight = 0.1
 
     def __init__(self, signal):
         self.signal = signal
@@ -312,7 +312,7 @@ class CCI:
 
 class BOP:
     signal = 1  # 1 表示买入信号，-1 表示卖出信号
-    weight = 0
+    weight = 0.1
 
     def __init__(self, signal):
         self.signal = signal
