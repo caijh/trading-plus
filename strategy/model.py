@@ -13,6 +13,7 @@ class TradingStrategy(db.Model):
     sell_price = db.Column(db.Float, nullable=True)  # 卖出价格（目标价）
     stop_loss = db.Column(db.Float, nullable=True)  # 止损价
     signal = db.Column(db.INTEGER, nullable=False)  # 信号，执行买还是卖出
+    sell_patterns = db.Column(db.JSON, nullable=True)  # 存储 JSON 格式的技术指标
     created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())  # 记录创建时间
     updated_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now(), onupdate=db.func.now())  # 更新时间
 

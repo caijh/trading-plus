@@ -85,6 +85,7 @@ def check_strategy_reverse_task():
                 strategy.sell_price = stock['resistance']
                 strategy.stop_loss = round(stock['support'] * 0.99, 2)
                 strategy.signal = -1
+                strategy.sell_patterns = stock['patterns']
                 strategy.updated_at = datetime.now()
             else:
                 # 只更新卖出价
@@ -115,7 +116,6 @@ def get_trading_strategies():
     strategies = TradingStrategy.query.all()
     # 返回查询结果
     return strategies
-
 
 
 def run_generate_strategy():

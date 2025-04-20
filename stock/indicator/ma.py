@@ -250,7 +250,7 @@ class ROC:
             roc_df['Signal'] = (roc_df.shift(1) > 0) & (roc_df < roc_df.shift(1))
 
         # 检查最近的五个信号中是否有符合条件的交易信号
-        recent_signals = roc_df.tail(5)
+        recent_signals = roc_df.tail(3)
         roc_signal = recent_signals['Signal'].any()
 
         # 根据signal值确定买入或卖出操作
@@ -347,7 +347,7 @@ class BOP:
             action = "卖出"
 
         # 获取最近 5 天的数据
-        recent_signals = bop_df.tail(5)
+        recent_signals = bop_df.tail(3)
 
         # 判断是否出现信号
         bop_signal = recent_signals[f'{"Buy" if self.signal == 1 else "Sell"}_Signal'].any()
