@@ -57,6 +57,7 @@ def analyze_index(signal):
             signal = int(signal)
         else:
             signal = 1
+        index['stock_type'] = 'Index'
         stock = analyze_stock(index, k_type=KType.DAY, signal=signal)
         indexes.append(stock)
 

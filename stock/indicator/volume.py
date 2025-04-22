@@ -78,7 +78,7 @@ class OBV:
         - 如果最新OBV值高于前一个交易日的OBV值，则返回True，否则返回False。
         """
         # 获取最新价格信息
-        price = prices[-1]
+        price = df.iloc[-1]
         # 提取最新成交量并检查是否为正值
         latest_volume = float(price['volume'])
         if not latest_volume > 0:
@@ -93,9 +93,9 @@ class OBV:
 
         # 当OBV和股价同时上升时，这意味着上涨趋势不仅仅是价格上的变动，而是得到了交易量的支持，这增加了趋势持续的可能性。
         # 相反，如果股价上升但OBV没有同步增长，或者股价下跌而OBV没有同步下降，这可能表明趋势没有得到广泛的市场支持，因此趋势可能会减弱或反转。
-        pre_price = prices[-2]
-        close_price = float(price['close'])
-        pre_close_price = float(pre_price['close'])
+        pre_price = df.iloc[-2]
+        close_price = price['close']
+        pre_close_price = pre_price['close']
         if self.signal == 1:
             return close_price <= pre_close_price and latest_obv > pre_obv
         else:
@@ -127,7 +127,7 @@ class ADOSC:
         - 如果股票满足特定的交易条件则返回True，否则返回False。
         """
         # 获取最新价格信息
-        price = prices[-1]
+        price = df.iloc[-1]
         # 将最新成交量转换为浮点数
         latest_volume = float(price['volume'])
         # 如果最新成交量不大于0，则不进行后续判断
@@ -141,9 +141,9 @@ class ADOSC:
         pre_adosc = adosc.iloc[-2]
 
         # 获取前一个价格信息
-        pre_price = prices[-2]
-        close_price = float(price['close'])
-        pre_close_price = float(pre_price['close'])
+        pre_price = df.iloc[-2]
+        close_price = price['close']
+        pre_close_price = pre_price['close']
         # 判断最新ADOSC是否大于前一个ADOSC，且最新收盘价是否高于或低于前一个收盘价
         # 如果A/D线上升的同时，价格也在上升，则说明上升趋势被确认，产生买入信号
         # 如果A/D线上升的同时，价格在下降，二者产生背离，说明价格的下降趋势减弱，有可能反转回升
@@ -185,8 +185,8 @@ class VWAP:
         df_vwap = df.ta.vwap(high='high', low='low', close='close', volume='volume')
 
         # 获取最新价格与 VWAP 值
-        close_price = float(prices[-1]['close'])
-        pre_close_price = float(prices[-2]['close'])
+        close_price = df.iloc[-1]['close']
+        pre_close_price = df.iloc[-2]['close']
         latest_vwap = df_vwap.iloc[-1]
         pre_vwap = df_vwap.iloc[-2]
 
