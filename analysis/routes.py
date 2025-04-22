@@ -91,11 +91,13 @@ def analysis_stock():
 
     # 分析股票信息, 是否有买入信号
     analyze_stock(stock)
-    stock['signal'] = 1
     if len(stock['patterns']) == 0:
         # 分析股票是否有卖出信号
         analyze_stock(stock, k_type=KType.DAY, signal=-1)
-        stock['signal'] = -1
+        if len(stock['patterns']) > 0:
+            stock['signal'] = -1
+    else:
+        stock['signal'] = 1
 
     # 返回分析后的股票信息
     return jsonify({'code': 0, 'data': stock, 'msg': 'success'}), 200
