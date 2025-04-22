@@ -196,9 +196,10 @@ def cal_support_resistance(stock, df):
     # 提取最新数据行，用于计算最终的支撑位和阻力位
     latest_data = df.iloc[-1][['Pivot', 'S1', 'R1', 'S2', 'R2', 'S3', 'R3']]
 
+    n_digits = 3 if stock['stock_type'] == 'Fund' else 2
     # 计算最终的支撑位和阻力位
-    s = round((latest_data['S1'] + latest_data['S2'] + latest_data['S3']) / 3, 2)
-    r = round((latest_data['R1'] + latest_data['R2'] + latest_data['R3']) / 3, 2)
+    s = round((latest_data['S1'] + latest_data['S2'] + latest_data['S3']) / 3, n_digits)
+    r = round((latest_data['R1'] + latest_data['R2'] + latest_data['R3']) / 3, n_digits)
 
     # 打印计算结果
     print(f'{stock["code"]} calculate Support = {s}, Resistance = {r}')

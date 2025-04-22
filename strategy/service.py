@@ -2,6 +2,7 @@ from datetime import datetime
 
 from analysis.model import AnalyzedStock
 from extensions import db
+from holdings.service import get_holdings
 from stock.service import analyze_stock, get_stock, KType
 from strategy.model import TradingStrategy
 
@@ -81,15 +82,19 @@ def check_strategy_reverse_task():
             analyze_stock(stock, k_type=KType.DAY, signal=-1)
             if len(stock['patterns']) > 0:
                 # 有卖出信号，更新策略的买入价、卖出价、止损价、信号和更新时间
-                strategy.buy_price = stock['support']
-                strategy.sell_price = stock['resistance']
-                strategy.stop_loss = round(stock['support'] * 0.99, 2)
                 strategy.signal = -1
                 strategy.sell_patterns = stock['patterns']
                 strategy.updated_at = datetime.now()
             else:
-                # 只更新卖出价
-                strategy.sell_price = stock['resistance']
+                holdings = get_holdings(code)
+                if holdings is not None:
+                    strategy.sell_price = stock['resistance']
+                else:
+                    strategy.buy_price = stock['support']
+                    strategy.sell_price = stock['resistance']
+                    n_digits = 3 if stock['stock_type'] == 'Fund' else 2
+                    strategy.stop_loss = round(stock['support'] * 0.99, n_digits)
+
                 strategy.updated_at = datetime.now()
             # 打印更新策略的日志信息
             print(f"🔄 更新交易策略：{code}")
