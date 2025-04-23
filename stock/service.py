@@ -183,15 +183,15 @@ def cal_support_resistance(stock, df):
     - r: 阻力位，计算结果四舍五入到两位小数。
     """
     # 计算 Pivot Points
-    df['Pivot'] = (df['high'].shift(1) + df['low'].shift(1) + df['close'].shift(1)) / 3
-    df['S1'] = 2 * df['Pivot'] - df['high'].shift(1)
-    df['R1'] = 2 * df['Pivot'] - df['low'].shift(1)
-    df['S2'] = df['Pivot'] - (df['high'].shift(1) - df['low'].shift(1))
-    df['R2'] = df['Pivot'] + (df['high'].shift(1) - df['low'].shift(1))
+    df['Pivot'] = (df['high'] + df['low'] + df['close']) / 3
+    df['S1'] = 2 * df['Pivot'] - df['high']
+    df['R1'] = 2 * df['Pivot'] - df['low']
+    df['S2'] = df['Pivot'] - (df['high'] - df['low'])
+    df['R2'] = df['Pivot'] + (df['high'] - df['low'])
 
     # 计算 S3 和 R3（进一步的支撑和阻力水平）
-    df['S3'] = df['S2'] - (df['high'].shift(1) - df['low'].shift(1))
-    df['R3'] = df['R2'] + (df['high'].shift(1) - df['low'].shift(1))
+    df['S3'] = df['S2'] - (df['high'] - df['low'])
+    df['R3'] = df['R2'] + (df['high'] - df['low'])
 
     # 提取最新数据行，用于计算最终的支撑位和阻力位
     latest_data = df.iloc[-1][['Pivot', 'S1', 'R1', 'S2', 'R2', 'S3', 'R3']]
