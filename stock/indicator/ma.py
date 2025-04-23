@@ -58,6 +58,7 @@ class SMA:
             # EMA小于SMA，且向下拐，股价在EMA下方
             return (close_price < latest_ema) and (latest_ema < ma_price) and (pre_latest_ema >= pre_ma_price)
 
+
 class BIAS:
     ma = 5
     bias = -0.15
@@ -127,23 +128,42 @@ class MACD:
         macd_df.rename(columns={'MACD_12_26_9': 'MACD', 'MACDs_12_26_9': 'Signal', 'MACDh_12_26_9': 'Histogram'},
                        inplace=True)
 
+        # 检查数据长度是否足够
+        if len(macd_df) < 5:
+            print(f'{stock["code"]} 数据不足，无法判断金叉或死叉。')
+            return False
+
         # 根据self.signal识别是买卖信号
         if self.signal == 1:
             # 识别并标记MACD金叉信号
             macd_df['Buy_Signal'] = (macd_df['MACD'].shift(1) < macd_df['Signal'].shift(1)) & (
-                    macd_df['MACD'] > macd_df['Signal'])
+                macd_df['MACD'] > macd_df['Signal'])
+            # 判断柱状图是否为正且增大
+            macd_df['Histogram_Positive'] = macd_df['Histogram'] > 0
+            macd_df['Histogram_Increasing'] = macd_df['Histogram'] > macd_df['Histogram'].shift(1)
+            # 结合金叉和柱状图的正值增大情况
+            macd_df['Buy_Signal_Confirmed'] = macd_df['Buy_Signal'] & macd_df['Histogram_Positive'] & macd_df[
+                'Histogram_Increasing']
+
             # 检查最近5个信号中是否有金叉
             recent_signals = macd_df.tail(5)
-            macd_buy_signal = recent_signals['Buy_Signal'].any()
+            macd_buy_signal = recent_signals['Buy_Signal_Confirmed'].any()
             print(f'{stock["code"]} MACD 是否金叉 = {macd_buy_signal}')
             return macd_buy_signal
         else:
             # 识别并标记MACD死叉信号
             macd_df['Sell_Signal'] = (macd_df['MACD'].shift(1) > macd_df['Signal'].shift(1)) & (
-                    macd_df['MACD'] < macd_df['Signal'])
+                macd_df['MACD'] < macd_df['Signal'])
+            # 判断柱状图是否为负且增大
+            macd_df['Histogram_Negative'] = macd_df['Histogram'] < 0
+            macd_df['Histogram_Decreasing'] = macd_df['Histogram'] < macd_df['Histogram'].shift(1)
+            # 结合死叉和柱状图的负值增大情况
+            macd_df['Sell_Signal_Confirmed'] = macd_df['Sell_Signal'] & macd_df['Histogram_Negative'] & macd_df[
+                'Histogram_Decreasing']
+
             # 检查最近5个信号中是否有死叉
             recent_signals = macd_df.tail(5)
-            macd_sell_signal = recent_signals['Sell_Signal'].any()
+            macd_sell_signal = recent_signals['Sell_Signal_Confirmed'].any()
             print(f'{stock["code"]} MACD 是否死叉 = {macd_sell_signal}')
             return macd_sell_signal
 
@@ -167,11 +187,11 @@ class KDJ:
         if self.signal == 1:
             # 识别 KDJ 金叉（K 上穿 D，且 K < 20）
             kdj_df['Signal'] = (kdj_df['K'].shift(1) < kdj_df['D'].shift(1)) & (kdj_df['K'] > kdj_df['D']) & (
-                    kdj_df['K'] < 20)
+                kdj_df['K'] < 20)
         elif self.signal == -1:
             # 识别 KDJ 死叉（K 下穿 D，且 K > 80）
             kdj_df['Signal'] = (kdj_df['K'].shift(1) > kdj_df['D'].shift(1)) & (kdj_df['K'] < kdj_df['D']) & (
-                    kdj_df['K'] > 80)
+                kdj_df['K'] > 80)
         else:
             raise ValueError("signal 参数只能是 1（金叉）或 -1（死叉）")
 
