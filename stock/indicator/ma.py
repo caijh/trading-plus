@@ -14,7 +14,7 @@ class SMA:
 
     def match(self, stock, prices, df):
         """
-        判断股票价格MA是否如果金叉。
+        判断股票价格MA是否发生金叉或死叉。
 
         参数:
         stock: 字典，包含股票信息。
@@ -22,9 +22,8 @@ class SMA:
         df: DataFrame，包含股票的DataFrame数据，至少包含['close']列。
 
         返回:
-        布尔值，如果金叉，则返回True，否则返回False。
+        布尔值，如果发生金叉或死叉，则返回True，否则返回False。
         """
-
         if len(prices) < self.ma:
             return False
 
@@ -35,27 +34,29 @@ class SMA:
         ma = ta.sma(df['close'], self.ma)
         # 获取最新和前一均线价格，用于比较
         ma_price = round(ma.iloc[-1], 3)
-        pre_ma_price = round(ma.iloc[-2], 3)
+        pre_ma_price = round(ma.iloc[-2], 3) if len(ma) > 1 else None
 
         # 使用Technical Analysis库计算收盘价的5日指数移动平均(EMA)
         ema = ta.ema(df['close'], 5)
         # 获取最新的EMA值
         latest_ema = ema.iloc[-1]
         # 获取次新的EMA值
-        pre_latest_ema = ema.iloc[-2]
+        pre_latest_ema = ema.iloc[-2] if len(ema) > 1 else None
 
         close_price = price['close']
         # 打印计算结果，用于调试和日志记录
         print(
             f'{stock["code"]} MA{self.ma}, price = {close_price}, ma_price = {ma_price}, pre_ma_price = {pre_ma_price}, latest_ema = {latest_ema}, pre_latest_ema = {pre_latest_ema}')
 
+        if pre_ma_price is None or pre_latest_ema is None:
+            return False
+
         if self.signal == 1:
-            # ema大于sam,并且向上拐, 股价在ema上方
+            # EMA大于SMA，且向上拐，股价在EMA上方
             return (close_price > latest_ema) and (latest_ema > ma_price) and (pre_latest_ema <= pre_ma_price)
         else:
-            # ema小于sma,并且向下拐, 股价在ema下方
+            # EMA小于SMA，且向下拐，股价在EMA下方
             return (close_price < latest_ema) and (latest_ema < ma_price) and (pre_latest_ema >= pre_ma_price)
-
 
 class BIAS:
     ma = 5
