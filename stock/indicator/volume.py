@@ -137,9 +137,9 @@ class ADOSC:
         if not latest_volume > 0:
             return False
 
-        # 计算ADOSC指标
+        # 计算 ADOSC 指标
         adosc = ta.adosc(df['high'], df['low'], df['close'], df['volume'])
-        # 获取最新的ADOSC值和前一个ADOSC值
+        # 获取最新的 ADOSC 值和前一个 ADOSC 值
         latest_adosc = adosc.iloc[-1]
         pre_adosc = adosc.iloc[-2]
 
@@ -147,15 +147,32 @@ class ADOSC:
         pre_price = df.iloc[-2]
         close_price = price['close']
         pre_close_price = pre_price['close']
-        # 判断最新ADOSC是否大于前一个ADOSC，且最新收盘价是否高于或低于前一个收盘价
-        # 如果A/D线上升的同时，价格也在上升，则说明上升趋势被确认，产生买入信号
-        # 如果A/D线上升的同时，价格在下降，二者产生背离，说明价格的下降趋势减弱，有可能反转回升
+
+        # 输出调试信息，帮助分析
         print(
             f'{stock["code"]}: latest_adosc={latest_adosc}, pre_adosc={pre_adosc}, close_price={close_price}, pre_close_price={pre_close_price}')
-        if self.signal == 1:
-            return latest_adosc > 0 and latest_adosc > pre_adosc
+
+        # 确认股价与 ADOSC 是否同步
+        if close_price > pre_close_price and latest_adosc > pre_adosc:
+            trend_confirmed = True  # 股价和 ADOSC 同步上涨
+        elif close_price < pre_close_price and latest_adosc < pre_adosc:
+            trend_confirmed = True  # 股价和 ADOSC 同步下跌
         else:
-            return latest_adosc < pre_adosc
+            trend_confirmed = False  # 股价和 ADOSC 不一致，存在背离
+
+        # 判断买入信号
+        if self.signal == 1:
+            if trend_confirmed:
+                return latest_adosc > 0  # 股价和 ADOSC 同时上涨，确认买入
+            else:
+                return False  # 背离时不生成买入信号
+
+        # 判断卖出信号
+        else:
+            if trend_confirmed:
+                return True  # 股价和 ADOSC 同时下跌，确认卖出
+            else:
+                return False  # 背离时不生成卖出信号
 
 
 class VWAP:
