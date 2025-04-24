@@ -195,13 +195,13 @@ class VWAP:
 
         # 判断信号
         if self.signal == 1:
-            # 股价在VWAP上方运行，则表明当前股价处于上升期
-            # 买入信号：价格上穿 VWAP 且当前价格高于上一日 VWAP
-            return close_price > latest_vwap and pre_close_price <= pre_vwap
+            # 买入信号：股价上穿 VWAP 且当前价格高于上一日 VWAP，成交量放大
+            volume_increase = df['volume'].iloc[-1] > df['volume'].iloc[-2]  # 成交量放大
+            return close_price > latest_vwap and pre_close_price <= pre_vwap and volume_increase
         else:
-            # 股价跌破VWAP并在其下方运行，则表明当前股价处于下跌期
-            # 卖出信号：价格下穿 VWAP 且当前价格低于上一日 VWAP
-            return close_price < latest_vwap and pre_close_price >= pre_vwap
+            # 卖出信号：股价下穿 VWAP 且当前价格低于上一日 VWAP，成交量放大
+            volume_increase = df['volume'].iloc[-1] > df['volume'].iloc[-2]  # 成交量放大
+            return close_price < latest_vwap and pre_close_price >= pre_vwap and volume_increase
 
 
 def get_up_volume_patterns():
