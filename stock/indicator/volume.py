@@ -85,21 +85,24 @@ class OBV:
             # 如果成交量为负，则不进行后续判断，返回False
             return False
 
-        # 计算OBV指标
+        # 计算 OBV 指标
         obv = ta.obv(df['close'], df['volume'])
-        # 提取最新和前一个OBV值
+        # 提取最新和前一个 OBV 值
         latest_obv = obv.iloc[-1]
         pre_obv = obv.iloc[-2]
 
-        # 当OBV和股价同时上升时，这意味着上涨趋势不仅仅是价格上的变动，而是得到了交易量的支持，这增加了趋势持续的可能性。
-        # 相反，如果股价上升但OBV没有同步增长，或者股价下跌而OBV没有同步下降，这可能表明趋势没有得到广泛的市场支持，因此趋势可能会减弱或反转。
+        # 获取最近的价格数据
         pre_price = df.iloc[-2]
         close_price = price['close']
         pre_close_price = pre_price['close']
+
+        # 判断买入信号
         if self.signal == 1:
-            return close_price <= pre_close_price and latest_obv > pre_obv
+            # 股价上涨且 OBV 上升，确认买入信号
+            return close_price > pre_close_price and latest_obv > pre_obv
         else:
-            return close_price >= pre_close_price and latest_obv < pre_obv
+            # 股价下跌且 OBV 下降，确认卖出信号
+            return close_price < pre_close_price and latest_obv < pre_obv
 
 
 class ADOSC:
