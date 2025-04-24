@@ -38,22 +38,23 @@ class VOL:
 
         # 从移动平均线中提取当前和前一个交易日的成交量均线值
         ma_volume = ma.iloc[-1]
-        if self.signal == 1:
-            # 判断当前收盘价是否高于前一个交易日的收盘价
-            if price['close'] >= pre_price['close']:
-                # 上涨，有量
-                return price['volume'] >= pre_price['volume'] > (ma_volume * 1.1)
-            else:
-                # 下跌，缩量
-                return price['volume'] <= pre_price['volume'] < (ma_volume * 0.9)
-        else:
-            # 判断当前收盘价是否高于前一个交易日的收盘价
-            if price['close'] >= pre_price['close']:
-                # 上涨，返回当前成交量大于上一日成交量且大于均线值
-                return price['volume'] <= pre_price['volume'] < ma_volume
-            else:
-                # 下跌，返回当前成交量是否小于上一日成交量且小于均线值
-                return price['volume'] >= pre_price['volume'] > ma_volume
+
+        # 计算成交量的变化幅度
+        volume_ratio = price['volume'] / ma_volume
+
+        # 判断信号时考虑成交量的波动性
+        if self.signal == 1:  # 买入信号
+            if price['close'] >= pre_price['close']:  # 股价上涨
+                # 判断成交量是否同步放大，且大于均线一定比例
+                return price['volume'] > pre_price['volume'] and volume_ratio > 1.1
+            else:  # 股价下跌，成交量不应放大
+                return price['volume'] <= pre_price['volume'] and volume_ratio < 0.9
+        else:  # 卖出信号
+            if price['close'] >= pre_price['close']:  # 股价上涨，成交量不应缩小
+                return price['volume'] < pre_price['volume'] and volume_ratio < 1.0
+            else:  # 股价下跌，成交量应同步缩小
+                return price['volume'] >= pre_price['volume'] and volume_ratio < 0.9
+
 
 
 class OBV:
