@@ -1,3 +1,5 @@
+from sqlalchemy import Numeric
+
 from extensions import db
 
 
@@ -9,9 +11,9 @@ class TradingStrategy(db.Model):
     stock_name = db.Column(db.String(255), nullable=False)
     patterns = db.Column(db.JSON, nullable=True)  # 存储 JSON 格式的技术指标
     exchange = db.Column(db.String(10), nullable=False)
-    buy_price = db.Column(db.Float, nullable=False)  # 买入价格
-    sell_price = db.Column(db.Float, nullable=True)  # 卖出价格（目标价）
-    stop_loss = db.Column(db.Float, nullable=True)  # 止损价
+    buy_price = db.Column(Numeric(38, 3), nullable=False)  # 买入价格
+    sell_price = db.Column(Numeric(38, 3), nullable=True)  # 卖出价格（目标价）
+    stop_loss = db.Column(Numeric(38, 3), nullable=True)  # 止损价
     signal = db.Column(db.INTEGER, nullable=False)  # 信号，执行买还是卖出
     sell_patterns = db.Column(db.JSON, nullable=True)  # 存储 JSON 格式的技术指标
     created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())  # 记录创建时间

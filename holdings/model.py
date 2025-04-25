@@ -7,7 +7,7 @@ class Holdings(db.Model):
     __tablename__ = "holdings"
     id = db.Column(BigInteger, primary_key=True)
     stock_code = db.Column(db.String(10), unique=True, nullable=False)
-    price = db.Column(Numeric(38, 2), nullable=False)
+    price = db.Column(Numeric(38, 3), nullable=False)
     holding_num = db.Column(Numeric(38, 2), nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())  # 记录创建时间
 
