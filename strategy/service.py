@@ -1,3 +1,4 @@
+import decimal
 from datetime import datetime
 
 from analysis.model import AnalyzedStock
@@ -16,8 +17,7 @@ def generate_strategy_task():
             # 计算买入、卖出、止损价格
             buy_price = stock.support
             sell_price = stock.resistance
-            stop_loss = round(stock.support * 0.99, 2)
-
+            stop_loss = stock.support * decimal.Decimal('0.99')
             # 查询是否已存在该股票的交易策略
             existing_strategy = TradingStrategy.query.filter_by(stock_code=stock.code).first()
 
@@ -124,5 +124,8 @@ def get_trading_strategies():
 
 
 def run_generate_strategy():
-    generate_strategy_task()
-    check_strategy_reverse_task()
+    try:
+        generate_strategy_task()
+        check_strategy_reverse_task()
+    except Exception as e:
+        print(f"Error: {e}")
