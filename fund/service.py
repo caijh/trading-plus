@@ -45,13 +45,16 @@ def analyze_funds(exchange):
     for item in data:
         # 将数据项初始化为股票对象，这里假设股票对象可以直接从数据项转换而来
         stock = item
+        stock['stock_type'] = 'Fund'
 
         # 调用函数分析股票，专注于日K线图中的模式
-        analyze_stock(stock, k_type=KType.DAY)
-
-        # 如果股票中发现了至少一个模式，则将其添加到结果列表中
-        if len(stock['patterns']) > 0:
-            funds.append(stock)
+        try:
+            analyze_stock(stock, k_type=KType.DAY)
+            # 如果股票中发现了至少一个模式，则将其添加到结果列表中
+            if len(stock['patterns']) > 0:
+                funds.append(stock)
+        except Exception as e:
+            print(f'Failed to analyze stock: {e}')
 
     # 返回具有特定模式的股票列表
     return funds
