@@ -50,9 +50,20 @@ def generate_strategy_task():
 
 
 def get_analyzed_stocks():
-    # 获取今天的 AnalyzedStock 数据
+    """
+    获取今天分析的股票信息。
+
+    本函数通过查询数据库中今天创建的 AnalyzedStock 记录来获取股票信息。
+    使用 SQLAlchemy ORM 和数据库函数来过滤出今天的记录。
+
+    :return: 今天分析的股票列表
+    :rtype: list of AnalyzedStock instances
+    """
+    # 获取今天的日期
     today = datetime.today().date()
+    # 查询数据库中今天创建的 AnalyzedStock 记录
     analyzed_stocks = AnalyzedStock.query.filter(db.func.date(AnalyzedStock.created_at) == today).all()
+    # 返回查询结果
     return analyzed_stocks
 
 
