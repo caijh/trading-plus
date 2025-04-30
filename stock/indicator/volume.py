@@ -56,7 +56,6 @@ class VOL:
                 return price['volume'] >= pre_price['volume'] and volume_ratio < 0.9
 
 
-
 class OBV:
     label = ''
     signal = 1
@@ -232,7 +231,7 @@ def get_up_volume_patterns():
     Returns:
         list: 包含一个成交量模式对象的列表。
     """
-    return [VOL(20, 1), OBV(1), ADOSC(1), VWAP(1)]
+    return [OBV(1), ADOSC(1), VWAP(1)]
 
 
 def get_down_volume_patterns():
@@ -242,4 +241,4 @@ def get_down_volume_patterns():
     Returns:
         list: 包含一个成交量模式对象的列表。
     """
-    return [VOL(20, -1), OBV(-1), ADOSC(-1), VWAP(-1)]
+    return [OBV(-1), ADOSC(-1), VWAP(-1)]
