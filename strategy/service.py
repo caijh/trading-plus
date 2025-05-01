@@ -98,15 +98,12 @@ def check_strategy_reverse_task():
                 strategy.updated_at = datetime.now()
             else:
                 holdings = get_holdings(code)
-                if holdings is not None:
-                    strategy.sell_price = stock['resistance']
-                else:
+                if holdings is None:
                     strategy.buy_price = stock['support']
                     strategy.sell_price = stock['resistance']
                     n_digits = 3 if stock['stock_type'] == 'Fund' else 2
                     strategy.stop_loss = round(stock['support'] * 0.99, n_digits)
-
-                strategy.updated_at = datetime.now()
+                    strategy.updated_at = datetime.now()
             # 打印更新策略的日志信息
             print(f"🔄 更新交易策略：{code}")
 
