@@ -105,7 +105,8 @@ def check_strategy_reverse_task():
                     strategy.stop_loss = round(stock['support'] * 0.99, n_digits)
                     strategy.updated_at = datetime.now()
                 else:
-                    strategy.sell_price = stock['resistance']
+                    if strategy.sell_price > stock['resistance']:
+                        strategy.sell_price = stock['resistance']
             # 打印更新策略的日志信息
             print(f"🔄 更新交易策略：{code}")
 
