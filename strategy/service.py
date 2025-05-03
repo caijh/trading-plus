@@ -76,8 +76,10 @@ def check_strategy_reverse_task():
     """
 
     with db.session.begin():
+        # 获取所有交易策略
         strategies = get_trading_strategies()
 
+        # 遍历每个策略进行更新
         for strategy in strategies:
             # 打印正在更新的策略信息
             print(f'更新股票策略, 股票名称: {strategy.stock_name}, 股票代码: {strategy.stock_code}')
@@ -91,20 +93,28 @@ def check_strategy_reverse_task():
 
             # 分析股票数据，k_type为DAY表示日线图，signal为-1表示卖出交易信号
             analyze_stock(stock, k_type=KType.DAY, signal=-1)
+            # 检查分析结果中是否有卖出信号
             if len(stock['patterns']) > 0:
                 # 有卖出信号，更新策略的买入价、卖出价、止损价、信号和更新时间
                 strategy.signal = -1
                 strategy.sell_patterns = stock['patterns']
                 strategy.updated_at = datetime.now()
             else:
+                # 如果没有卖出信号，获取股票的持仓信息
                 holdings = get_holdings(code)
+                # 如果没有持仓信息
                 if holdings is None:
+                    # 更新策略的买入价、卖出价和止损价
                     strategy.buy_price = stock['support']
                     strategy.sell_price = stock['resistance']
+                    # 根据股票类型确定保留的小数位数
                     n_digits = 3 if stock['stock_type'] == 'Fund' else 2
+                    # 计算并更新止损价
                     strategy.stop_loss = round(stock['support'] * 0.99, n_digits)
+                    # 更新时间戳
                     strategy.updated_at = datetime.now()
                 else:
+                    # 如果有持仓信息，仅更新卖出价
                     if strategy.sell_price > stock['resistance']:
                         strategy.sell_price = stock['resistance']
             # 打印更新策略的日志信息
@@ -116,6 +126,7 @@ def check_strategy_reverse_task():
     # 打印任务完成的日志信息
     print("🚀 check_strategy_reverse_task: 交易策略检查更新完成！")
     return None
+
 
 
 def get_trading_strategies():
