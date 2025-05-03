@@ -136,19 +136,19 @@ def get_patterns(signal):
     然后分别调用对应的函数获取K线模式、均线模式和成交量模式。
 
     参数:
-    signal (int): 市场信号，1代表上升趋势，非1代表下降趋势。
+    signal (int): 市场信号，1代表买入信号，非1代表卖出信号。
 
     返回:
     tuple: 包含三个元素的元组，分别是K线模式列表、均线模式列表和成交量模式列表。
     """
     # 根据信号判断市场趋势并获取相应的模式
     if signal == 1:
-        # 上升趋势时的模式
+        # 买入信号的模式
         candlestick_patterns = get_bullish_candlestick_patterns()
         ma_patterns = get_up_ma_patterns()
         volume_patterns = get_up_volume_patterns()
     else:
-        # 下降趋势时的模式
+        # 卖出信号的模式
         candlestick_patterns = get_bearish_candlestick_patterns()
         ma_patterns = get_down_ma_patterns()
         volume_patterns = get_down_volume_patterns()
