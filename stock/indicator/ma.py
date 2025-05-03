@@ -162,7 +162,7 @@ class MACD:
                 'Histogram_Decreasing']
 
             # 检查最近5个信号中是否有死叉
-            recent_signals = macd_df.tail(5)
+            recent_signals = macd_df.tail(3)
             macd_sell_signal = recent_signals['Sell_Signal_Confirmed'].any()
             print(f'{stock["code"]} MACD 是否死叉 = {macd_sell_signal}')
             return macd_sell_signal
@@ -196,7 +196,7 @@ class KDJ:
             raise ValueError("signal 参数只能是 1（金叉）或 -1（死叉）")
 
         # 取最近 5 天数据
-        recent_signals = kdj_df.tail(5)
+        recent_signals = kdj_df.tail(3)
 
         # 判断是否有交易信号
         kdj_signal = recent_signals['Signal'].any()
@@ -229,7 +229,7 @@ class RSI:
             raise ValueError("signal 参数只能是 1（买入）或 -1（卖出）")
 
         # 取最近 5 天数据
-        recent_signals = rsi_df.tail(5)
+        recent_signals = rsi_df.tail(3)
 
         # 判断是否有交易信号
         rsi_signal = recent_signals['Signal'].any()
@@ -320,7 +320,7 @@ class CCI:
             action = "卖出"
 
         # 获取最近 5 天的数据
-        recent_signals = cci_df.tail(5)
+        recent_signals = cci_df.tail(3)
 
         # 判断是否出现信号
         cci_signal = recent_signals[f'{"Buy" if self.signal == 1 else "Sell"}_Signal'].any()
