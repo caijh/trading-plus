@@ -145,8 +145,8 @@ class MACD:
             macd_df['Buy_Signal_Confirmed'] = macd_df['Buy_Signal'] & macd_df['Histogram_Positive'] & macd_df[
                 'Histogram_Increasing']
 
-            # 检查最近5个信号中是否有金叉
-            recent_signals = macd_df.tail(5)
+            # 检查最近3个信号中是否有金叉
+            recent_signals = macd_df.tail(3)
             macd_buy_signal = recent_signals['Buy_Signal_Confirmed'].any()
             print(f'{stock["code"]} MACD 是否金叉 = {macd_buy_signal}')
             return macd_buy_signal
@@ -161,7 +161,7 @@ class MACD:
             macd_df['Sell_Signal_Confirmed'] = macd_df['Sell_Signal'] & macd_df['Histogram_Negative'] & macd_df[
                 'Histogram_Decreasing']
 
-            # 检查最近5个信号中是否有死叉
+            # 检查最近3个信号中是否有死叉
             recent_signals = macd_df.tail(3)
             macd_sell_signal = recent_signals['Sell_Signal_Confirmed'].any()
             print(f'{stock["code"]} MACD 是否死叉 = {macd_sell_signal}')
