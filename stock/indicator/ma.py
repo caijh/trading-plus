@@ -338,10 +338,12 @@ class CCI:
 class BOP:
     signal = 1  # 1 表示买入信号，-1 表示卖出信号
     weight = 0.1
+    recent_days = 3
 
-    def __init__(self, signal):
+    def __init__(self, signal, recent_days=3):
         self.signal = signal
         self.label = "BOP"
+        self.recent_days = recent_days
 
     def match(self, stock, prices, df):
         """
@@ -364,18 +366,18 @@ class BOP:
         # 识别交易信号
         if self.signal == 1:
             # 买入信号：BOP 从负变正
-            bop_df['Buy_Signal'] = (bop_df.shift(1) < 0) & (bop_df > 0)
+            bop_df['Signal'] = (bop_df.shift(1) < 0) & (bop_df >= 0)
             action = "买入"
         else:
             # 卖出信号：BOP 从正变负
-            bop_df['Sell_Signal'] = (bop_df.shift(1) > 0) & (bop_df < 0)
+            bop_df['Signal'] = (bop_df.shift(1) > 0) & (bop_df <= 0)
             action = "卖出"
 
-        # 获取最近 5 天的数据
-        recent_signals = bop_df.tail(3)
+        # 获取最近几天的数据
+        recent_signals = bop_df.tail(self.recent_days)
 
         # 判断是否出现信号
-        bop_signal = recent_signals[f'{"Buy" if self.signal == 1 else "Sell"}_Signal'].any()
+        bop_signal = recent_signals['Signal'].any()
 
         # 输出信号情况
         print(f'{stock["code"]} BOP 是否{action}信号 = {bop_signal}')
