@@ -171,52 +171,56 @@ class ADOSC:
 
 
 class VWAP:
-    label = ''
-    signal = 1
+    label = 'VWAP'
     weight = 1
 
-    def __init__(self, signal):
+    def __init__(self, signal=1, volume_lookback=5):
+        """
+        初始化 VWAP 策略类
+        :param signal: 1 = 买入，-1 = 卖出
+        :param volume_lookback: 量能平均判断用的历史天数
+        """
         self.signal = signal
-        self.label = 'VWAP'
+        self.volume_lookback = volume_lookback
 
     def match(self, stock, prices, df):
         """
         使用 VWAP 判断买卖点。
-
-        参数:
-        - stock: 股票代码（字典格式）
-        - prices: 历史价格列表，包含 close, volume 等字段
-        - df: pandas DataFrame，包含 open/high/low/close/volume
-
-        返回:
-        - 是否满足买入或卖出条件（True / False）
+        :param stock: 股票信息字典
+        :param prices: 价格信息（未使用）
+        :param df: 包含 open/high/low/close/volume 的 DataFrame
+        :return: 是否发出信号
         """
-
-        # 确保 volume 有效
-        if df['volume'].iloc[-1] <= 0:
+        if len(df) < max(3, self.volume_lookback + 1):
+            print(f"{stock['code']} 数据不足")
             return False
 
-        # 计算 VWAP
-        df_vwap = df.ta.vwap(high='high', low='low', close='close', volume='volume')
+        df['VWAP'] = df.ta.vwap(high='high', low='low', close='close', volume='volume')
 
-        # 获取最新价格与 VWAP 值
+        # 最近两天价格与VWAP
         close_price = df.iloc[-1]['close']
-        pre_close_price = df.iloc[-2]['close']
-        latest_vwap = df_vwap.iloc[-1]
-        pre_vwap = df_vwap.iloc[-2]
+        close_pre_price = df.iloc[-2]['close']
+        vwap_today = df.iloc[-1]['VWAP']
+        vwap_yesterday = df.iloc[-2]['VWAP']
 
-        # 输出调试信息
-        print(f'{stock["code"]}: VWAP={latest_vwap:.2f}, Close={close_price:.2f}')
+        # 量能确认：当前成交量 > 过去N天均值
+        avg_volume = df['volume'].iloc[-self.volume_lookback - 1:-1].mean()
+        volume = df['volume'].iloc[-1]
+        volume_confirm = volume > avg_volume
 
-        # 判断信号
         if self.signal == 1:
-            # 买入信号：股价上穿 VWAP 且当前价格高于上一日 VWAP，成交量放大
-            volume_increase = df['volume'].iloc[-1] > df['volume'].iloc[-2]  # 成交量放大
-            return close_price > latest_vwap and pre_close_price <= pre_vwap and volume_increase
+            action = "买入"
+            # 买入信号：股价上穿 VWAP 且量能支持
+            price_cross = (close_pre_price < vwap_yesterday) and (close_price > vwap_today)
+            result = price_cross and volume_confirm
         else:
-            # 卖出信号：股价下穿 VWAP 且当前价格低于上一日 VWAP，成交量放大
-            volume_increase = df['volume'].iloc[-1] > df['volume'].iloc[-2]  # 成交量放大
-            return close_price < latest_vwap and pre_close_price >= pre_vwap and volume_increase
+            action = "卖出"
+            # 卖出信号：股价下穿 VWAP 且量能支持
+            price_cross = (close_pre_price > vwap_yesterday) and (close_price < vwap_today)
+            result = price_cross and volume_confirm
+
+        print(f"{stock['code']} VWAP 信号 = {result}（{action}），价格穿越 = {price_cross}，量能放大 = {volume_confirm}")
+        return result
 
 
 def get_up_volume_patterns():
