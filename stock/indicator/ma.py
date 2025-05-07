@@ -31,7 +31,8 @@ class SMA:
         price = df.iloc[-1]
 
         # 计算指定周期的简单移动平均线
-        ma = ta.sma(df['close'], self.ma)
+        df[f'{self.label}'] = ta.sma(df['close'], self.ma)
+        ma = df[f'{self.label}']
         # 获取最新和前一均线价格，用于比较
         ma_price = round(ma.iloc[-1], 3)
         pre_ma_price = round(ma.iloc[-2], 3) if len(ma) > 1 else None
@@ -87,7 +88,8 @@ class BIAS:
         - False：否则。
         """
         # 计算股票收盘价的偏差率
-        bias = ta.bias(df['close'], self.ma)
+        df[f'{self.label}'] = ta.bias(df['close'], self.ma)
+        bias = df[f'{self.label}']
         # 获取最新的偏差率值
         latest_bias = bias.iloc[-1]
         print(f'Stock {stock["code"]} 偏差率值为{latest_bias}, 期望值为{self.bias}')
@@ -103,10 +105,12 @@ class MACD:
     label = ''
     signal = 1
     weight = 1
+    recent = 3
 
-    def __init__(self, signal):
+    def __init__(self, signal, recent=3):
         self.label = 'MACD'
         self.signal = signal
+        self.recent = recent
 
     def match(self, stock, prices, df):
         """
@@ -142,12 +146,12 @@ class MACD:
             macd_df['Histogram_Positive'] = macd_df['Histogram'] > 0
             macd_df['Histogram_Increasing'] = macd_df['Histogram'] > macd_df['Histogram'].shift(1)
             # 结合金叉和柱状图的正值增大情况
-            macd_df['Buy_Signal_Confirmed'] = macd_df['Buy_Signal'] & macd_df['Histogram_Positive'] & macd_df[
+            df[f'{self.label}_Signal'] = macd_df['Buy_Signal'] & macd_df['Histogram_Positive'] & macd_df[
                 'Histogram_Increasing']
 
             # 检查最近3个信号中是否有金叉
-            recent_signals = macd_df.tail(3)
-            macd_buy_signal = recent_signals['Buy_Signal_Confirmed'].any()
+            recent_signals = df.tail(self.recent)
+            macd_buy_signal = recent_signals[f'{self.label}_Signal'].any()
             print(f'{stock["code"]} MACD 是否金叉 = {macd_buy_signal}')
             return macd_buy_signal
         else:
@@ -158,12 +162,12 @@ class MACD:
             macd_df['Histogram_Negative'] = macd_df['Histogram'] < 0
             macd_df['Histogram_Decreasing'] = macd_df['Histogram'] < macd_df['Histogram'].shift(1)
             # 结合死叉和柱状图的负值增大情况
-            macd_df['Sell_Signal_Confirmed'] = macd_df['Sell_Signal'] & macd_df['Histogram_Negative'] & macd_df[
+            df[f'{self.label}_Signal'] = macd_df['Sell_Signal'] & macd_df['Histogram_Negative'] & macd_df[
                 'Histogram_Decreasing']
 
             # 检查最近3个信号中是否有死叉
-            recent_signals = macd_df.tail(3)
-            macd_sell_signal = recent_signals['Sell_Signal_Confirmed'].any()
+            recent_signals = df.tail(self.recent)
+            macd_sell_signal = recent_signals[f'{self.label}_Signal'].any()
             print(f'{stock["code"]} MACD 是否死叉 = {macd_sell_signal}')
             return macd_sell_signal
 
@@ -173,9 +177,10 @@ class KDJ:
     signal = 1
     weight = 1
 
-    def __init__(self, signal):
+    def __init__(self, signal, recent=3):
         self.signal = signal
         self.label = 'KDJ'
+        self.recent = recent
 
     def match(self, stock, prices, df):
         # 计算 KDJ 指标
@@ -185,23 +190,24 @@ class KDJ:
         kdj_df.rename(columns={'STOCHk_9_3_3': 'K', 'STOCHd_9_3_3': 'D'}, inplace=True)
 
         if self.signal == 1:
+            action = "金叉"
             # 识别 KDJ 金叉（K 上穿 D，且 D < 20）
-            kdj_df['Signal'] = (kdj_df['K'].shift(1) < kdj_df['D'].shift(1)) & (kdj_df['K'] > kdj_df['D']) & (
+            df[f'{self.label}_Signal'] = (kdj_df['K'].shift(1) < kdj_df['D'].shift(1)) & (kdj_df['K'] > kdj_df['D']) & (
                 kdj_df['D'] < 20)
         elif self.signal == -1:
+            action = "死叉"
             # 识别 KDJ 死叉（K 下穿 D，且 D > 80）
-            kdj_df['Signal'] = (kdj_df['K'].shift(1) > kdj_df['D'].shift(1)) & (kdj_df['K'] < kdj_df['D']) & (
+            df[f'{self.label}_Signal'] = (kdj_df['K'].shift(1) > kdj_df['D'].shift(1)) & (kdj_df['K'] < kdj_df['D']) & (
                 kdj_df['D'] > 80)
         else:
             raise ValueError("signal 参数只能是 1（金叉）或 -1（死叉）")
 
-        # 取最近 5 天数据
-        recent_signals = kdj_df.tail(3)
+        # 取最近几天数据
+        recent_signals = df.tail(self.recent)
 
         # 判断是否有交易信号
-        kdj_signal = recent_signals['Signal'].any()
+        kdj_signal = recent_signals[f'{self.label}_Signal'].any()
 
-        action = "金叉 (买入)" if self.signal == 1 else "死叉 (卖出)"
         print(f'{stock["code"]} KDJ 是否 {action} = {kdj_signal}')
         return kdj_signal
 
@@ -209,10 +215,12 @@ class KDJ:
 class RSI:
     weight = 1
     signal = 1
+    recent = 3
 
-    def __init__(self, signal):
+    def __init__(self, signal, recent=3):
         self.signal = signal
         self.label = 'RSI'
+        self.recent = recent
 
     def match(self, stock, prices, df):
         # 计算 RSI 指标
@@ -220,21 +228,21 @@ class RSI:
         # 重命名列
         rsi_df.rename(columns={'RSI_14': 'RSI'}, inplace=True)
         if self.signal == 1:
+            action = "买入"
             # 识别 RSI 低于 30 且反弹（买入信号）
-            rsi_df['Signal'] = (rsi_df['RSI'].shift(1) < 30) & (rsi_df['RSI'] > rsi_df['RSI'].shift(1))
+            df[f'{self.label}_Signal'] = (rsi_df['RSI'].shift(1) < 30) & (rsi_df['RSI'] > rsi_df['RSI'].shift(1))
         elif self.signal == -1:
+            action = "卖出"
             # 识别 RSI 高于 70 且下跌（卖出信号）
-            rsi_df['Signal'] = (rsi_df['RSI'].shift(1) > 70) & (rsi_df['RSI'] < rsi_df['RSI'].shift(1))
+            df[f'{self.label}_Signal'] = (rsi_df['RSI'].shift(1) > 70) & (rsi_df['RSI'] < rsi_df['RSI'].shift(1))
         else:
             raise ValueError("signal 参数只能是 1（买入）或 -1（卖出）")
 
-        # 取最近 5 天数据
-        recent_signals = rsi_df.tail(3)
+        recent_signals = df.tail(self.recent)
 
         # 判断是否有交易信号
-        rsi_signal = recent_signals['Signal'].any()
+        rsi_signal = recent_signals[f'{self.label}_Signal'].any()
 
-        action = "买入" if self.signal == 1 else "卖出"
         print(f'{stock["code"]} RSI 是否 {action} = {rsi_signal}')
         return rsi_signal
 
@@ -244,12 +252,12 @@ class ROC:
     label = 'ROC'
     weight = 0.1
     period = 20
-    recent_days = 3
+    recent = 3
 
-    def __init__(self, signal, period=20, recent_days=3):
+    def __init__(self, signal, period=20, recent=3):
         self.signal = signal
         self.period = period
-        self.recent_days = recent_days
+        self.recent = recent
 
     def match(self, stock, prices, df):
         """
@@ -264,22 +272,22 @@ class ROC:
         - roc_signal: 布尔值，表示是否有符合条件的交易信号。
         """
         # 计算20日价格变动速率(ROC)
-        roc_df = ta.roc(df['close'], self.period)
+        df[f'{self.label}'] = ta.roc(df['close'], length=self.period)
+        roc_df = df[f'{self.label}']
 
         # 根据当前signal值设定交易信号生成规则
         if self.signal == 1:
+            action = '买入'
             # 买入信号：ROC从负转正
-            roc_df['Signal'] = (df['ROC'].shift(1) < 0) & (df['ROC'] >= 0)
+            df[f'{self.label}_Signal'] = (roc_df.shift(1) < 0) & (roc_df >= 0)
         else:
+            action = '卖出'
             # 卖出信号：ROC从正转负
-            roc_df['Signal'] = (df['ROC'].shift(1) > 0) & (df['ROC'] <= 0)
-
+            df[f'{self.label}_Signal'] = (roc_df.shift(1) > 0) & (roc_df <= 0)
         # 检查最近的五个信号中是否有符合条件的交易信号
-        recent_signals = roc_df.tail(self.recent_days)
-        roc_signal = recent_signals['Signal'].any()
+        recent_signals = df.tail(self.recent)
+        roc_signal = recent_signals[f'{self.label}_Signal'].any()
 
-        # 根据signal值确定买入或卖出操作
-        action = "买入" if self.signal == 1 else "卖出"
         # 输出股票代码和是否发出交易信号
         print(f'{stock["code"]} ROC 是否 {action} = {roc_signal}')
 
@@ -290,10 +298,13 @@ class ROC:
 class CCI:
     signal = 1  # 1 表示买入信号，-1 表示卖出信号
     weight = 0.1
+    period = 20
 
-    def __init__(self, signal):
+    def __init__(self, signal, period=20, recent=3):
         self.signal = signal
         self.label = "CCI"
+        self.period = period
+        self.recent = recent
 
     def match(self, stock, prices, df):
         """
@@ -306,28 +317,29 @@ class CCI:
         :return: True/False，是否出现符合条件的买卖信号。
         """
         # 计算 CCI 指标（通常使用 20 天周期）
-        cci_df = df.ta.cci(length=20)
+        df[f'{self.label}'] = df.ta.cci(length=self.period)
 
         # 确保 CCI 计算不为空
-        if cci_df is None or cci_df.empty:
+        if df[f'{self.label}'].isnull().all():
             print(f"CCI 计算失败，数据为空: {stock['code']}")
             return False
 
+        cci_df = df[f'{self.label}']
         # 识别交易信号
         if self.signal == 1:
             # 买入信号：CCI 从低于 -100 反弹
-            cci_df['Buy_Signal'] = (cci_df.shift(1) < -100) & (cci_df > cci_df.shift(1))
+            df[f'{self.label}_Signal'] = (cci_df.shift(1) < -100) & (cci_df > cci_df.shift(1))
             action = "买入"
         else:
             # 卖出信号：CCI 从高于 100 回落
-            cci_df['Sell_Signal'] = (cci_df.shift(1) > 100) & (cci_df < cci_df.shift(1))
+            df[f'{self.label}_Signal'] = (cci_df.shift(1) > 100) & (cci_df < cci_df.shift(1))
             action = "卖出"
 
-        # 获取最近 5 天的数据
-        recent_signals = cci_df.tail(3)
+        # 获取最近几天的数据
+        recent_signals = df.tail(self.recent)
 
         # 判断是否出现信号
-        cci_signal = recent_signals[f'{"Buy" if self.signal == 1 else "Sell"}_Signal'].any()
+        cci_signal = recent_signals[f'{self.label}_Signal'].any()
 
         # 输出信号情况
         print(f'{stock["code"]} CCI 是否{action}信号 = {cci_signal}')
@@ -339,6 +351,7 @@ class BOP:
     signal = 1  # 1 表示买入信号，-1 表示卖出信号
     weight = 0.1
     recent_days = 3
+    label = ''
 
     def __init__(self, signal, recent_days=3):
         self.signal = signal
@@ -356,28 +369,28 @@ class BOP:
         :return: True/False，是否出现符合条件的买卖信号。
         """
         # 计算 BOP 指标
-        bop_df = df.ta.bop()
+        df[f'{self.label}'] = df.ta.bop()
 
-        # 确保 BOP 计算不为空
-        if bop_df is None or bop_df.empty:
+        if df[f'{self.label}'].isnull().all():
             print(f"BOP 计算失败，数据为空: {stock['code']}")
             return False
 
+        bop_df = df[f'{self.label}']
         # 识别交易信号
         if self.signal == 1:
-            # 买入信号：BOP 从负变正
-            bop_df['Signal'] = (bop_df.shift(1) < 0) & (bop_df >= 0)
             action = "买入"
+            # 买入信号：BOP 从负变正
+            df[f'{self.label}_Signal'] = (bop_df.shift(1) < 0) & (bop_df >= 0)
         else:
-            # 卖出信号：BOP 从正变负
-            bop_df['Signal'] = (bop_df.shift(1) > 0) & (bop_df <= 0)
             action = "卖出"
+            # 卖出信号：BOP 从正变负
+            df[f'{self.label}_Signal'] = (bop_df.shift(1) > 0) & (bop_df <= 0)
 
         # 获取最近几天的数据
-        recent_signals = bop_df.tail(self.recent_days)
+        recent_signals = df.tail(self.recent_days)
 
         # 判断是否出现信号
-        bop_signal = recent_signals['Signal'].any()
+        bop_signal = recent_signals[f'{self.label}_Signal'].any()
 
         # 输出信号情况
         print(f'{stock["code"]} BOP 是否{action}信号 = {bop_signal}')
