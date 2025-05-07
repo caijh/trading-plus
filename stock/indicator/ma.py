@@ -243,9 +243,13 @@ class ROC:
     signal = 1
     label = 'ROC'
     weight = 0.1
+    period = 20
+    recent_days = 3
 
-    def __init__(self, signal):
+    def __init__(self, signal, period=20, recent_days=3):
         self.signal = signal
+        self.period = period
+        self.recent_days = recent_days
 
     def match(self, stock, prices, df):
         """
@@ -260,18 +264,18 @@ class ROC:
         - roc_signal: 布尔值，表示是否有符合条件的交易信号。
         """
         # 计算20日价格变动速率(ROC)
-        roc_df = ta.roc(df['close'], 20)
+        roc_df = ta.roc(df['close'], self.period)
 
         # 根据当前signal值设定交易信号生成规则
         if self.signal == 1:
             # 买入信号：ROC从负转正
-            roc_df['Signal'] = (roc_df.shift(1) < 0) & (roc_df > roc_df.shift(1))
+            roc_df['Signal'] = (df['ROC'].shift(1) < 0) & (df['ROC'] >= 0)
         else:
             # 卖出信号：ROC从正转负
-            roc_df['Signal'] = (roc_df.shift(1) > 0) & (roc_df < roc_df.shift(1))
+            roc_df['Signal'] = (df['ROC'].shift(1) > 0) & (df['ROC'] <= 0)
 
         # 检查最近的五个信号中是否有符合条件的交易信号
-        recent_signals = roc_df.tail(3)
+        recent_signals = roc_df.tail(self.recent_days)
         roc_signal = recent_signals['Signal'].any()
 
         # 根据signal值确定买入或卖出操作
