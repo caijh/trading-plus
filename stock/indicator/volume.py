@@ -91,18 +91,13 @@ class OBV:
         latest_obv = obv.iloc[-1]
         pre_obv = obv.iloc[-2]
 
-        # 获取最近的价格数据
-        pre_price = df.iloc[-2]
-        close_price = price['close']
-        pre_close_price = pre_price['close']
-
         # 判断买入信号
         if self.signal == 1:
             # 股价上涨且 OBV 上升，确认买入信号
-            return close_price > pre_close_price and latest_obv > pre_obv
+            return latest_obv > pre_obv
         else:
-            # 股价下跌且 OBV 下降，确认卖出信号
-            return close_price < pre_close_price and latest_obv < pre_obv
+            # OBV 下降，确认卖出信号
+            return latest_obv < pre_obv
 
 
 class ADOSC:
