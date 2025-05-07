@@ -60,47 +60,6 @@ class SMA:
             return (close_price < latest_ema) and (latest_ema < ma_price) and (pre_latest_ema >= pre_ma_price)
 
 
-class BIAS:
-    ma = 5
-    bias = -0.15
-    label = ''
-    signal = 1
-    weight = 1
-
-    def __init__(self, ma, bias, signal):
-        self.signal = signal
-        self.ma = ma
-        self.bias = bias
-        self.label = f'Bias{self.ma}'
-
-    def match(self, stock, prices, df):
-        """
-        判断给定股票是否满足特定的买入条件。
-
-        本函数使用偏差率指标来评估股票的当前价格是否被低估。
-        参数:
-        - stock: 股票对象，可能包含股票的基本信息（未在本函数中使用）。
-        - prices: 股票价格数据（未在本函数中使用，可能为未来扩展保留）。
-        - df: 包含股票历史数据的DataFrame，必须至少包含['close']列，代表收盘价。
-
-        返回:
-        - True：如果股票满足买入条件，即最新收盘价的偏差率小于0且小于预设的偏差阈值。
-        - False：否则。
-        """
-        # 计算股票收盘价的偏差率
-        df[f'{self.label}'] = ta.bias(df['close'], self.ma)
-        bias = df[f'{self.label}']
-        # 获取最新的偏差率值
-        latest_bias = bias.iloc[-1]
-        print(f'Stock {stock["code"]} 偏差率值为{latest_bias}, 期望值为{self.bias}')
-        if self.signal == 1:
-            # 下跌，达到偏差值
-            return latest_bias < 0 and latest_bias < self.bias
-        else:
-            # 上涨，达到偏差值
-            return latest_bias > 0 and latest_bias > self.bias
-
-
 class MACD:
     label = ''
     signal = 1
@@ -170,6 +129,47 @@ class MACD:
             macd_sell_signal = recent_signals[f'{self.label}_Signal'].any()
             print(f'{stock["code"]} MACD 是否死叉 = {macd_sell_signal}')
             return macd_sell_signal
+
+
+class BIAS:
+    ma = 5
+    bias = -0.15
+    label = ''
+    signal = 1
+    weight = 1
+
+    def __init__(self, ma, bias, signal):
+        self.signal = signal
+        self.ma = ma
+        self.bias = bias
+        self.label = f'Bias{self.ma}'
+
+    def match(self, stock, prices, df):
+        """
+        判断给定股票是否满足特定的买入条件。
+
+        本函数使用偏差率指标来评估股票的当前价格是否被低估。
+        参数:
+        - stock: 股票对象，可能包含股票的基本信息（未在本函数中使用）。
+        - prices: 股票价格数据（未在本函数中使用，可能为未来扩展保留）。
+        - df: 包含股票历史数据的DataFrame，必须至少包含['close']列，代表收盘价。
+
+        返回:
+        - True：如果股票满足买入条件，即最新收盘价的偏差率小于0且小于预设的偏差阈值。
+        - False：否则。
+        """
+        # 计算股票收盘价的偏差率
+        df[f'{self.label}'] = ta.bias(df['close'], self.ma)
+        bias = df[f'{self.label}']
+        # 获取最新的偏差率值
+        latest_bias = bias.iloc[-1]
+        print(f'Stock {stock["code"]} 偏差率值为{latest_bias}, 期望值为{self.bias}')
+        if self.signal == 1:
+            # 下跌，达到偏差值
+            return latest_bias < 0 and latest_bias < self.bias
+        else:
+            # 上涨，达到偏差值
+            return latest_bias > 0 and latest_bias > self.bias
 
 
 class KDJ:
