@@ -25,35 +25,20 @@ class VOL:
         - True 如果当前股票价格相较于前一日上涨且成交量有效放大（超过均线值）；
         - False 如果当前股票价格相较于前一日下跌且成交量有效缩小（低于均线值）。
         """
-        # 将成交量转换为浮点数类型，以支持后续的计算
-        df['volume'] = df['volume'].astype(float)
-
         # 计算成交量的移动平均值，使用简单移动平均线（SMA）
-        ma = ta.sma(df['volume'], self.ma)
+        if self.ma <= 5:
+            return False
 
-        # 取当前（最新）的交易数据
-        price = df.iloc[-1]
-        # 取前一个交易日的数据，用于比较
-        pre_price = df.iloc[-2]
+        long_ma = ta.sma(df['volume'], self.ma)
+        short_ma = ta.sma(df['volume'], 5)
 
-        # 从移动平均线中提取当前和前一个交易日的成交量均线值
-        ma_volume = ma.iloc[-1]
+        long_ma_volume = long_ma.iloc[-1]
+        short_ma_volume = short_ma.iloc[-1]
 
-        # 计算成交量的变化幅度
-        volume_ratio = price['volume'] / ma_volume
-
-        # 判断信号时考虑成交量的波动性
         if self.signal == 1:  # 买入信号
-            if price['close'] >= pre_price['close']:  # 股价上涨
-                # 判断成交量是否同步放大，且大于均线一定比例
-                return price['volume'] > pre_price['volume'] and volume_ratio > 1.1
-            else:  # 股价下跌，成交量不应放大
-                return price['volume'] <= pre_price['volume'] and volume_ratio < 0.9
+            return short_ma_volume > long_ma_volume
         else:  # 卖出信号
-            if price['close'] >= pre_price['close']:  # 股价上涨，成交量不应缩小
-                return price['volume'] < pre_price['volume'] and volume_ratio < 1.0
-            else:  # 股价下跌，成交量应同步缩小
-                return price['volume'] >= pre_price['volume'] and volume_ratio < 0.9
+            return short_ma_volume < long_ma_volume
 
 
 class OBV:
@@ -93,7 +78,7 @@ class OBV:
 
         # 判断买入信号
         if self.signal == 1:
-            # 股价上涨且 OBV 上升，确认买入信号
+            # OBV 上升，确认买入信号
             return latest_obv > pre_obv
         else:
             # OBV 下降，确认卖出信号
@@ -230,7 +215,7 @@ def get_up_volume_patterns():
     Returns:
         list: 包含一个成交量模式对象的列表。
     """
-    return [OBV(1), ADOSC(1), VWAP(1)]
+    return [VOL(20, 1), OBV(1), ADOSC(1), VWAP(1)]
 
 
 def get_down_volume_patterns():
@@ -240,4 +225,4 @@ def get_down_volume_patterns():
     Returns:
         list: 包含一个成交量模式对象的列表。
     """
-    return [OBV(-1), ADOSC(-1), VWAP(-1)]
+    return [VOL(20, -1), OBV(-1), ADOSC(-1), VWAP(-1)]

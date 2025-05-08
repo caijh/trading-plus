@@ -75,14 +75,14 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1):
 
             # 如果信号为1，且均线和量能的权重都大于1
             if signal == 1:
-                if ma_weight >= 2.1 and volume_weight > 1:
+                if ma_weight > 1 and volume_weight > 1:
                     # 将所有匹配的K线形态、均线和量能模式的标签添加到股票的模式列表中
                     append_matched_pattern_label(matched_candlestick_patterns, stock)
                     append_matched_pattern_label(matched_ma_patterns, stock)
                     append_matched_pattern_label(matched_volume_patterns, stock)
             # 如果信号不为1，但均线和量能的权重都大于0
             else:
-                if ma_weight >= 1.1 and volume_weight > 0:
+                if ma_weight > 1 and volume_weight > 0:
                     # 同样将所有匹配的模式标签添加到股票的模式列表中
                     append_matched_pattern_label(matched_candlestick_patterns, stock)
                     append_matched_pattern_label(matched_ma_patterns, stock)
