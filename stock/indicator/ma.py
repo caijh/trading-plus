@@ -292,6 +292,7 @@ class WR:
         print(f"{stock['code']} WR 是否{action} = {signal}")
         return signal
 
+
 class ROC:
     signal = 1
     label = 'ROC'
@@ -342,7 +343,7 @@ class ROC:
 
 class CCI:
     signal = 1  # 1 表示买入信号，-1 表示卖出信号
-    weight = 0.1
+    weight = 1
     period = 20
 
     def __init__(self, signal, period=20, recent=3):
@@ -384,12 +385,12 @@ class CCI:
         recent_signals = df.tail(self.recent)
 
         # 判断是否出现信号
-        cci_signal = recent_signals[f'{self.label}_Signal'].any()
+        signal = recent_signals[f'{self.label}_Signal'].any()
 
         # 输出信号情况
-        print(f'{stock["code"]} CCI 是否{action}信号 = {cci_signal}')
+        print(f'{stock["code"]} CCI 是否{action}信号 = {signal}')
 
-        return cci_signal
+        return signal
 
 
 class BOP:
@@ -451,8 +452,8 @@ def get_up_ma_patterns():
     以及一个特定参数的偏差率模式。这些模式用于在金融数据分析中计算和应用各种移动平均线和偏差率指标。
     """
     # 初始化均线和偏差率模式列表
-    ma_patterns = [SMA(10, 1), SMA(20, 1), SMA(60, 1), SMA(200, 1), BIAS(20, -0.10, 1), MACD(1), KDJ(1), RSI(1),
-                   WR(1), ROC(1), CCI(1), BOP(1)]
+    ma_patterns = [SMA(10, 1), SMA(20, 1), SMA(60, 1), SMA(200, 1), MACD(1),
+                   BIAS(20, -0.10, 1), KDJ(1), RSI(1), WR(1), CCI(1)]
     return ma_patterns
 
 
@@ -464,6 +465,6 @@ def get_down_ma_patterns():
     以及一个特定参数的偏差率模式。这些模式用于在金融数据分析中计算和应用各种移动平均线和偏差率指标。
     """
     # 初始化均线和偏差率
-    ma_patterns = [SMA(10, -1), SMA(20, -1), SMA(60, -1), SMA(200, -1), BIAS(20, 0.10, -1), MACD(-1), KDJ(-1),
-                   RSI(-1), WR(-1), ROC(-1), CCI(-1), BOP(-1)]
+    ma_patterns = [SMA(10, -1), SMA(20, -1), SMA(60, -1), SMA(200, -1), MACD(-1),
+                   BIAS(20, 0.10, -1), KDJ(-1), RSI(-1), WR(-1), CCI(-1)]
     return ma_patterns
