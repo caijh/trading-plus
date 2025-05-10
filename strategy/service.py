@@ -13,39 +13,41 @@ def generate_strategy(stocks):
         analyzed_stocks = stocks
 
         for stock in analyzed_stocks:
+            stock_code = stock['code']
+            stock_name = stock['name']
             # 计算买入、卖出、止损价格
-            buy_price = stock.support
-            sell_price = stock.resistance
+            buy_price = stock['support']
+            sell_price = stock['resistance']
             # 根据股票类型确定保留的小数位数
             n_digits = 3 if stock['stock_type'] == 'Fund' else 2
             # 计算并更新止损价
             stop_loss = round(stock['support'] * 0.99, n_digits)
             # 查询是否已存在该股票的交易策略
-            existing_strategy = TradingStrategy.query.filter_by(stock_code=stock.code).first()
+            existing_strategy = TradingStrategy.query.filter_by(stock_code=stock_code).first()
 
             if existing_strategy:
                 # **更新已有策略**
-                existing_strategy.patterns = stock.patterns
+                existing_strategy.patterns = stock['patterns']
                 existing_strategy.buy_price = buy_price
                 existing_strategy.sell_price = sell_price
                 existing_strategy.stop_loss = stop_loss
                 existing_strategy.signal = 1
                 existing_strategy.updated_at = datetime.now()
-                print(f"🔄 更新交易策略：{stock.code}")
+                print(f"🔄 更新交易策略：{stock_name}")
             else:
                 # **插入新策略**
                 new_strategy = TradingStrategy(
-                    stock_code=stock.code,
-                    stock_name=stock.name,
-                    exchange=stock.exchange,
-                    patterns=stock.patterns,
+                    stock_code=stock_code,
+                    stock_name=stock_name,
+                    exchange=stock['exchange'],
+                    patterns=stock['patterns'],
                     buy_price=buy_price,
                     sell_price=sell_price,
                     stop_loss=stop_loss,
                     signal=1
                 )
                 db.session.add(new_strategy)
-                print(f"✅ 插入新交易策略：{stock.code}")
+                print(f"✅ 插入新交易策略：{stock_name}")
         db.session.commit()
 
     print("🚀 generate_strategy_task: 交易策略生成完成！")

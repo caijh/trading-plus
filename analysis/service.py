@@ -30,4 +30,3 @@ def save_analyzed_stocks(stocks):
             except Exception as e:
                 print(f"处理 stock 出错: {stock['code']}, 错误信息: {e}")
 
-    print("analysis_index_task done!!!")

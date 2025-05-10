@@ -64,6 +64,8 @@ def analysis_index_task(index):
 
     generate_strategy(stocks)
 
+    print("analysis_index_task done!!!")
+
     return stocks
 
 
