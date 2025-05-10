@@ -2,7 +2,7 @@ from analysis.model import AnalyzedStock
 from extensions import db
 
 
-def write_db(stocks):
+def save_analyzed_stocks(stocks):
     """
     将分析过的股票数据插入数据库中。此函数首先根据股票代码删除已存在的股票数据，
     然后将新的股票数据插入到AnalyzedStock表中。

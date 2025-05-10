@@ -1,11 +1,11 @@
 from flask import jsonify, request, Blueprint
 
-from analysis.service import write_db
+from analysis.service import save_analyzed_stocks
 from extensions import executor
 from fund.service import analyze_funds
 from index.service import analyze_index, analyze_index_stocks
 from stock.service import get_stock, analyze_stock, KType
-from strategy.service import generate_strategy_task
+from strategy.service import generate_strategy
 
 analysis = Blueprint('analysis', __name__, url_prefix='/analysis')
 
@@ -60,9 +60,9 @@ def analysis_index_task(index):
     # 调用analyze_index_stocks函数获取指数成分股信息
     stocks = analyze_index_stocks(index)
 
-    write_db(stocks)
+    save_analyzed_stocks(stocks)
 
-    generate_strategy_task()
+    generate_strategy(stocks)
 
     return stocks
 
@@ -121,9 +121,9 @@ def analysis_funds_task(exchange):
     stocks = analyze_funds(exchange)
 
     # 将分析后的股票列表写入数据库
-    write_db(stocks)
+    save_analyzed_stocks(stocks)
 
-    generate_strategy_task()
+    generate_strategy()
 
     print("analysis_funds_task Done.")
 
