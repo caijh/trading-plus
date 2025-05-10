@@ -123,7 +123,7 @@ def analysis_funds_task(exchange):
     # 将分析后的股票列表写入数据库
     save_analyzed_stocks(stocks)
 
-    generate_strategy()
+    generate_strategy(stocks)
 
     print("analysis_funds_task Done.")
 
