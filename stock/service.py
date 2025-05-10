@@ -5,7 +5,6 @@ from environment.service import env_vars
 from request.service import http_get_with_retries
 from stock.indicator.candlestick import get_bullish_candlestick_patterns, get_bearish_candlestick_patterns
 from stock.indicator.ma import get_up_ma_patterns, get_down_ma_patterns
-from stock.indicator.volume import get_up_volume_patterns, get_down_volume_patterns
 
 
 class KType(Enum):
@@ -50,6 +49,20 @@ def get_stock_price(code, k_type=KType.DAY):
     return []
 
 
+def get_volume_patterns(matched_ma_patterns):
+    patterns = []
+    pattern_labels = []
+    for pattern in matched_ma_patterns:
+        volume_patterns = pattern.get_volume_confirm_patterns()
+        for volume_pattern in volume_patterns:
+            pattern_label = f'${volume_pattern.label}_${volume_pattern.signal}'
+            if pattern_label not in pattern_labels:
+                patterns.append(volume_pattern)
+                pattern_labels.append(pattern_label)
+
+    return patterns
+
+
 def analyze_stock(stock, k_type=KType.DAY, signal=1):
     code = stock['code']
     name = stock['name']
@@ -61,7 +74,7 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1):
         return stock
     else:
         print(f'Analyzing Stock, code = {code}, name = {name}')
-        candlestick_patterns, ma_patterns, volume_patterns = get_patterns(signal)
+        candlestick_patterns, ma_patterns = get_patterns(signal)
 
         df = create_dataframe(prices)
 
@@ -71,6 +84,7 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1):
         # 如果存在匹配的K线形态模式
         if candlestick_weight > min_candlestick_weight:
             matched_ma_patterns, ma_weight = get_match_patterns(ma_patterns, stock, prices, df)
+            volume_patterns = get_volume_patterns(matched_ma_patterns)
             matched_volume_patterns, volume_weight = get_match_patterns(volume_patterns, stock, prices, df)
 
             # 如果信号为1，且均线和量能的权重都大于1
@@ -139,22 +153,20 @@ def get_patterns(signal):
     signal (int): 市场信号，1代表买入信号，非1代表卖出信号。
 
     返回:
-    tuple: 包含三个元素的元组，分别是K线模式列表、均线模式列表和成交量模式列表。
+    tuple: 包含三个元素的元组，分别是K线模式列表、均线模式列表。
     """
     # 根据信号判断市场趋势并获取相应的模式
     if signal == 1:
         # 买入信号的模式
         candlestick_patterns = get_bullish_candlestick_patterns()
         ma_patterns = get_up_ma_patterns()
-        volume_patterns = get_up_volume_patterns()
     else:
         # 卖出信号的模式
         candlestick_patterns = get_bearish_candlestick_patterns()
         ma_patterns = get_down_ma_patterns()
-        volume_patterns = get_down_volume_patterns()
 
-    # 返回获取到的三种模式
-    return candlestick_patterns, ma_patterns, volume_patterns
+    # 返回获取到的模式
+    return candlestick_patterns, ma_patterns
 
 
 def get_match_patterns(patterns, stock, prices, df):
@@ -162,11 +174,15 @@ def get_match_patterns(patterns, stock, prices, df):
     name = stock['name']
     weight = 0
     matched_patterns = []
-    for pattern in patterns:
-        if pattern.match(stock, prices, df):
-            print(f'{code} {name} Match {pattern.label}')
-            weight += pattern.weight
-            matched_patterns.append(pattern)
+    try:
+        for pattern in patterns:
+            if pattern.match(stock, prices, df):
+                print(f'{code} {name} Match {pattern.label}')
+                weight += pattern.weight
+                matched_patterns.append(pattern)
+    except Exception as e:
+        print(e)
+        pass
     return matched_patterns, weight
 
 

@@ -1,5 +1,7 @@
 import pandas_ta as ta
 
+from stock.indicator.volume import VOL, OBV, ADOSC
+
 
 class SMA:
     ma = 5
@@ -45,9 +47,6 @@ class SMA:
         pre_latest_ema = ema.iloc[-2] if len(ema) > 1 else None
 
         close_price = price['close']
-        # 打印计算结果，用于调试和日志记录
-        print(
-            f'{stock["code"]} MA{self.ma}, price = {close_price}, ma_price = {ma_price}, pre_ma_price = {pre_ma_price}, latest_ema = {latest_ema}, pre_latest_ema = {pre_latest_ema}')
 
         if pre_ma_price is None or pre_latest_ema is None:
             return False
@@ -58,6 +57,66 @@ class SMA:
         else:
             # EMA小于SMA，且向下拐，股价在EMA下方
             return (close_price < latest_ema) and (latest_ema < ma_price) and (pre_latest_ema >= pre_ma_price)
+
+    def get_volume_confirm_patterns(self):
+        if self.signal == 1:
+            return [VOL(20, 1), OBV(1), ADOSC(1)]
+        return [VOL(20, 1), OBV(-1), ADOSC(-1)]
+
+
+class VWAP:
+    label = 'VWAP'
+    weight = 1
+
+    def __init__(self, signal=1, volume_lookback=5):
+        """
+        初始化 VWAP 策略类
+        :param signal: 1 = 买入，-1 = 卖出
+        :param volume_lookback: 量能平均判断用的历史天数
+        """
+        self.signal = signal
+        self.volume_lookback = volume_lookback
+
+    def match(self, stock, prices, df):
+        """
+        使用 VWAP 判断买卖点。
+        :param stock: 股票信息字典
+        :param prices: 价格信息（未使用）
+        :param df: 包含 open/high/low/close/volume 的 DataFrame
+        :return: 是否发出信号
+        """
+        if len(df) < max(3, self.volume_lookback + 1):
+            print(f"{stock['code']} 数据不足")
+            return False
+
+        df['VWAP'] = df.ta.vwap(high='high', low='low', close='close', volume='volume')
+
+        # 最近两天价格与VWAP
+        close_price = df.iloc[-1]['close']
+        close_pre_price = df.iloc[-2]['close']
+        vwap_today = df.iloc[-1]['VWAP']
+        vwap_yesterday = df.iloc[-2]['VWAP']
+
+        # 量能确认：当前成交量 > 过去N天均值
+        avg_volume = df['volume'].iloc[-self.volume_lookback - 1:-1].mean()
+        volume = df['volume'].iloc[-1]
+        volume_confirm = volume > avg_volume
+
+        if self.signal == 1:
+            # 买入信号：股价上穿 VWAP 且量能支持
+            price_cross = (close_pre_price < vwap_yesterday) and (close_price > vwap_today)
+            result = price_cross and volume_confirm
+        else:
+            # 卖出信号：股价下穿 VWAP 且量能支持
+            price_cross = (close_pre_price > vwap_yesterday) and (close_price < vwap_today)
+            result = price_cross and volume_confirm
+
+        return result
+
+    def get_volume_confirm_patterns(self):
+        if self.signal == 1:
+            return [VOL(20, 1), OBV(1), ADOSC(1)]
+        return [VOL(20, 1), OBV(-1), ADOSC(-1)]
 
 
 class MACD:
@@ -111,7 +170,6 @@ class MACD:
             # 检查最近3个信号中是否有金叉
             recent_signals = df.tail(self.recent)
             macd_buy_signal = recent_signals[f'{self.label}_Signal'].any()
-            print(f'{stock["code"]} MACD 是否金叉 = {macd_buy_signal}')
             return macd_buy_signal
         else:
             # 识别并标记MACD死叉信号
@@ -127,8 +185,12 @@ class MACD:
             # 检查最近3个信号中是否有死叉
             recent_signals = df.tail(self.recent)
             macd_sell_signal = recent_signals[f'{self.label}_Signal'].any()
-            print(f'{stock["code"]} MACD 是否死叉 = {macd_sell_signal}')
             return macd_sell_signal
+
+    def get_volume_confirm_patterns(self):
+        if self.signal == 1:
+            return [VOL(20, 1), OBV(1), ADOSC(1)]
+        return [VOL(20, 1), OBV(-1), ADOSC(-1)]
 
 
 class BIAS:
@@ -163,13 +225,17 @@ class BIAS:
         bias = df[f'{self.label}']
         # 获取最新的偏差率值
         latest_bias = bias.iloc[-1]
-        print(f'Stock {stock["code"]} 偏差率值为{latest_bias}, 期望值为{self.bias}')
         if self.signal == 1:
             # 下跌，达到偏差值
             return latest_bias < 0 and latest_bias < self.bias
         else:
             # 上涨，达到偏差值
             return latest_bias > 0 and latest_bias > self.bias
+
+    def get_volume_confirm_patterns(self):
+        if self.signal == 1:
+            return [VOL(20, -1), OBV(1), ADOSC(1)]
+        return [VOL(20, 1), OBV(-1), ADOSC(-1)]
 
 
 class KDJ:
@@ -208,8 +274,12 @@ class KDJ:
         # 判断是否有交易信号
         kdj_signal = recent_signals[f'{self.label}_Signal'].any()
 
-        print(f'{stock["code"]} KDJ 是否 {action} = {kdj_signal}')
         return kdj_signal
+
+    def get_volume_confirm_patterns(self):
+        if self.signal == 1:
+            return [VOL(20, -1), OBV(1), ADOSC(1)]
+        return [VOL(20, 1), OBV(-1), ADOSC(-1)]
 
 
 class RSI:
@@ -229,11 +299,9 @@ class RSI:
         rsi_df.rename(columns={'RSI_14': 'RSI'}, inplace=True)
         df[f'{self.label}'] = rsi_df['RSI']
         if self.signal == 1:
-            action = "买入"
             # 识别 RSI 低于 30 且反弹（买入信号）
             df[f'{self.label}_Signal'] = (rsi_df['RSI'].shift(1) < 30) & (rsi_df['RSI'] > rsi_df['RSI'].shift(1))
         elif self.signal == -1:
-            action = "卖出"
             # 识别 RSI 高于 70 且下跌（卖出信号）
             df[f'{self.label}_Signal'] = (rsi_df['RSI'].shift(1) > 70) & (rsi_df['RSI'] < rsi_df['RSI'].shift(1))
         else:
@@ -244,8 +312,12 @@ class RSI:
         # 判断是否有交易信号
         rsi_signal = recent_signals[f'{self.label}_Signal'].any()
 
-        print(f'{stock["code"]} RSI 是否 {action} = {rsi_signal}')
         return rsi_signal
+
+    def get_volume_confirm_patterns(self):
+        if self.signal == 1:
+            return [VOL(20, -1), OBV(1), ADOSC(1)]
+        return [VOL(20, 1), OBV(-1), ADOSC(-1)]
 
 
 class WR:
@@ -275,11 +347,9 @@ class WR:
         df[self.label] = wr_df
 
         if self.signal == 1:
-            action = "买入"
             # 买入信号：WR 上穿 -80（从超卖区域反弹）
             df[f'{self.label}_Signal'] = (wr_df.shift(1) < -80) & (wr_df > wr_df.shift(1))
         elif self.signal == -1:
-            action = "卖出"
             # 卖出信号：WR 下穿 -20（从超买区域回落）
             df[f'{self.label}_Signal'] = (wr_df.shift(1) > -20) & (wr_df < wr_df.shift(1))
         else:
@@ -289,56 +359,12 @@ class WR:
         recent_signals = df.tail(self.recent)
         signal = recent_signals[f'{self.label}_Signal'].any()
 
-        print(f"{stock['code']} WR 是否{action} = {signal}")
         return signal
 
-
-class ROC:
-    signal = 1
-    label = 'ROC'
-    weight = 0.1
-    period = 20
-    recent = 3
-
-    def __init__(self, signal, period=20, recent=3):
-        self.signal = signal
-        self.period = period
-        self.recent = recent
-
-    def match(self, stock, prices, df):
-        """
-        根据股票价格和动量指标(ROC)生成交易信号。
-
-        参数:
-        - stock: 包含股票信息的字典。
-        - prices: 未使用，遗留参数，可为未来扩展保留。
-        - df: 包含股票历史价格数据的DataFrame，必须至少包含'close'列。
-
-        返回:
-        - roc_signal: 布尔值，表示是否有符合条件的交易信号。
-        """
-        # 计算20日价格变动速率(ROC)
-        df[f'{self.label}'] = ta.roc(df['close'], length=self.period)
-        roc_df = df[f'{self.label}']
-
-        # 根据当前signal值设定交易信号生成规则
+    def get_volume_confirm_patterns(self):
         if self.signal == 1:
-            action = '买入'
-            # 买入信号：ROC从负转正
-            df[f'{self.label}_Signal'] = (roc_df.shift(1) < 0) & (roc_df >= 0)
-        else:
-            action = '卖出'
-            # 卖出信号：ROC从正转负
-            df[f'{self.label}_Signal'] = (roc_df.shift(1) > 0) & (roc_df <= 0)
-        # 检查最近的五个信号中是否有符合条件的交易信号
-        recent_signals = df.tail(self.recent)
-        roc_signal = recent_signals[f'{self.label}_Signal'].any()
-
-        # 输出股票代码和是否发出交易信号
-        print(f'{stock["code"]} ROC 是否 {action} = {roc_signal}')
-
-        # 返回是否有符合条件的交易信号
-        return roc_signal
+            return [VOL(20, -1), OBV(1), ADOSC(1)]
+        return [VOL(20, 1), OBV(-1), ADOSC(-1)]
 
 
 class CCI:
@@ -375,11 +401,9 @@ class CCI:
         if self.signal == 1:
             # 买入信号：CCI 从低于 -100 反弹
             df[f'{self.label}_Signal'] = (cci_df.shift(1) < -100) & (cci_df > cci_df.shift(1))
-            action = "买入"
         else:
             # 卖出信号：CCI 从高于 100 回落
             df[f'{self.label}_Signal'] = (cci_df.shift(1) > 100) & (cci_df < cci_df.shift(1))
-            action = "卖出"
 
         # 获取最近几天的数据
         recent_signals = df.tail(self.recent)
@@ -387,61 +411,12 @@ class CCI:
         # 判断是否出现信号
         signal = recent_signals[f'{self.label}_Signal'].any()
 
-        # 输出信号情况
-        print(f'{stock["code"]} CCI 是否{action}信号 = {signal}')
-
         return signal
 
-
-class BOP:
-    signal = 1  # 1 表示买入信号，-1 表示卖出信号
-    weight = 0.1
-    recent_days = 3
-    label = ''
-
-    def __init__(self, signal, recent_days=3):
-        self.signal = signal
-        self.label = "BOP"
-        self.recent_days = recent_days
-
-    def match(self, stock, prices, df):
-        """
-        判断BOP指标的买卖信号。
-
-        :param stock: 股票信息字典，包含股票代码等信息。
-        :param prices: 价格数据（未使用，可扩展）。
-        :param df: 股票历史数据 DataFrame，必须至少包含 ['open', 'high', 'low', 'close'] 列。
-
-        :return: True/False，是否出现符合条件的买卖信号。
-        """
-        # 计算 BOP 指标
-        df[f'{self.label}'] = df.ta.bop()
-
-        if df[f'{self.label}'].isnull().all():
-            print(f"BOP 计算失败，数据为空: {stock['code']}")
-            return False
-
-        bop_df = df[f'{self.label}']
-        # 识别交易信号
+    def get_volume_confirm_patterns(self):
         if self.signal == 1:
-            action = "买入"
-            # 买入信号：BOP 从负变正
-            df[f'{self.label}_Signal'] = (bop_df.shift(1) < 0) & (bop_df >= 0)
-        else:
-            action = "卖出"
-            # 卖出信号：BOP 从正变负
-            df[f'{self.label}_Signal'] = (bop_df.shift(1) > 0) & (bop_df <= 0)
-
-        # 获取最近几天的数据
-        recent_signals = df.tail(self.recent_days)
-
-        # 判断是否出现信号
-        bop_signal = recent_signals[f'{self.label}_Signal'].any()
-
-        # 输出信号情况
-        print(f'{stock["code"]} BOP 是否{action}信号 = {bop_signal}')
-
-        return bop_signal
+            return [VOL(20, -1), OBV(1), ADOSC(1)]
+        return [VOL(20, 1), OBV(-1), ADOSC(-1)]
 
 
 def get_up_ma_patterns():
@@ -452,7 +427,7 @@ def get_up_ma_patterns():
     以及一个特定参数的偏差率模式。这些模式用于在金融数据分析中计算和应用各种移动平均线和偏差率指标。
     """
     # 初始化均线和偏差率模式列表
-    ma_patterns = [SMA(10, 1), SMA(20, 1), SMA(60, 1), SMA(200, 1), MACD(1),
+    ma_patterns = [SMA(10, 1), SMA(20, 1), SMA(60, 1), SMA(200, 1), MACD(1), VWAP(1),
                    BIAS(20, -0.10, 1), KDJ(1), RSI(1), WR(1), CCI(1)]
     return ma_patterns
 
@@ -465,6 +440,6 @@ def get_down_ma_patterns():
     以及一个特定参数的偏差率模式。这些模式用于在金融数据分析中计算和应用各种移动平均线和偏差率指标。
     """
     # 初始化均线和偏差率
-    ma_patterns = [SMA(10, -1), SMA(20, -1), SMA(60, -1), SMA(200, -1), MACD(-1),
+    ma_patterns = [SMA(10, -1), SMA(20, -1), SMA(60, -1), SMA(200, -1), MACD(-1), VWAP(-1),
                    BIAS(20, 0.10, -1), KDJ(-1), RSI(-1), WR(-1), CCI(-1)]
     return ma_patterns

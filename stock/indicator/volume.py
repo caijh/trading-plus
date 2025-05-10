@@ -2,43 +2,43 @@ import pandas_ta as ta
 
 
 class VOL:
-    ma = 20
-    label = ''
-    signal = 1
-    weight = 1
+    def __init__(self, ma=20, signal=1):
+        """
+        初始化 VOL 策略
 
-    def __init__(self, ma, signal):
+        参数:
+        - ma: 长期均线周期（默认20）
+        - signal: 1 表示买入信号，-1 表示卖出信号
+        - threshold: 放量或缩量的强度倍数，如 1.2 表示需放大/缩小20%
+        """
         self.ma = ma
         self.signal = signal
         self.label = f'VOL{self.ma}'
+        self.weight = 1
 
     def match(self, stock, prices, df):
-        """
-        根据给定的股票数据和价格信息，判断当前股票是否满足特定的买卖条件。
-
-        参数:
-        - stock: 股票标识符，用于唯一标识一只股票。
-        - prices: 价格信息，本例中未直接使用，但可能在将来用于更复杂的判断条件。
-        - df: 包含股票历史数据的DataFrame，包括但不限于日期、开盘价、收盘价、最高价、最低价和成交量。
-
-        返回:
-        - True 如果当前股票价格相较于前一日上涨且成交量有效放大（超过均线值）；
-        - False 如果当前股票价格相较于前一日下跌且成交量有效缩小（低于均线值）。
-        """
-        # 计算成交量的移动平均值，使用简单移动平均线（SMA）
-        if self.ma <= 5:
+        if df is None or len(df) < max(self.ma, 6):
+            print(f'{stock["code"]} 数据不足，无法计算 VOL 指标')
             return False
 
+        # 计算短期和长期的成交量均线
         long_ma = ta.sma(df['volume'], self.ma)
         short_ma = ta.sma(df['volume'], 5)
 
-        long_ma_volume = long_ma.iloc[-1]
-        short_ma_volume = short_ma.iloc[-1]
+        if long_ma.isna().iloc[-1] or short_ma.isna().iloc[-1]:
+            return False
 
-        if self.signal == 1:  # 买入信号
-            return short_ma_volume > long_ma_volume
-        else:  # 卖出信号
-            return short_ma_volume < long_ma_volume
+        # 获取最近成交量均值
+        short_vol = short_ma.iloc[-1]
+        long_vol = long_ma.iloc[-1]
+
+        # 信号判断
+        if self.signal == 1:
+            signal = short_vol > long_vol
+        else:
+            signal = short_vol < long_vol
+
+        return signal
 
 
 class OBV:
@@ -123,106 +123,9 @@ class ADOSC:
         latest_adosc = adosc.iloc[-1]
         pre_adosc = adosc.iloc[-2]
 
-        # 获取前一个价格信息
-        pre_price = df.iloc[-2]
-        close_price = price['close']
-        pre_close_price = pre_price['close']
-
-        # 输出调试信息，帮助分析
-        print(
-            f'{stock["code"]}: latest_adosc={latest_adosc}, pre_adosc={pre_adosc}, close_price={close_price}, pre_close_price={pre_close_price}')
-
-        # 确认股价与 ADOSC 是否同步
-        if close_price > pre_close_price and latest_adosc > pre_adosc:
-            trend_confirmed = True  # 股价和 ADOSC 同步上涨
-        elif close_price < pre_close_price and latest_adosc < pre_adosc:
-            trend_confirmed = True  # 股价和 ADOSC 同步下跌
-        else:
-            trend_confirmed = False  # 股价和 ADOSC 不一致，存在背离
-
         # 判断买入信号
         if self.signal == 1:
-            if trend_confirmed:
-                return latest_adosc > 0  # 股价和 ADOSC 同时上涨，确认买入
-            else:
-                return False  # 背离时不生成买入信号
-
+            return latest_adosc > pre_adosc
         # 判断卖出信号
         else:
-            if trend_confirmed:
-                return True  # 股价和 ADOSC 同时下跌，确认卖出
-            else:
-                return False  # 背离时不生成卖出信号
-
-
-class VWAP:
-    label = 'VWAP'
-    weight = 1
-
-    def __init__(self, signal=1, volume_lookback=5):
-        """
-        初始化 VWAP 策略类
-        :param signal: 1 = 买入，-1 = 卖出
-        :param volume_lookback: 量能平均判断用的历史天数
-        """
-        self.signal = signal
-        self.volume_lookback = volume_lookback
-
-    def match(self, stock, prices, df):
-        """
-        使用 VWAP 判断买卖点。
-        :param stock: 股票信息字典
-        :param prices: 价格信息（未使用）
-        :param df: 包含 open/high/low/close/volume 的 DataFrame
-        :return: 是否发出信号
-        """
-        if len(df) < max(3, self.volume_lookback + 1):
-            print(f"{stock['code']} 数据不足")
-            return False
-
-        df['VWAP'] = df.ta.vwap(high='high', low='low', close='close', volume='volume')
-
-        # 最近两天价格与VWAP
-        close_price = df.iloc[-1]['close']
-        close_pre_price = df.iloc[-2]['close']
-        vwap_today = df.iloc[-1]['VWAP']
-        vwap_yesterday = df.iloc[-2]['VWAP']
-
-        # 量能确认：当前成交量 > 过去N天均值
-        avg_volume = df['volume'].iloc[-self.volume_lookback - 1:-1].mean()
-        volume = df['volume'].iloc[-1]
-        volume_confirm = volume > avg_volume
-
-        if self.signal == 1:
-            action = "买入"
-            # 买入信号：股价上穿 VWAP 且量能支持
-            price_cross = (close_pre_price < vwap_yesterday) and (close_price > vwap_today)
-            result = price_cross and volume_confirm
-        else:
-            action = "卖出"
-            # 卖出信号：股价下穿 VWAP 且量能支持
-            price_cross = (close_pre_price > vwap_yesterday) and (close_price < vwap_today)
-            result = price_cross and volume_confirm
-
-        print(f"{stock['code']} VWAP 信号 = {result}（{action}），价格穿越 = {price_cross}，量能放大 = {volume_confirm}")
-        return result
-
-
-def get_up_volume_patterns():
-    """
-    获取成交量模式列表。
-
-    Returns:
-        list: 包含一个成交量模式对象的列表。
-    """
-    return [VOL(20, 1), OBV(1), ADOSC(1), VWAP(1)]
-
-
-def get_down_volume_patterns():
-    """
-    获取成交量模式列表。
-
-    Returns:
-        list: 包含一个成交量模式对象的列表。
-    """
-    return [VOL(20, -1), OBV(-1), ADOSC(-1), VWAP(-1)]
+            return latest_adosc < pre_adosc
