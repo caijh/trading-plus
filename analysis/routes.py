@@ -5,6 +5,7 @@ from extensions import executor
 from fund.service import analyze_funds
 from index.service import analyze_index, analyze_index_stocks
 from stock.service import get_stock, analyze_stock, KType
+from strategy.service import generate_strategy_task
 
 analysis = Blueprint('analysis', __name__, url_prefix='/analysis')
 
@@ -60,6 +61,8 @@ def analysis_index_task(index):
     stocks = analyze_index_stocks(index)
 
     write_db(stocks)
+
+    generate_strategy_task()
 
     return stocks
 
@@ -119,6 +122,8 @@ def analysis_funds_task(exchange):
 
     # 将分析后的股票列表写入数据库
     write_db(stocks)
+
+    generate_strategy_task()
 
     print("analysis_funds_task Done.")
 
