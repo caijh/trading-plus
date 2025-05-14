@@ -22,6 +22,10 @@ def generate_strategy(stocks):
             n_digits = 3 if stock['stock_type'] == 'Fund' else 2
             # 计算并更新止损价
             stop_loss = round(stock['support'] * 0.99, n_digits)
+
+            if (sell_price - buy_price) / (buy_price - stop_loss) < 2:
+                continue
+
             # 查询是否已存在该股票的交易策略
             existing_strategy = TradingStrategy.query.filter_by(stock_code=stock_code).first()
 
