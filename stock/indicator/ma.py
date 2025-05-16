@@ -227,10 +227,10 @@ class BIAS:
         latest_bias = bias.iloc[-1]
         if self.signal == 1:
             # 下跌，达到偏差值
-            return latest_bias < 0 and latest_bias < self.bias
+            return latest_bias < self.bias
         else:
             # 上涨，达到偏差值
-            return latest_bias > 0 and latest_bias > self.bias
+            return latest_bias > self.bias
 
     def get_volume_confirm_patterns(self):
         if self.signal == 1:
@@ -256,12 +256,10 @@ class KDJ:
         kdj_df.rename(columns={'STOCHk_9_3_3': 'K', 'STOCHd_9_3_3': 'D'}, inplace=True)
 
         if self.signal == 1:
-            action = "金叉"
             # 识别 KDJ 金叉（K 上穿 D，且 D < 20）
             df[f'{self.label}_Signal'] = (kdj_df['K'].shift(1) < kdj_df['D'].shift(1)) & (kdj_df['K'] > kdj_df['D']) & (
                 kdj_df['D'] < 20)
         elif self.signal == -1:
-            action = "死叉"
             # 识别 KDJ 死叉（K 下穿 D，且 D > 80）
             df[f'{self.label}_Signal'] = (kdj_df['K'].shift(1) > kdj_df['D'].shift(1)) & (kdj_df['K'] < kdj_df['D']) & (
                 kdj_df['D'] > 80)
