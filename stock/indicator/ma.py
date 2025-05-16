@@ -68,7 +68,7 @@ class VWAP:
     label = 'VWAP'
     weight = 1
 
-    def __init__(self, signal=1, volume_lookback=5):
+    def __init__(self, signal=1, volume_lookback=20):
         """
         初始化 VWAP 策略类
         :param signal: 1 = 买入，-1 = 卖出
