@@ -107,9 +107,9 @@ class VWAP:
             price_cross = (close_pre_price < vwap_yesterday) and (close_price > vwap_today)
             result = price_cross and volume_confirm
         else:
-            # 卖出信号：股价下穿 VWAP 且量能支持
+            # 卖出信号：股价下穿 VWAP 且无需量能支持
             price_cross = (close_pre_price > vwap_yesterday) and (close_price < vwap_today)
-            result = price_cross and volume_confirm
+            result = price_cross
 
         return result
 
