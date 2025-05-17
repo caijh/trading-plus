@@ -1,9 +1,10 @@
 from datetime import datetime
 
 from analysis.model import AnalyzedStock
+from analysis.service import analyze_stock
 from extensions import db
 from holdings.service import get_holdings
-from stock.service import analyze_stock, get_stock, KType
+from stock.service import get_stock, KType
 from strategy.model import TradingStrategy
 
 

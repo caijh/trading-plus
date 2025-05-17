@@ -1,10 +1,10 @@
 from flask import jsonify, request, Blueprint
 
-from analysis.service import save_analyzed_stocks
+from analysis.service import save_analyzed_stocks, analyze_stock
 from extensions import executor
 from fund.service import analyze_funds
 from index.service import analyze_index, analyze_index_stocks
-from stock.service import get_stock, analyze_stock, KType
+from stock.service import get_stock, KType
 from strategy.service import generate_strategy
 
 analysis = Blueprint('analysis', __name__, url_prefix='/analysis')

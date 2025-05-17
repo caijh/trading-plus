@@ -1,6 +1,6 @@
 import pandas_ta as ta
 
-from stock.indicator.volume import VOL, OBV, ADOSC
+from indicator.volume import VOL, OBV, ADOSC
 
 
 class SMA:

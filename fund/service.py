@@ -1,7 +1,8 @@
 import requests
 
+from analysis.service import analyze_stock
 from environment.service import env_vars
-from stock.service import analyze_stock, KType
+from stock.service import KType
 
 
 def get_funds(exchange):
