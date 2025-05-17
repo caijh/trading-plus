@@ -22,7 +22,7 @@ def generate_strategy(stocks):
             n_digits = 3 if stock['stock_type'] == 'Fund' else 2
             # 计算并更新止损价
             stop_loss = round(stock['support'] * 0.99, n_digits)
-            if buy_price - stop_loss <= 0:
+            if buy_price - stop_loss <= 0.01:
                 continue
 
             if (sell_price - buy_price) / (buy_price - stop_loss) < 2:
