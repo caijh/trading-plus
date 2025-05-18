@@ -83,7 +83,15 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1):
         # 返回值:
         #   support: 计算得到的支持位价格
         #   resistance: 计算得到的阻力位价格
-        (support, resistance) = cal_support_resistance(stock, df)
+        (support, resistance) = calculate_support_resistance(stock, df)
+
+        latest_volume = df.iloc[-1]['volume']
+        if latest_volume > 0:
+            (support_vwap, resistance_vwap) = calculate_vwap_support_resistance(stock, df, window=5)
+            if support_vwap < support:
+                support = support_vwap
+            if resistance_vwap < resistance:
+                resistance = resistance_vwap
 
         # 将计算得到的支持位和阻力位添加到股票数据中
         stock['support'] = support
@@ -113,7 +121,7 @@ def append_matched_pattern_label(matched_patterns, stock):
         stock['patterns'].append(matched_pattern.label)
 
 
-def cal_support_resistance(stock, df):
+def calculate_support_resistance(stock, df):
     """
     计算给定股票的支撑位和阻力位。
 
@@ -145,6 +153,53 @@ def cal_support_resistance(stock, df):
     r = round((latest_data['R1'] + latest_data['R2'] + latest_data['R3']) / 3, n_digits)
 
     # 打印计算结果
-    print(f'{stock["code"]} calculate Support = {s}, Resistance = {r}')
+    print(f'{stock["code"]} calculate_support_resistance calculate Support = {s}, Resistance = {r}')
 
+    return s, r
+
+
+def calculate_vwap_support_resistance(stock, df, window=14):
+    """
+    使用VWAP计算股票的支撑位和阻力位，仅基于最近一个月的数据。
+
+    参数:
+    - stock: 包含股票信息的字典，至少需要包含股票代码和类型。
+    - df: 包含股票历史数据的DataFrame，需包含['date', 'high', 'low', 'close', 'volume']列。
+    - window: 用于计算偏差的窗口期，默认为14。
+
+    返回:
+    - s: 支撑位，四舍五入后返回。
+    - r: 阻力位，四舍五入后返回。
+    """
+    # 过滤最近一个月的数据
+    df_recent = df.iloc[-60:].copy()
+
+    # 如果数据不足 window 长度，直接返回 NaN
+    if len(df_recent) < window:
+        print(f"{stock['code']} 数据不足以计算VWAP支撑/阻力")
+        return None, None
+
+    # 计算典型价格
+    df_recent['Typical_Price'] = (df_recent['high'] + df_recent['low'] + df_recent['close']) / 3
+
+    # 计算VWAP
+    df_recent['Cumulative_TP_Volume'] = (df_recent['Typical_Price'] * df_recent['volume']).cumsum()
+    df_recent['Cumulative_Volume'] = df_recent['volume'].cumsum()
+    df_recent['VWAP'] = df_recent['Cumulative_TP_Volume'] / df_recent['Cumulative_Volume']
+
+    # 计算偏差
+    df_recent['Deviation'] = df_recent['Typical_Price'] - df_recent['VWAP']
+    df_recent['Deviation_Std'] = df_recent['Deviation'].rolling(window=window).std()
+
+    # 支撑与阻力
+    df_recent['Support'] = df_recent['VWAP'] - df_recent['Deviation_Std']
+    df_recent['Resistance'] = df_recent['VWAP'] + df_recent['Deviation_Std']
+
+    # 提取最新行的支撑/阻力
+    latest_data = df_recent.iloc[-1][['Support', 'Resistance']]
+    n_digits = 3 if stock.get('stock_type') == 'Fund' else 2
+    s = round(latest_data['Support'], n_digits)
+    r = round(latest_data['Resistance'], n_digits)
+
+    print(f'{stock["code"]} calculate_vwap_support_resistance calculate Support = {s}, Resistance = {r}')
     return s, r
