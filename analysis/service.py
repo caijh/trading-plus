@@ -172,7 +172,7 @@ def calculate_vwap_support_resistance(stock, df, window=14):
     - r: 阻力位，四舍五入后返回。
     """
     # 过滤最近一个月的数据
-    df_recent = df.iloc[-60:].copy()
+    df_recent = df.iloc[-21:].copy()
 
     # 如果数据不足 window 长度，直接返回 NaN
     if len(df_recent) < window:
