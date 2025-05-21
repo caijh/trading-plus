@@ -26,7 +26,7 @@ def generate_strategy(stocks):
             if buy_price - stop_loss <= 0.01:
                 continue
 
-            if (sell_price - buy_price) / (buy_price - stop_loss) < 2:
+            if (sell_price - buy_price) / (buy_price - stop_loss) < n_digits:
                 continue
 
             # 查询是否已存在该股票的交易策略
