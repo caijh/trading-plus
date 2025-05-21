@@ -426,7 +426,7 @@ def get_up_ma_patterns():
     """
     # 初始化均线和偏差率模式列表
     ma_patterns = [SMA(10, 1), SMA(20, 1), SMA(60, 1), SMA(200, 1), MACD(1), VWAP(1),
-                   BIAS(20, -0.10, 1), KDJ(1), RSI(1), WR(1), CCI(1)]
+                   BIAS(20, -0.09, 1), KDJ(1), RSI(1), WR(1), CCI(1)]
     return ma_patterns
 
 
@@ -439,5 +439,5 @@ def get_down_ma_patterns():
     """
     # 初始化均线和偏差率
     ma_patterns = [SMA(10, -1), SMA(20, -1), SMA(60, -1), SMA(200, -1), MACD(-1), VWAP(-1),
-                   BIAS(20, 0.10, -1), KDJ(-1), RSI(-1), WR(-1), CCI(-1)]
+                   BIAS(20, 0.09, -1), KDJ(-1), RSI(-1), WR(-1), CCI(-1)]
     return ma_patterns
