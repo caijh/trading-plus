@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from analysis.model import AnalyzedStock
 from analysis.service import analyze_stock
@@ -124,6 +124,9 @@ def check_strategy_reverse_task():
                     strategy.stop_loss = round(stock['support'] * 0.99, n_digits)
                     # 更新时间戳
                     strategy.updated_at = datetime.now()
+                    # 更新太旧策略signal = -1
+                    if datetime.now() - strategy.created_at > timedelta(days=20):
+                        strategy.signal = -1
                 else:
                     # 如果有持仓信息，仅更新卖出价
                     if strategy.sell_price > stock['resistance']:
