@@ -6,6 +6,7 @@ from extensions import db
 from holdings.service import get_holdings
 from stock.service import get_stock, KType
 from strategy.model import TradingStrategy
+from environment.service import env_vars
 
 
 def generate_strategy(stocks):
@@ -26,7 +27,7 @@ def generate_strategy(stocks):
             if buy_price - stop_loss <= 0.01:
                 continue
 
-            if (sell_price - buy_price) / (buy_price - stop_loss) < n_digits:
+            if (sell_price - buy_price) / (buy_price - stop_loss) < env_vars.MIN_PROFIT_RATE:
                 continue
 
             # 查询是否已存在该股票的交易策略
