@@ -34,9 +34,9 @@ class VOL:
 
         # 信号判断
         if self.signal == 1:
-            signal = short_vol > long_vol
+            signal = short_vol > (long_vol * 1.1)
         else:
-            signal = short_vol < long_vol
+            signal = short_vol < (long_vol * 0.9)
 
         return signal
 
