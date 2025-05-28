@@ -200,5 +200,7 @@ def calculate_vwap_support_resistance(stock, df, window=14, multiplier=2):
     s = round(s_vwap, n_digits)
     r = round(r_vwap, n_digits)
 
-    print(f'{stock["code"]} 支撑 = {s}，阻力 = {r}')
+    # 打印计算结果
+    print(f'{stock["code"]} calculate_vwap_support_resistance calculate Support = {s}, Resistance = {r}')
+
     return s, r
