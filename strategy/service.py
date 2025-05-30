@@ -2,11 +2,11 @@ from datetime import datetime, timedelta
 
 from analysis.model import AnalyzedStock
 from analysis.service import analyze_stock
+from environment.service import env_vars
 from extensions import db
 from holdings.service import get_holdings
 from stock.service import get_stock, KType
 from strategy.model import TradingStrategy
-from environment.service import env_vars
 
 
 def generate_strategy(stocks):
@@ -130,8 +130,10 @@ def check_strategy_reverse_task():
                         strategy.signal = -1
                 else:
                     # 如果有持仓信息，仅更新卖出价
-                    if strategy.sell_price > stock['resistance'] > strategy.buy_price:
-                        strategy.sell_price = stock['resistance']
+                    new_sell_price = stock['resistance']
+                    if new_sell_price > strategy.buy_price and (
+                        (new_sell_price - strategy.buy_price) / (strategy.buy_price - strategy.stop_loss) > 1):
+                        strategy.sell_price = new_sell_price
             # 打印更新策略的日志信息
             print(f"🔄 更新交易策略：{code}")
 
