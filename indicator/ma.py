@@ -42,21 +42,23 @@ class SMA:
         # 使用Technical Analysis库计算收盘价的5日指数移动平均(EMA)
         ema = ta.ema(df['close'], 5)
         # 获取最新的EMA值
-        latest_ema = ema.iloc[-1]
+        latest_ema_price = ema.iloc[-1]
         # 获取次新的EMA值
-        pre_latest_ema = ema.iloc[-2] if len(ema) > 1 else None
+        pre_ema_price = ema.iloc[-2]
 
         close_price = price['close']
 
-        if pre_ma_price is None or pre_latest_ema is None:
+        if pre_ma_price is None or pre_ema_price is None:
             return False
 
         if self.signal == 1:
             # EMA大于SMA，且向上拐，股价在EMA上方
-            return (close_price > latest_ema) and (latest_ema > ma_price) and (pre_latest_ema <= pre_ma_price)
+            return (close_price >= latest_ema_price) and (latest_ema_price > ma_price) and (
+                    pre_ema_price <= pre_ma_price)
         else:
             # EMA小于SMA，且向下拐，股价在EMA下方
-            return (close_price < latest_ema) and (latest_ema < ma_price) and (pre_latest_ema >= pre_ma_price)
+            return (close_price < latest_ema_price) and (latest_ema_price < ma_price) and (
+                    pre_ema_price >= pre_ma_price)
 
     def get_volume_confirm_patterns(self):
         if self.signal == 1:
