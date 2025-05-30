@@ -130,7 +130,7 @@ def check_strategy_reverse_task():
                         strategy.signal = -1
                 else:
                     # 如果有持仓信息，仅更新卖出价
-                    if strategy.sell_price > stock['resistance']:
+                    if strategy.sell_price > stock['resistance'] > strategy.buy_price:
                         strategy.sell_price = stock['resistance']
             # 打印更新策略的日志信息
             print(f"🔄 更新交易策略：{code}")
