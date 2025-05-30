@@ -128,6 +128,10 @@ def check_strategy_reverse_task():
                     # 更新太旧策略signal = -1
                     if datetime.now() - strategy.created_at > timedelta(days=20):
                         strategy.signal = -1
+                    # 盈亏比不够，更新signal = -1
+                    if (strategy.sell_price - strategy.buy_price) / (
+                        strategy.buy_price - strategy.stop_loss) < env_vars.MIN_PROFIT_RATE:
+                        strategy.signal = -1
                 else:
                     # 如果有持仓信息，仅更新卖出价
                     new_sell_price = stock['resistance']
