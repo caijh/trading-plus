@@ -7,6 +7,7 @@ def http_get_with_retries(url, max_retries=3, default_return_value=None):
             response = requests.get(url)
             response.raise_for_status()  # 如果响应状态码不是200，抛出异常
             data = response.json()
+            print(f'url response: {data}')
             # 检查返回的数据中状态码是否为0，表示请求成功
             if data['code'] == 0:
                 # 如果请求成功，返回数据中的data
