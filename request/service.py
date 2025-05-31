@@ -11,6 +11,7 @@ def http_get_with_retries(url, max_retries=3, default_return_value=None):
             if data['code'] == 0:
                 # 如果请求成功，返回数据中的data
                 return data['data']
+            print(f'url response: {data}')
         except requests.RequestException as e:
             print(f'请求失败，尝试 {attempt + 1}/{max_retries}: {e}')
     return default_return_value
