@@ -1,6 +1,6 @@
 import pandas_ta as ta
 
-from indicator.volume import VOL, OBV, ADOSC
+from indicator.volume import VOL, OBV, ADOSC, CMF
 
 
 class SMA:
@@ -62,8 +62,8 @@ class SMA:
 
     def get_volume_confirm_patterns(self):
         if self.signal == 1:
-            return [VOL(20, 1), OBV(1), ADOSC(1)]
-        return [VOL(20, 1), OBV(-1), ADOSC(-1)]
+            return [VOL(20, 1), OBV(1), ADOSC(1), CMF(1)]
+        return [VOL(20, 1), OBV(-1), ADOSC(-1), CMF(-1)]
 
 
 class VWAP:
@@ -117,8 +117,8 @@ class VWAP:
 
     def get_volume_confirm_patterns(self):
         if self.signal == 1:
-            return [VOL(20, 1), OBV(1), ADOSC(1)]
-        return [VOL(20, 1), OBV(-1), ADOSC(-1)]
+            return [VOL(20, 1), OBV(1), ADOSC(1), CMF(1)]
+        return [VOL(20, 1), OBV(-1), ADOSC(-1), CMF(-1)]
 
 
 class MACD:
@@ -191,8 +191,8 @@ class MACD:
 
     def get_volume_confirm_patterns(self):
         if self.signal == 1:
-            return [VOL(20, 1), OBV(1), ADOSC(1)]
-        return [VOL(20, 1), OBV(-1), ADOSC(-1)]
+            return [VOL(20, 1), OBV(1), ADOSC(1), CMF(1)]
+        return [VOL(20, 1), OBV(-1), ADOSC(-1), CMF(-1)]
 
 
 class BIAS:
@@ -236,8 +236,8 @@ class BIAS:
 
     def get_volume_confirm_patterns(self):
         if self.signal == 1:
-            return [VOL(20, -1), OBV(1), ADOSC(1)]
-        return [VOL(20, 1), OBV(-1), ADOSC(-1)]
+            return [VOL(20, -1), OBV(1), ADOSC(1), CMF(1)]
+        return [VOL(20, 1), OBV(-1), ADOSC(-1), CMF(-1)]
 
 
 class KDJ:
@@ -279,8 +279,8 @@ class KDJ:
 
     def get_volume_confirm_patterns(self):
         if self.signal == 1:
-            return [VOL(20, -1), OBV(1), ADOSC(1)]
-        return [VOL(20, 1), OBV(-1), ADOSC(-1)]
+            return [VOL(20, -1), OBV(1), ADOSC(1), CMF(1)]
+        return [VOL(20, 1), OBV(-1), ADOSC(-1), CMF(-1)]
 
 
 class RSI:
@@ -317,8 +317,8 @@ class RSI:
 
     def get_volume_confirm_patterns(self):
         if self.signal == 1:
-            return [VOL(20, -1), OBV(1), ADOSC(1)]
-        return [VOL(20, 1), OBV(-1), ADOSC(-1)]
+            return [VOL(20, -1), OBV(1), ADOSC(1), CMF(1)]
+        return [VOL(20, 1), OBV(-1), ADOSC(-1), CMF(-1)]
 
 
 class WR:
@@ -364,8 +364,8 @@ class WR:
 
     def get_volume_confirm_patterns(self):
         if self.signal == 1:
-            return [VOL(20, -1), OBV(1), ADOSC(1)]
-        return [VOL(20, 1), OBV(-1), ADOSC(-1)]
+            return [VOL(20, -1), OBV(1), ADOSC(1), CMF(1)]
+        return [VOL(20, 1), OBV(-1), ADOSC(-1), CMF(-1)]
 
 
 class CCI:
@@ -416,8 +416,8 @@ class CCI:
 
     def get_volume_confirm_patterns(self):
         if self.signal == 1:
-            return [VOL(20, -1), OBV(1), ADOSC(1)]
-        return [VOL(20, 1), OBV(-1), ADOSC(-1)]
+            return [VOL(20, -1), OBV(1), ADOSC(1), CMF(1)]
+        return [VOL(20, 1), OBV(-1), ADOSC(-1), CMF(-1)]
 
 
 def get_up_ma_patterns():
