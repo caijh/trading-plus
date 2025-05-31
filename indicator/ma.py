@@ -256,15 +256,16 @@ class KDJ:
 
         # 重命名列
         kdj_df.rename(columns={'STOCHk_9_3_3': 'K', 'STOCHd_9_3_3': 'D'}, inplace=True)
+        kdj_df['J'] = 3 * kdj_df['K'] - 2 * kdj_df['D']
 
         if self.signal == 1:
             # 识别 KDJ 金叉（K 上穿 D，且 D < 20）
             df[f'{self.label}_Signal'] = (kdj_df['K'].shift(1) < kdj_df['D'].shift(1)) & (kdj_df['K'] > kdj_df['D']) & (
-                kdj_df['D'] < 20)
+                kdj_df['D'] < 20) & (kdj_df['J'] < 20)
         elif self.signal == -1:
             # 识别 KDJ 死叉（K 下穿 D，且 D > 80）
             df[f'{self.label}_Signal'] = (kdj_df['K'].shift(1) > kdj_df['D'].shift(1)) & (kdj_df['K'] < kdj_df['D']) & (
-                kdj_df['D'] > 80)
+                kdj_df['D'] > 80) & (kdj_df['J'] > 80)
         else:
             raise ValueError("signal 参数只能是 1（金叉）或 -1（死叉）")
 
