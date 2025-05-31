@@ -49,32 +49,31 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1):
 
         df = create_dataframe(prices)
 
-        matched_candlestick_patterns, candlestick_weight = get_match_patterns(candlestick_patterns, stock, prices, df)
-
-        min_candlestick_weight = 0
-        # 如果存在匹配的K线形态模式
-        if candlestick_weight > min_candlestick_weight:
-            matched_ma_patterns, ma_weight = get_match_patterns(ma_patterns, stock, prices, df)
-            volume_patterns = get_volume_patterns(matched_ma_patterns)
-            matched_volume_patterns, volume_weight = get_match_patterns(volume_patterns, stock, prices, df)
-
-            # 如果信号为1，且均线和量能的权重都大于1
-            if signal == 1:
+        matched_candlestick_patterns, candlestick_weight = get_match_patterns(candlestick_patterns, stock, prices,
+                                                                              df)
+        if signal == 1:
+            min_candlestick_weight = 0
+            if candlestick_weight > min_candlestick_weight:
+                matched_ma_patterns, ma_weight = get_match_patterns(ma_patterns, stock, prices, df)
+                volume_patterns = get_volume_patterns(matched_ma_patterns)
+                matched_volume_patterns, volume_weight = get_match_patterns(volume_patterns, stock, prices, df)
                 if ma_weight > 1 and volume_weight > 1:
                     # 将所有匹配的K线形态、均线和量能模式的标签添加到股票的模式列表中
                     append_matched_pattern_label(matched_candlestick_patterns, stock)
                     append_matched_pattern_label(matched_ma_patterns, stock)
                     append_matched_pattern_label(matched_volume_patterns, stock)
-            # 如果信号不为1，但均线和量能的权重都大于0
-            else:
-                if ma_weight > 1 and volume_weight > 0:
-                    # 同样将所有匹配的模式标签添加到股票的模式列表中
-                    append_matched_pattern_label(matched_candlestick_patterns, stock)
-                    append_matched_pattern_label(matched_ma_patterns, stock)
-                    append_matched_pattern_label(matched_volume_patterns, stock)
+        else:
+            matched_ma_patterns, ma_weight = get_match_patterns(ma_patterns, stock, prices, df)
+            volume_patterns = get_volume_patterns(matched_ma_patterns)
+            matched_volume_patterns, volume_weight = get_match_patterns(volume_patterns, stock, prices, df)
+            if ma_weight > 1 and volume_weight > 0:
+                # 同样将所有匹配的模式标签添加到股票的模式列表中
+                append_matched_pattern_label(matched_candlestick_patterns, stock)
+                append_matched_pattern_label(matched_ma_patterns, stock)
+                append_matched_pattern_label(matched_volume_patterns, stock)
 
-            # predict_prices = predict_and_plot(stock, prices, 7)
-            # stock['predict_price'] = round(float(predict_prices[0]), 2)
+        # predict_prices = predict_and_plot(stock, prices, 7)
+        # stock['predict_price'] = round(float(predict_prices[0]), 2)
 
         # 计算给定股票的支持位和阻力位
         # 参数:
