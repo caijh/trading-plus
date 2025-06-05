@@ -126,7 +126,7 @@ def check_strategy_reverse_task():
                     # 更新时间戳
                     strategy.updated_at = datetime.now()
                     # 更新太旧策略signal = -1
-                    if datetime.now() - strategy.created_at > timedelta(days=7):
+                    if datetime.now() - strategy.created_at > timedelta(days=9):
                         strategy.signal = -1
                     # 盈亏比不够，更新signal = -1
                     if (strategy.sell_price - strategy.buy_price) / (
