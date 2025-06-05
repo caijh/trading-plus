@@ -15,7 +15,6 @@ def get_stock_index_list():
     """
     # 构造请求URL
     url = f'{env_vars.TRADING_DATA_URL}/index/list'
-    print(f'从数据源获指示列表数据，url: {url}')
     # 发起GET请求，获取数据，并将响应内容解析为JSON格式
     return http_get_with_retries(url, 3, [])
 
