@@ -23,7 +23,7 @@ def generate_strategy(stocks):
             # 根据股票类型确定保留的小数位数
             n_digits = 3 if stock['stock_type'] == 'Fund' else 2
             # 计算并更新止损价
-            stop_loss = round(stock['support'] * 0.99, n_digits)
+            stop_loss = round(stock['support'] * env_vars.STOP_LOSS_RATE, n_digits)
             if buy_price - stop_loss <= 0.01:
                 continue
 
@@ -122,7 +122,7 @@ def check_strategy_reverse_task():
                     # 根据股票类型确定保留的小数位数
                     n_digits = 3 if stock['stock_type'] == 'Fund' else 2
                     # 计算并更新止损价
-                    strategy.stop_loss = round(stock['support'] * 0.99, n_digits)
+                    strategy.stop_loss = round(stock['support'] * env_vars.STOP_LOSS_RATE, n_digits)
                     # 更新时间戳
                     strategy.updated_at = datetime.now()
                     # 更新太旧策略signal = -1
