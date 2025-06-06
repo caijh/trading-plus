@@ -23,7 +23,6 @@ def get_stock(code):
     """
     # 构造请求URL，包含股票代码
     url = f'{env_vars.TRADING_DATA_URL}/stock?code={code}'
-    print(url)
     return http_get_with_retries(url, 3, None)
 
 
