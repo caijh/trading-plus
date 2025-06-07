@@ -1,3 +1,5 @@
+import pandas_ta as ta
+
 from analysis.model import AnalyzedStock
 from dataset.service import create_dataframe
 from extensions import db
@@ -83,14 +85,19 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1):
         #   support: 计算得到的支持位价格
         #   resistance: 计算得到的阻力位价格
         (support, resistance) = calculate_support_resistance(stock, df)
+        (support_n, resistance_n) = calculate_support_resistance_by_turning_points(stock, df)
+        if support_n is not None:
+            support = support_n
+        if resistance_n is not None:
+            resistance = resistance_n
 
-        latest_volume = df.iloc[-1]['volume']
-        if latest_volume > 0:
-            (support_vwap, resistance_vwap) = calculate_vwap_support_resistance(stock, df, window=5)
-            if support_vwap < support:
-                support = support_vwap
-            if resistance_vwap < resistance:
-                resistance = resistance_vwap
+        # latest_volume = df.iloc[-1]['volume']
+        # if latest_volume > 0:
+        #     (support_vwap, resistance_vwap) = calculate_vwap_support_resistance(stock, df, window=5)
+        #     if support_vwap < support:
+        #         support = support_vwap
+        #     if resistance_vwap < resistance:
+        #         resistance = resistance_vwap
 
         # 将计算得到的支持位和阻力位添加到股票数据中
         stock['support'] = support
@@ -200,6 +207,68 @@ def calculate_vwap_support_resistance(stock, df, window=14, multiplier=2):
     r = round(r_vwap, n_digits)
 
     # 打印计算结果
-    print(f'{stock["code"]} calculate_vwap_support_resistance calculate Support = {s}, Resistance = {r}')
+    print(f'{stock["code"]} calculate_vwap_support_resistance Support = {s}, Resistance = {r}')
 
+    return s, r
+
+
+def detect_turning_points(series):
+    """
+    识别拐点：由上升变下降（局部最高）或由下降变上升（局部最低）
+    返回：索引列表，包含每一个拐点位置
+    """
+    turning_points = []
+    for i in range(1, len(series) - 1):
+        prev, curr, next_ = series.iloc[i - 1], series.iloc[i], series.iloc[i + 1]
+        if (curr > prev and curr > next_) or (curr < prev and curr < next_):
+            turning_points.append(i)
+    return turning_points
+
+
+def calculate_support_resistance_by_turning_points(stock, df, window=5):
+    """
+    根据均线拐点识别支撑与阻力位
+
+    参数:
+    - stock: 股票信息 dict，含 'code'、'stock_type'
+    - df: 历史行情数据，含 'close' 列
+    - ma_window: 平滑窗口大小
+
+    返回:
+    - 支撑位（支撑点中价格 < 当前价格）
+    - 阻力位（阻力点中价格 > 当前价格）
+    """
+    # 平滑价格（可改为 ta.ema(df['close'], ma_window)）
+    df['ma'] = ta.ema(df['close'], window)
+
+    # 找出均线的拐点位置
+    turning_idxes = detect_turning_points(df['ma'])
+
+    # 提取拐点价格及索引
+    turning_points = df.iloc[turning_idxes][['ma', 'close']]
+
+    current_price = df['close'].iloc[-1]
+
+    # 支撑点：拐点价格 < 当前价格
+    supports = turning_points[turning_points['ma'] < current_price]
+    resistances = turning_points[turning_points['ma'] > current_price]
+
+    # 找最靠近当前价格的支撑和阻力（用对应K线的最低/最高价）
+    if not supports.empty:
+        max_support = supports.loc[supports['ma'].idxmax()]
+        support = df.loc[max_support.name]['low']
+    else:
+        support = None
+
+    if not resistances.empty:
+        min_resistance = resistances.loc[resistances['ma'].idxmin()]
+        resistance = df.loc[min_resistance.name]['high']
+    else:
+        resistance = None
+
+    n_digits = 3 if stock.get('stock_type') == 'Fund' else 2
+    s = round(support, n_digits) if support else None
+    r = round(resistance, n_digits) if resistance else None
+
+    print(f'{stock["code"]} calculate_support_resistance_by_turning_points Support = {s}, Resistance = {r}')
     return s, r
