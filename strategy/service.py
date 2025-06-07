@@ -20,6 +20,7 @@ def generate_strategy(stocks):
             # 获取最新价格
             price = get_stock_price(stock_code)
             if price is None:
+                print(f'无法获取{stock_code}-{stock_name}股价')
                 continue
 
             # 根据股票类型确定保留的小数位数
@@ -123,6 +124,7 @@ def check_strategy_reverse_task():
                     # 获取最新价格
                     price = get_stock_price(code)
                     if price is None:
+                        print(f'无法获取{code}-{strategy.stock_name}股价')
                         continue
 
                     # 更新策略的买入价、卖出价和止损价
