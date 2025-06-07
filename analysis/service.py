@@ -22,16 +22,17 @@ def save_analyzed_stocks(stocks):
         for stock in stocks:
             try:
                 db.session.query(AnalyzedStock).filter_by(code=stock["code"]).delete()
-                new_stock = AnalyzedStock(
+                analyzed_stock = AnalyzedStock(
                     code=stock["code"],
                     name=stock["name"],
                     exchange=stock["exchange"],
                     patterns=stock.get("patterns", []),
                     support=stock.get("support"),
-                    resistance=stock.get("resistance")
+                    resistance=stock.get("resistance"),
+                    price=stock.get("price", None)
                 )
-                db.session.add(new_stock)
-                print(f"Add {new_stock} to AnalyzedStock")
+                db.session.add(analyzed_stock)
+                print(f"Add {analyzed_stock} to AnalyzedStock")
             except Exception as e:
                 print(f"处理 stock 出错: {stock['code']}, 错误信息: {e}")
 
@@ -46,6 +47,7 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1):
         print(f'No prices get for  stock {code}')
         return stock
     else:
+        print("=====================================================")
         print(f'Analyzing Stock, code = {code}, name = {name}')
         candlestick_patterns, ma_patterns = get_patterns(signal)
 
@@ -102,9 +104,11 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1):
         # 将计算得到的支持位和阻力位添加到股票数据中
         stock['support'] = support
         stock['resistance'] = resistance
+        stock['price'] = df.iloc[-1]['close']
 
     print(
         f'Analyzing Complete code = {code}, name = {name}, patterns = {stock["patterns"]}, predict_price = {stock["predict_price"]}')
+    print("=====================================================")
     return stock
 
 
@@ -159,7 +163,7 @@ def calculate_support_resistance(stock, df):
     r = round(min(latest_data['R1'], latest_data['R2'], latest_data['R3']), n_digits)
 
     # 打印计算结果
-    print(f'{stock["code"]} calculate_support_resistance calculate Support = {s}, Resistance = {r}')
+    print(f'{stock["code"]} calculate_support_resistance Support = {s}, Resistance = {r}')
 
     return s, r
 
@@ -272,5 +276,6 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     s = round(support, n_digits) if support else None
     r = round(resistance, n_digits) if resistance else None
 
-    print(f'{stock["code"]} calculate_support_resistance_by_turning_points Support = {s}, Resistance = {r}')
+    print(
+        f'{stock["code"]} calculate_support_resistance_by_turning_points Support = {s}, Resistance = {r}, Price = {current_price}')
     return s, r

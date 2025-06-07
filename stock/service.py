@@ -40,7 +40,10 @@ def get_stock_prices(code, k_type=KType.DAY):
     # 当请求的是日K线数据时，构造请求URL并发送请求
     if k_type == KType.DAY:
         url = f'{env_vars.TRADING_DATA_URL}/stock/price/daily?code={code}'
-        print(f'Get stock price from {url} , code = {code}, k_type = {k_type}')
+
+        if env_vars.DEBUG:
+            print(f'Get stock price from {url} , code = {code}, k_type = {k_type}')
+
         return http_get_with_retries(url, 3, [])
     # 如果k_type不是DAY，直接返回空列表，表示不支持的k_type
     return []

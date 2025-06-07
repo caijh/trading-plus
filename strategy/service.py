@@ -17,29 +17,23 @@ def generate_strategy(stocks):
         for stock in analyzed_stocks:
             stock_code = stock['code']
             stock_name = stock['name']
-            # 获取最新价格
-            price = get_stock_price(stock_code)
-            if price is None:
-                print(f'无法获取{stock_code}-{stock_name}股价')
-                continue
-
-            # 根据股票类型确定保留的小数位数
-            n_digits = 3 if stock['stock_type'] == 'Fund' else 2
-            buy_price = round(price['close'], n_digits)
+            buy_price = stock['price']
             sell_price = stock['resistance']
-            # 计算并更新止损价
             stop_loss = stock['support']
             if buy_price - stop_loss <= 0.03:
+                print(f'{stock_code} {stock_name} 止损空间过小，不生成交易策略')
                 continue
 
-            if (sell_price - buy_price) / (buy_price - stop_loss) < env_vars.MIN_PROFIT_RATE:
+            profit_rate = round((sell_price - buy_price) / (buy_price - stop_loss), 2)
+            if profit_rate < env_vars.MIN_PROFIT_RATE:
+                print(f'{stock_code} {stock_name} 盈亏比例为{profit_rate}不满足要求，不生成交易策略')
                 continue
 
             # 查询是否已存在该股票的交易策略
             existing_strategy = TradingStrategy.query.filter_by(stock_code=stock_code).first()
 
             if existing_strategy:
-                # **更新已有策略**
+                # 更新已有策略
                 existing_strategy.patterns = stock['patterns']
                 existing_strategy.buy_price = buy_price
                 existing_strategy.sell_price = sell_price
@@ -48,7 +42,7 @@ def generate_strategy(stocks):
                 existing_strategy.updated_at = datetime.now()
                 print(f"🔄 更新交易策略：{stock_name}")
             else:
-                # **插入新策略**
+                # 插入新策略
                 new_strategy = TradingStrategy(
                     stock_code=stock_code,
                     stock_name=stock_name,
