@@ -5,7 +5,7 @@ from analysis.service import analyze_stock
 from environment.service import env_vars
 from extensions import db
 from holdings.service import get_holdings
-from stock.service import get_stock, KType
+from stock.service import get_stock, KType, get_stock_price
 from strategy.model import TradingStrategy
 
 
@@ -17,14 +17,18 @@ def generate_strategy(stocks):
         for stock in analyzed_stocks:
             stock_code = stock['code']
             stock_name = stock['name']
-            # 计算买入、卖出、止损价格
-            buy_price = stock['support']
-            sell_price = stock['resistance']
+            # 获取最新价格
+            price = get_stock_price(stock_code)
+            if price is None:
+                continue
+
             # 根据股票类型确定保留的小数位数
             n_digits = 3 if stock['stock_type'] == 'Fund' else 2
+            buy_price = round(price['close'], n_digits)
+            sell_price = stock['resistance']
             # 计算并更新止损价
-            stop_loss = round(stock['support'] * env_vars.STOP_LOSS_RATE, n_digits)
-            if buy_price - stop_loss <= 0.01:
+            stop_loss = stock['support']
+            if buy_price - stop_loss <= 0.03:
                 continue
 
             if (sell_price - buy_price) / (buy_price - stop_loss) < env_vars.MIN_PROFIT_RATE:
@@ -116,13 +120,18 @@ def check_strategy_reverse_task():
                 holdings = get_holdings(code)
                 # 如果没有持仓信息
                 if holdings is None:
+                    # 获取最新价格
+                    price = get_stock_price(code)
+                    if price is None:
+                        continue
+
                     # 更新策略的买入价、卖出价和止损价
-                    strategy.buy_price = stock['support']
-                    strategy.sell_price = stock['resistance']
                     # 根据股票类型确定保留的小数位数
                     n_digits = 3 if stock['stock_type'] == 'Fund' else 2
+                    strategy.buy_price = round(price['close'], n_digits)
+                    strategy.sell_price = stock['resistance']
                     # 计算并更新止损价
-                    strategy.stop_loss = round(stock['support'] * env_vars.STOP_LOSS_RATE, n_digits)
+                    strategy.stop_loss = stock['support']
                     # 更新时间戳
                     strategy.updated_at = datetime.now()
                     # 更新太旧策略signal = -1

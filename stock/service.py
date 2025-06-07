@@ -26,7 +26,7 @@ def get_stock(code):
     return http_get_with_retries(url, 3, None)
 
 
-def get_stock_price(code, k_type=KType.DAY):
+def get_stock_prices(code, k_type=KType.DAY):
     """
     根据股票代码和K线类型获取股票价格数据。
 
@@ -46,3 +46,6 @@ def get_stock_price(code, k_type=KType.DAY):
     return []
 
 
+def get_stock_price(code):
+    url = f'{env_vars.TRADING_DATA_URL}/stock/price?code={code}'
+    return http_get_with_retries(url, 3, None)

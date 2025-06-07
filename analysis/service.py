@@ -4,7 +4,7 @@ from analysis.model import AnalyzedStock
 from dataset.service import create_dataframe
 from extensions import db
 from indicator.service import get_patterns, get_volume_patterns, get_match_patterns
-from stock.service import KType, get_stock_price
+from stock.service import KType, get_stock_prices
 
 
 def save_analyzed_stocks(stocks):
@@ -41,7 +41,7 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1):
     name = stock['name']
     stock['patterns'] = []
     stock['predict_price'] = None
-    prices = get_stock_price(code, k_type)
+    prices = get_stock_prices(code, k_type)
     if not prices:
         print(f'No prices get for  stock {code}')
         return stock
