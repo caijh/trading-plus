@@ -255,16 +255,16 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     supports = turning_points[turning_points['ma'] < current_price]
     resistances = turning_points[turning_points['ma'] > current_price]
 
-    # 找最靠近当前价格的支撑和阻力（用对应K线的最低/最高价）
+    # 找最靠近当前价格的支撑和阻力（按时间最近，取所在K线的低 / 高点）
     if not supports.empty:
-        max_support = supports.loc[supports['ma'].idxmax()]
-        support = recent_df.loc[max_support.name]['low']
+        latest_support = supports.iloc[-1]  # 时间上最靠近当前的支撑点
+        support = df.loc[latest_support.name]['low']
     else:
         support = None
 
     if not resistances.empty:
-        min_resistance = resistances.loc[resistances['ma'].idxmin()]
-        resistance = recent_df.loc[min_resistance.name]['high']
+        latest_resistance = resistances.iloc[-1]  # 时间上最靠近当前的阻力点
+        resistance = df.loc[latest_resistance.name]['high']
     else:
         resistance = None
 
