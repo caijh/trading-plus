@@ -238,16 +238,18 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     - 支撑位（支撑点中价格 < 当前价格）
     - 阻力位（阻力点中价格 > 当前价格）
     """
+    # 只取最近 200 条记录，提升性能并聚焦近期行情
+    recent_df = df.tail(250).copy()
     # 平滑价格（可改为 ta.ema(df['close'], ma_window)）
-    df['ma'] = ta.ema(df['close'], window)
+    recent_df['ma'] = ta.ema(recent_df['close'], window)
 
     # 找出均线的拐点位置
-    turning_idxes = detect_turning_points(df['ma'])
+    turning_idxes = detect_turning_points(recent_df['ma'])
 
     # 提取拐点价格及索引
-    turning_points = df.iloc[turning_idxes][['ma', 'close']]
+    turning_points = recent_df.iloc[turning_idxes][['ma', 'close']]
 
-    current_price = df['close'].iloc[-1]
+    current_price = recent_df['close'].iloc[-1]
 
     # 支撑点：拐点价格 < 当前价格
     supports = turning_points[turning_points['ma'] < current_price]
@@ -256,13 +258,13 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     # 找最靠近当前价格的支撑和阻力（用对应K线的最低/最高价）
     if not supports.empty:
         max_support = supports.loc[supports['ma'].idxmax()]
-        support = df.loc[max_support.name]['low']
+        support = recent_df.loc[max_support.name]['low']
     else:
         support = None
 
     if not resistances.empty:
         min_resistance = resistances.loc[resistances['ma'].idxmin()]
-        resistance = df.loc[min_resistance.name]['high']
+        resistance = recent_df.loc[min_resistance.name]['high']
     else:
         resistance = None
 
