@@ -17,8 +17,9 @@ RUN apt-get install -y tzdata && \
 
 # Install the dependencies specified in the requirements file
 RUN apt-get install -y build-essential git && \
-    dpkg -i lib/ta-lib_0.6.4_amd64.deb && \
-    pip install --no-cache-dir TA-Lib -r requirements.txt && \
+    dpkg -i lib/ta-lib_0.6.3_amd64.deb && \
+    pip install TA-Lib==0.6.3 && \
+    pip install -r requirements.txt && \
     apt-get autoremove -y && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
