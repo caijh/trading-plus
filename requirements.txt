@@ -5,7 +5,6 @@ flask_apscheduler==1.13.1
 Flask_Executor==1.0.0
 flask_sqlalchemy==3.1.1
 keras==3.9.0
-Lib==4.0.0
 numpy==1.26.4
 pandas==2.3.0
 pandas_ta==0.3.14b0
