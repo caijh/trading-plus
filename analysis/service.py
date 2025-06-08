@@ -38,6 +38,7 @@ def save_analyzed_stocks(stocks):
 
 
 def analyze_stock(stock, k_type=KType.DAY, signal=1):
+    print("=====================================================")
     code = stock['code']
     name = stock['name']
     stock['patterns'] = []
@@ -47,7 +48,6 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1):
         print(f'No prices get for  stock {code}')
         return stock
     else:
-        print("=====================================================")
         print(f'Analyzing Stock, code = {code}, name = {name}')
         candlestick_patterns, ma_patterns = get_patterns(signal)
 
