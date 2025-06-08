@@ -262,13 +262,29 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     # 找最靠近当前价格的支撑和阻力（按时间最近，取所在K线的低 / 高点）
     if not supports.empty:
         latest_support = supports.iloc[-1]  # 时间上最靠近当前的支撑点
-        support = df.loc[latest_support.name]['low']
+        second_support = supports.iloc[-2]
+        if abs(latest_support['close'] - current_price) > abs(second_support['close'] - current_price):
+            support = df.loc[second_support.name]['high']
+            if support > current_price:
+                support = df.loc[second_support.name]['low']
+        else:
+            support = df.loc[latest_support.name]['high']
+            if support > current_price:
+                support = df.loc[latest_support.name]['low']
     else:
         support = None
 
     if not resistances.empty:
         latest_resistance = resistances.iloc[-1]  # 时间上最靠近当前的阻力点
-        resistance = df.loc[latest_resistance.name]['high']
+        second_resistance = resistances.iloc[-2]
+        if abs(latest_resistance['close'] - current_price) > abs(second_resistance['close'] - current_price):
+            resistance = df.loc[second_resistance.name]['low']
+            if resistance < current_price:
+                resistance = df.loc[second_resistance.name]['high']
+        else:
+            resistance = df.loc[latest_resistance.name]['low']
+            if resistance < current_price:
+                resistance = df.loc[latest_resistance.name]['high']
     else:
         resistance = None
 
