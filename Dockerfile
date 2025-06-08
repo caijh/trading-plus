@@ -16,7 +16,7 @@ RUN apt-get install -y tzdata && \
     echo $TZ > /etc/timezone
 
 # Install the dependencies specified in the requirements file
-RUN apt-get install -y build-essential git libta-lib0 libta-lib0-dev && \
+RUN apt-get install -y build-essential git && \
     dpkg -i lib/ta-lib_0.6.4_amd64.deb && \
     pip install --no-cache-dir TA-Lib -r requirements.txt && \
     apt-get autoremove -y && \
