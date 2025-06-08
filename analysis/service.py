@@ -108,7 +108,7 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1):
 
     print(
         f'Analyzing Complete code = {code}, name = {name}, patterns = {stock["patterns"]}, predict_price = {stock["predict_price"]}')
-    print("=====================================================")
+
     return stock
 
 

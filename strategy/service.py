@@ -9,55 +9,68 @@ from stock.service import get_stock, KType, get_stock_price
 from strategy.model import TradingStrategy
 
 
-def generate_strategy(stocks):
-    """读取 AnalyzedStock 表中今天的数据，更新或插入交易策略"""
+def generate_strategy(stock):
     with db.session.begin():
-        analyzed_stocks = stocks
+        stock_code = stock['code']
+        stock_name = stock['name']
+        buy_price = stock['price']
+        sell_price = stock['resistance']
+        stop_loss = stock['support']
+        if buy_price - stop_loss <= 0.03:
+            print(f'{stock_code} {stock_name} 止损空间过小，不生成交易策略')
+            return
 
-        for stock in analyzed_stocks:
-            stock_code = stock['code']
-            stock_name = stock['name']
-            buy_price = stock['price']
-            sell_price = stock['resistance']
-            stop_loss = stock['support']
-            if buy_price - stop_loss <= 0.03:
-                print(f'{stock_code} {stock_name} 止损空间过小，不生成交易策略')
-                continue
+        profit_rate = round((sell_price - buy_price) / (buy_price - stop_loss), 3)
+        if profit_rate < env_vars.MIN_PROFIT_RATE:
+            print(f'{stock_code} {stock_name} 盈亏比例为{profit_rate}不满足要求，不生成交易策略')
+            return
 
-            profit_rate = round((sell_price - buy_price) / (buy_price - stop_loss), 2)
-            if profit_rate < env_vars.MIN_PROFIT_RATE:
-                print(f'{stock_code} {stock_name} 盈亏比例为{profit_rate}不满足要求，不生成交易策略')
-                continue
+        # 查询是否已存在该股票的交易策略
+        existing_strategy = TradingStrategy.query.filter_by(stock_code=stock_code).first()
 
-            # 查询是否已存在该股票的交易策略
-            existing_strategy = TradingStrategy.query.filter_by(stock_code=stock_code).first()
+        if existing_strategy:
+            # 更新已有策略
+            existing_strategy.patterns = stock['patterns']
+            existing_strategy.buy_price = buy_price
+            existing_strategy.sell_price = sell_price
+            existing_strategy.stop_loss = stop_loss
+            existing_strategy.signal = 1
+            existing_strategy.updated_at = datetime.now()
+            print(f"🔄 更新交易策略：{stock_name}")
+        else:
+            # 插入新策略
+            new_strategy = TradingStrategy(
+                stock_code=stock_code,
+                stock_name=stock_name,
+                exchange=stock['exchange'],
+                patterns=stock['patterns'],
+                buy_price=buy_price,
+                sell_price=sell_price,
+                stop_loss=stop_loss,
+                signal=1
+            )
+            db.session.add(new_strategy)
+            print(f"✅ 插入新交易策略：{stock_name}")
 
-            if existing_strategy:
-                # 更新已有策略
-                existing_strategy.patterns = stock['patterns']
-                existing_strategy.buy_price = buy_price
-                existing_strategy.sell_price = sell_price
-                existing_strategy.stop_loss = stop_loss
-                existing_strategy.signal = 1
-                existing_strategy.updated_at = datetime.now()
-                print(f"🔄 更新交易策略：{stock_name}")
-            else:
-                # 插入新策略
-                new_strategy = TradingStrategy(
-                    stock_code=stock_code,
-                    stock_name=stock_name,
-                    exchange=stock['exchange'],
-                    patterns=stock['patterns'],
-                    buy_price=buy_price,
-                    sell_price=sell_price,
-                    stop_loss=stop_loss,
-                    signal=1
-                )
-                db.session.add(new_strategy)
-                print(f"✅ 插入新交易策略：{stock_name}")
         db.session.commit()
 
-    print("🚀 generate_strategy_task: 交易策略生成完成！")
+
+def generate_strategies(stocks):
+    analyzed_stocks = stocks
+
+    if len(analyzed_stocks) == 0:
+        print("没有已经分析的股票")
+        return
+
+    print("================================================")
+    print(f"🚀 开始生成交易策略，共有{len(analyzed_stocks)}只股票")
+    for stock in analyzed_stocks:
+        try:
+            generate_strategy(stock)
+        except Exception as e:
+            print(e)
+
+    print("🚀 交易策略生成完成!!!")
 
 
 def get_analyzed_stocks():
@@ -154,7 +167,6 @@ def check_strategy_reverse_task():
     # 打印任务完成的日志信息
     print("🚀 check_strategy_reverse_task: 交易策略检查更新完成！")
     return None
-
 
 
 def get_trading_strategies():
