@@ -1,7 +1,8 @@
+import os
+
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from Lib import os
 from keras.src.saving import load_model
 
 from dataset.service import load_and_preprocess_data, create_dataset
