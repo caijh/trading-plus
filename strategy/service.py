@@ -21,7 +21,7 @@ def generate_strategy(stock):
             return
 
         profit_rate = round((sell_price - buy_price) / (buy_price - stop_loss), 3)
-        if profit_rate < env_vars.MIN_PROFIT_RATE:
+        if profit_rate < float(env_vars.MIN_PROFIT_RATE):
             print(f'{stock_code} {stock_name} 盈亏比例为{profit_rate}不满足要求，不生成交易策略')
             return
 
@@ -148,7 +148,7 @@ def check_strategy_reverse_task():
                         strategy.signal = -1
                     # 盈亏比不够，更新signal = -1
                     if (strategy.sell_price - strategy.buy_price) / (
-                        strategy.buy_price - strategy.stop_loss) < env_vars.MIN_PROFIT_RATE:
+                        strategy.buy_price - strategy.stop_loss) < float(env_vars.MIN_PROFIT_RATE):
                         strategy.signal = -1
                 else:
                     # 如果有持仓信息，仅更新卖出价
