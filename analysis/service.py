@@ -241,6 +241,38 @@ def detect_turning_points(series, direction):
     return turning_points
 
 
+def select_nearest_point(df, points, current_price, is_support=True):
+    """
+    从最近的候选拐点中，选择价格最接近当前价的点，并返回其所在K线的高/低点。
+
+    参数:
+    - df: 原始完整K线数据（含 high / low）
+    - points: 候选拐点（DataFrame，含 ma、close）
+    - current_price: 当前价格
+    - is_support: True 为支撑位，False 为阻力位
+
+    返回:
+    - 支撑或阻力价格（float）
+    """
+    if points.empty:
+        return None
+
+    # 获取最近3个候选点，按 ma 离当前价格的距离升序排序
+    recent_points = points.iloc[-3:]
+    recent_points['dist'] = (recent_points['ma'] - current_price).abs()
+    nearest_point = recent_points.sort_values('dist').iloc[0]
+
+    kline = df.loc[nearest_point.name]
+    price = kline['high'] if is_support else kline['low']
+
+    # 防止支撑价高于当前价 / 阻力价低于当前价
+    if is_support and price > current_price:
+        price = kline['low']
+    elif not is_support and price < current_price:
+        price = kline['high']
+
+    return price
+
 def calculate_support_resistance_by_turning_points(stock, df, window=5):
     """
     根据均线拐点识别支撑与阻力位
@@ -276,31 +308,12 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     # 找最靠近当前价格的支撑和阻力（按时间最近，取所在K线的低 / 高点）
     support = None
     if not supports.empty:
-        latest_support = supports.iloc[-1]  # 时间上最靠近当前的支撑点
-        if len(supports) > 1:
-            second_support = supports.iloc[-2]
-            if abs(latest_support['close'] - current_price) > abs(second_support['close'] - current_price):
-                support = df.loc[second_support.name]['high']
-                if support > current_price:
-                    support = df.loc[second_support.name]['low']
-        if support is None:
-            support = df.loc[latest_support.name]['high']
-            if support > current_price:
-                support = df.loc[latest_support.name]['low']
+        support = select_nearest_point(df, supports, current_price, is_support=True)  # 时间上最靠近当前的支撑点
 
     resistance = None
     if not resistances.empty:
-        latest_resistance = resistances.iloc[-1]  # 时间上最靠近当前的阻力点
-        if len(resistances) > 1:
-            second_resistance = resistances.iloc[-2]
-            if abs(latest_resistance['close'] - current_price) > abs(second_resistance['close'] - current_price):
-                resistance = df.loc[second_resistance.name]['low']
-                if resistance < current_price:
-                    resistance = df.loc[second_resistance.name]['high']
-        if resistance is None:
-            resistance = df.loc[latest_resistance.name]['low']
-            if resistance < current_price:
-                resistance = df.loc[latest_resistance.name]['high']
+        resistance = select_nearest_point(df, resistances, current_price, is_support=False)
+
 
     n_digits = 3 if stock.get('stock_type') == 'Fund' else 2
     s = round(float(support), n_digits) if support else None
