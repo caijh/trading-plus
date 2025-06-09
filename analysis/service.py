@@ -224,7 +224,7 @@ def calculate_vwap_support_resistance(stock, df, window=14, multiplier=2):
     return s, r
 
 
-def detect_turning_points(series):
+def detect_turning_points(series, direction):
     """
     识别拐点：由上升变下降（局部最高）或由下降变上升（局部最低）
     返回：索引列表，包含每一个拐点位置
@@ -232,8 +232,12 @@ def detect_turning_points(series):
     turning_points = []
     for i in range(1, len(series) - 1):
         prev, curr, next_ = series.iloc[i - 1], series.iloc[i], series.iloc[i + 1]
-        if (curr > prev and curr > next_) or (curr < prev and curr < next_):
-            turning_points.append(i)
+        if direction == "UP":
+            if prev > curr and curr < next_:
+                turning_points.append(i)
+        elif direction == "DOWN":
+            if prev < curr and curr > next_:
+                turning_points.append(i)
     return turning_points
 
 
@@ -256,16 +260,18 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     recent_df['ma'] = ta.ema(recent_df['close'], window)
 
     # 找出均线的拐点位置
-    turning_idxes = detect_turning_points(recent_df['ma'])
+    turning_up_idxes = detect_turning_points(recent_df['ma'], "UP")
+    turning_down_idxes = detect_turning_points(recent_df['ma'], "DOWN")
 
     # 提取拐点价格及索引
-    turning_points = recent_df.iloc[turning_idxes][['ma', 'close']]
+    turning_up_points = recent_df.iloc[turning_up_idxes][['ma', 'close']]
+    turning_down_points = recent_df.iloc[turning_down_idxes][['ma', 'close']]
 
     current_price = recent_df['close'].iloc[-1]
 
     # 支撑点：拐点价格 < 当前价格
-    supports = turning_points[turning_points['ma'] < current_price]
-    resistances = turning_points[turning_points['ma'] > current_price]
+    supports = turning_down_points[turning_down_points['ma'] < current_price]
+    resistances = turning_up_points[turning_up_points['ma'] > current_price]
 
     # 找最靠近当前价格的支撑和阻力（按时间最近，取所在K线的低 / 高点）
     support = None
