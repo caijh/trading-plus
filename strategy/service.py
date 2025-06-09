@@ -29,11 +29,18 @@ def generate_strategy(stock):
         existing_strategy = TradingStrategy.query.filter_by(stock_code=stock_code).first()
 
         if existing_strategy:
-            # 更新已有策略
-            existing_strategy.patterns = stock['patterns']
-            existing_strategy.buy_price = buy_price
-            existing_strategy.sell_price = sell_price
-            existing_strategy.stop_loss = stop_loss
+            # 如果没有卖出信号，获取股票的持仓信息
+            holdings = get_holdings(stock_code)
+            if holdings is None:
+                # 没有持仓, 更新已有策略
+                existing_strategy.patterns = stock['patterns']
+                existing_strategy.buy_price = buy_price
+                existing_strategy.sell_price = sell_price
+                existing_strategy.stop_loss = stop_loss
+            else:
+                # 如果有持仓信息，则更新持仓信息
+                existing_strategy.buy_price = holdings.price
+                existing_strategy.sell_price = sell_price
             existing_strategy.signal = 1
             existing_strategy.updated_at = datetime.now()
             print(f"🔄 更新交易策略：{stock_name}")
