@@ -39,7 +39,6 @@ def generate_strategy(stock):
                 existing_strategy.stop_loss = stop_loss
             else:
                 # 如果有持仓信息，则更新持仓信息
-                existing_strategy.buy_price = holdings.price
                 existing_strategy.sell_price = sell_price
             existing_strategy.signal = 1
             existing_strategy.updated_at = datetime.now()
