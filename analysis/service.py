@@ -241,7 +241,7 @@ def detect_turning_points(series, direction):
     return turning_points
 
 
-def select_nearest_point(df, points, current_price, is_support=True):
+def select_nearest_point(df, points, recent_num, current_price, is_support=True):
     """
     从最近的候选拐点中，选择价格最接近当前价的点，并返回其所在K线的高/低点。
 
@@ -258,11 +258,11 @@ def select_nearest_point(df, points, current_price, is_support=True):
         return None
 
     # 获取最近3个候选点，按 ma 离当前价格的距离升序排序
-    recent_points = points.iloc[-3:]
+    recent_points = points.iloc[-recent_num:]
     recent_points['dist'] = (recent_points['ma'] - current_price).abs()
-    nearest_point = recent_points.sort_values('dist').iloc[0]
+    point = recent_points.sort_values('dist').iloc[0]
 
-    kline = df.loc[nearest_point.name]
+    kline = df.loc[point.name]
     price = kline['high'] if is_support else kline['low']
 
     # 防止支撑价高于当前价 / 阻力价低于当前价
@@ -308,11 +308,11 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     # 找最靠近当前价格的支撑和阻力（按时间最近，取所在K线的低 / 高点）
     support = None
     if not supports.empty:
-        support = select_nearest_point(df, supports, current_price, is_support=True)  # 时间上最靠近当前的支撑点
+        support = select_nearest_point(recent_df, supports, 4, current_price, is_support=True)  # 时间上最靠近当前的支撑点
 
     resistance = None
     if not resistances.empty:
-        resistance = select_nearest_point(df, resistances, current_price, is_support=False)
+        resistance = select_nearest_point(recent_df, resistances, 4, current_price, is_support=False)
 
 
     n_digits = 3 if stock.get('stock_type') == 'Fund' else 2
