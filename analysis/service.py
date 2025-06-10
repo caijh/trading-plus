@@ -241,7 +241,7 @@ def detect_turning_points(series, direction):
     return turning_points
 
 
-def select_nearest_point(df, points, current_price, is_support=True):
+def select_nearest_point(df, points, current_price, is_support=True, recent_num=4):
     """
     从最近的候选拐点中，选择价格最接近当前价的点，并返回其所在K线的高/低点。
 
@@ -258,7 +258,7 @@ def select_nearest_point(df, points, current_price, is_support=True):
         return None
 
     # 按 ma 离当前价格的距离升序排序
-    recent_points = points
+    recent_points = points.iloc[-recent_num:]
     recent_points['dist'] = (recent_points['ma'] - current_price).abs()
     point = recent_points.sort_values('dist').iloc[0]
 
