@@ -16,7 +16,7 @@ def generate_strategy(stock):
         buy_price = stock['price']
         sell_price = stock['resistance']
         stop_loss = stock['support']
-        if buy_price - stop_loss <= 0.03:
+        if (buy_price - stop_loss) / buy_price < 0.01:
             print(f'{stock_code} {stock_name} 止损空间过小，不生成交易策略')
             return
 
