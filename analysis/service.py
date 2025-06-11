@@ -31,7 +31,6 @@ def save_analyzed_stocks(stocks):
 
 
 def save_analyzed_stock(stock):
-    db.session.query(AnalyzedStock).filter_by(code=stock["code"]).delete()
     analyzed_stock = AnalyzedStock(
         code=stock["code"],
         name=stock["name"],

@@ -7,7 +7,7 @@ class AnalyzedStock(db.Model):
     __tablename__ = "analyzed_stock"
 
     id = db.Column(db.Integer, primary_key=True)
-    code = db.Column(db.String(10), unique=True, nullable=False)
+    code = db.Column(db.String(10), index=True, nullable=False)
     exchange = db.Column(db.String(10), nullable=False)
     name = db.Column(db.String(255), nullable=False)
     patterns = db.Column(db.JSON, nullable=True)  # 存储 JSON 格式的技术指标
