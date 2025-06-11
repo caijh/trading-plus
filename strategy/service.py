@@ -13,9 +13,18 @@ def generate_strategy(stock):
     with db.session.begin():
         stock_code = stock['code']
         stock_name = stock['name']
-        buy_price = stock['price']
         sell_price = stock['resistance']
+        direction = stock['direction']
+        buy_price = stock['price']
         stop_loss = stock['support']
+        if "UP" == direction:
+            buy_price = stock['price']
+            stop_loss = stock['support']
+        elif "DOWN" == direction:
+            buy_price = stock['support']
+            n_digits = 3 if stock['stock_type'] == 'Fund' else 2
+            stop_loss = round(buy_price * env_vars.STOP_LOSS_RATE, n_digits)
+
         if (buy_price - stop_loss) / buy_price < 0.01:
             print(f'{stock_code} {stock_name} 止损空间过小，不生成交易策略')
             return
@@ -147,10 +156,15 @@ def check_strategy_reverse_task():
                     # 更新策略的买入价、卖出价和止损价
                     # 根据股票类型确定保留的小数位数
                     n_digits = 3 if stock['stock_type'] == 'Fund' else 2
-                    strategy.buy_price = round(float(price['close']), n_digits)
+                    direction = stock['direction']
+                    if "UP" == direction:
+                        strategy.buy_price = round(float(price['close']), n_digits)
+                        strategy.stop_loss = stock['support']
+                    elif "DOWN" == direction:
+                        strategy.buy_price = stock['support']
+                        n_digits = 3 if stock['stock_type'] == 'Fund' else 2
+                        strategy.stop_loss = round(strategy.buy_price * env_vars.STOP_LOSS_RATE, n_digits)
                     strategy.sell_price = stock['resistance']
-                    # 计算并更新止损价
-                    strategy.stop_loss = stock['support']
                     # 更新时间戳
                     strategy.updated_at = datetime.now()
                     # 更新太旧策略signal = -1
