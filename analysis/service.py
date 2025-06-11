@@ -241,7 +241,7 @@ def detect_turning_points(series, direction):
     return turning_points
 
 
-def select_nearest_point(df, points, current_price, is_support=True, recent_num=4):
+def select_nearest_point(df, points, current_price, is_support=True):
     """
     从最近的候选拐点中，选择价格最接近当前价的点，并返回其所在K线的高/低点。
 
@@ -258,9 +258,9 @@ def select_nearest_point(df, points, current_price, is_support=True, recent_num=
         return None
 
     # 按 ma 离当前价格的距离升序排序
-    recent_points = points.iloc[-recent_num:]
-    recent_points['dist'] = (recent_points['ma'] - current_price).abs()
-    point = recent_points.sort_values('dist').iloc[0]
+    recent_points = points
+    recent_points['score'] = recent_points.index.map(lambda idx: score_turning_point(df, idx, current_price))
+    point = recent_points.sort_values('score', ascending=False).iloc[0]
 
     kline = df.loc[point.name]
     price = kline['high'] if is_support else kline['low']
@@ -272,6 +272,70 @@ def select_nearest_point(df, points, current_price, is_support=True, recent_num=
         price = kline['high']
 
     return price
+
+
+def score_turning_point(df, point_index, current_price, window=5, price_tolerance=0.005):
+    """
+    综合评分拐点强度，包含：
+    - 距离评分
+    - 拐头角度评分
+    - 触碰次数评分
+    - 成交量评分
+
+    参数:
+    - df: 包含'ma', 'close', 'volume' 的 DataFrame，index 为时间
+    - point_index: 拐点的时间索引（Timestamp）
+    - current_price: 当前价格
+    - window: 前后计算斜率的偏移窗口
+    - price_tolerance: 支撑/阻力有效价格范围比例（如 0.005 表示0.5%）
+
+    返回:
+    - score: 最终评分（float）
+    """
+    if point_index not in df.index:
+        return 0
+
+    try:
+        idx = df.index.get_loc(point_index)
+        if idx < window or idx + window >= len(df):
+            return 0  # 防止越界
+
+        ma_series = df['ma']
+        price_at_turn = ma_series.iloc[idx]
+
+        # ====== 1. 距离评分（越近越好）======
+        dist_score = 1 / (abs(price_at_turn - current_price) + 1e-6)
+
+        # ====== 2. 拐头角度评分（斜率突变）======
+        left_slope = ma_series.iloc[idx] - ma_series.iloc[idx - window]
+        right_slope = ma_series.iloc[idx + window] - ma_series.iloc[idx]
+        slope_score = abs(left_slope - right_slope)
+
+        # ====== 3. 触碰次数评分 ======
+        tolerance_range = price_at_turn * price_tolerance
+        touch_count = df[
+            (df['close'] >= price_at_turn - tolerance_range) &
+            (df['close'] <= price_at_turn + tolerance_range)
+            ].shape[0]
+        touch_score = touch_count / len(df)  # 比例越高评分越高
+
+        # ====== 4. 成交量评分（取该点±window的均值）======
+        volume_score = df['volume'].iloc[idx - window: idx + window + 1].mean()
+        volume_score /= df['volume'].mean() + 1e-6  # 归一化相对平均成交量
+
+        # ====== 综合评分（加权平均）======
+        score = (
+            0.4 * dist_score +
+            0.2 * slope_score +
+            0.2 * touch_score +
+            0.2 * volume_score
+        )
+        return score
+
+    except Exception as e:
+        print(f"[score_turning_point] Error: {e}")
+        return 0
+
 
 def calculate_support_resistance_by_turning_points(stock, df, window=5):
     """
@@ -287,7 +351,7 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     - 阻力位（阻力点中价格 > 当前价格）
     """
     # 只取最近 200 条记录，提升性能并聚焦近期行情
-    recent_df = df.tail(250).copy()
+    recent_df = df.tail(200).copy()
     # 平滑价格（可改为 ta.ema(df['close'], ma_window)）
     recent_df['ma'] = ta.ema(recent_df['close'], window)
 

@@ -20,6 +20,10 @@ def generate_strategy(stock):
             print(f'{stock_code} {stock_name} 止损空间过小，不生成交易策略')
             return
 
+        if (buy_price - stop_loss) / buy_price > 0.05:
+            print(f'{stock_code} {stock_name} 止损过大，不生成交易策略')
+            return
+
         profit_rate = round((sell_price - buy_price) / (buy_price - stop_loss), 3)
         if profit_rate < float(env_vars.MIN_PROFIT_RATE):
             print(f'{stock_code} {stock_name} 盈亏比例为{profit_rate}不满足要求，不生成交易策略')
@@ -143,7 +147,7 @@ def check_strategy_reverse_task():
                     # 更新策略的买入价、卖出价和止损价
                     # 根据股票类型确定保留的小数位数
                     n_digits = 3 if stock['stock_type'] == 'Fund' else 2
-                    strategy.buy_price = round(price['close'], n_digits)
+                    strategy.buy_price = round(float(price['close']), n_digits)
                     strategy.sell_price = stock['resistance']
                     # 计算并更新止损价
                     strategy.stop_loss = stock['support']
