@@ -235,9 +235,10 @@ def detect_turning_points(series):
         prev, curr, next_ = series.iloc[i - 1], series.iloc[i], series.iloc[i + 1]
         if prev > curr and curr < next_:
             turning_up_points.append(i)
+            turning_points.append(i)
         if prev < curr and curr > next_:
             turning_down_points.append(i)
-        turning_points.append(i)
+            turning_points.append(i)
     return turning_points, turning_up_points, turning_down_points
 
 
