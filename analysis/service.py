@@ -58,7 +58,7 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1):
         print(f'Analyzing Stock, code = {code}, name = {name}')
         candlestick_patterns, ma_patterns = get_patterns(signal)
 
-        df = create_dataframe(prices)
+        df = create_dataframe(stock, prices)
 
         matched_candlestick_patterns, candlestick_weight = get_match_patterns(candlestick_patterns, stock, prices,
                                                                               df)
@@ -414,7 +414,9 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
             support = cal_price_from_kline(recent_df, first_point, current_price, is_support=True)
     else:
         first_point = turning_points.iloc[-1]
+        print(first_point)
         second_point = turning_points.iloc[-2]
+        print(second_point)
         if current_price < second_point['ma']:
             resistance = cal_price_from_kline(recent_df, second_point, current_price, is_support=False)
         else:

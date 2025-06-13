@@ -2,8 +2,10 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
+from tools.akshare_api import get_adj_factor
 
-def create_dataframe(prices):
+
+def create_dataframe(stock, prices):
     """
     创建并返回一个格式化后的DataFrame对象。
 
@@ -41,11 +43,37 @@ def create_dataframe(prices):
     df.set_index('date', inplace=True)
 
     # 返回格式化后的DataFrame对象
-    return df
+    return apply_forward_adjustment_all_prices(stock, df)
 
 
-def load_and_preprocess_data(prices):
-    df = create_dataframe(prices)
+def apply_forward_adjustment_all_prices(stock, df):
+    """
+    将不复权的开高低收全部转换为前复权价格。
+    """
+    exchange = stock['exchange']
+    if exchange not in ['SSE', 'SZSE']:
+        return df
+
+    adj_df = df.copy()
+
+    start_date = adj_df.index.min().strftime("%Y-%m-%d")
+    end_date = adj_df.index.max().strftime("%Y-%m-%d")
+
+    factor_df = get_adj_factor(stock, start_date, end_date)
+
+    adj_df = adj_df.merge(factor_df, on='date', how='left')
+    adj_df = adj_df.dropna(subset=['close', 'adj_factor'])
+    adj_df.sort_values('date', inplace=True)
+    adj_df.set_index('date', inplace=True)
+    n_digits = 3 if stock['stock_type'] == 'Fund' else 2
+    for col in ['open', 'high', 'low', 'close']:
+        adj_df[f'{col}'] = (adj_df[col].astype(float) * adj_df['adj_factor'].astype(float)).round(n_digits)
+
+    return adj_df
+
+
+def load_and_preprocess_data(stock, prices):
+    df = create_dataframe(stock, prices)
 
     # 添加更多技术指标
     df['MA5'] = df['close'].rolling(5).mean()

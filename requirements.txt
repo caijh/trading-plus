@@ -17,3 +17,4 @@ tensorflow==2.19.0
 ta-lib @ git+https://github.com/TA-Lib/ta-lib-python.git@831e3b4c85465e23eeab9be7757567aaf51b4728
 flask-redis==0.4.0
 psycopg2-binary==2.9.10
+akshare~=1.16.98

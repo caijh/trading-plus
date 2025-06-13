@@ -29,7 +29,7 @@ def predict_future_prices(model, last_sequence, scaler, close_index, features, f
 
 
 def predict_and_plot(stock, prices, future_days=7):
-    df, scaler, scaled_data, features = load_and_preprocess_data(prices)
+    df, scaler, scaled_data, features = load_and_preprocess_data(stock, prices)
     sequence_len = 60
     x, y = create_dataset(scaled_data, features, sequence_len, future_days)
 
