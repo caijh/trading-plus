@@ -414,9 +414,7 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
             support = cal_price_from_kline(recent_df, first_point, current_price, is_support=True)
     else:
         first_point = turning_points.iloc[-1]
-        print(first_point)
         second_point = turning_points.iloc[-2]
-        print(second_point)
         if current_price < second_point['ma']:
             resistance = cal_price_from_kline(recent_df, second_point, current_price, is_support=False)
         else:
