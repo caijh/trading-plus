@@ -8,12 +8,9 @@ keras==3.9.0
 numpy>=2
 pandas==2.3.0
 pandas-ta @ git+https://github.com/caijh/pandas-ta.git@7be9bf7bc1ef537da7626502354afcfedaefcb6a
-plotly==6.0.1
 python-dotenv==1.1.0
 Requests==2.32.3
-scikit_learn==1.7.0
 SQLAlchemy==2.0.41
-tensorflow==2.19.0
 ta-lib @ git+https://github.com/TA-Lib/ta-lib-python.git@831e3b4c85465e23eeab9be7757567aaf51b4728
 flask-redis==0.4.0
 psycopg2-binary==2.9.10
