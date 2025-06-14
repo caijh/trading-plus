@@ -1,5 +1,6 @@
 from flask import jsonify, request, Blueprint
 
+from analysis.model import AnalyzedStock
 from analysis.service import save_analyzed_stocks, analyze_stock
 from extensions import executor
 from fund.service import analyze_funds
@@ -146,3 +147,32 @@ def analysis_funds():
 
     # 返回任务id和200状态码
     return jsonify({'code': 0, 'msg': 'Job running'}), 200
+
+
+@analysis.route('/analyzed', methods=['GET'])
+def get_analyzed_stocks():
+    try:
+        # 获取分页参数
+        page = request.args.get('page', default=1, type=int)
+        page_size = request.args.get('page_size', default=10, type=int)
+
+        # 查询数据并分页
+        pagination = AnalyzedStock.query.order_by(AnalyzedStock.updated_at.desc()).paginate(
+            page=page,
+            per_page=page_size,
+            error_out=False
+        )
+        data = {
+            "total": pagination.total,
+            "page_num": pagination.pages,
+            "page": pagination.page,
+            "page_size": pagination.per_page,
+            "has_next": pagination.has_next,
+            "has_prev": pagination.has_prev,
+            "items": [stock.to_dict() for stock in pagination.items]
+        }
+        # 返回格式化数据
+        return jsonify({"code": 0, 'data': data, "msg": "success"})
+    except Exception as e:
+        print(e)
+        return jsonify({"error": str(e)}), 500
