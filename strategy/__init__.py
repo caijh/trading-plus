@@ -1,5 +1,5 @@
-from .routes import strategy
+from .routes import strategy_blueprint
 
 
 def create_blueprint():
-    return strategy
+    return strategy_blueprint

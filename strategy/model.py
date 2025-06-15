@@ -21,3 +21,17 @@ class TradingStrategy(db.Model):
 
     def __repr__(self):
         return f"<TradingStrategy {self.stock_code} Buy:{self.buy_price} Sell:{self.sell_price} StopLoss:{self.stop_loss}>"
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'stock_code': self.stock_code,
+            'stock_name': self.stock_name,
+            'patterns': self.patterns,
+            'exchange': self.exchange,
+            'buy_price': self.buy_price,
+            'sell_price': self.sell_price,
+            'stop_loss': self.stop_loss,
+            'signal': self.signal,
+            'sell_patterns': self.sell_patterns,
+        }
