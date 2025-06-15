@@ -15,19 +15,34 @@ def generate_next_check_history():
     return jsonify({'code': 0, 'msg': 'Job running'}), 200
 
 
-@strategy_blueprint.route('/trading', methods=['GET'])
+@strategy_blueprint.route('/trading', methods=['POST'])
 def get_analyzed_stocks():
     try:
         # 获取分页参数
         page = request.args.get('page', default=1, type=int)
         page_size = request.args.get('page_size', default=10, type=int)
 
+        # 从请求体中获取 exchange 和 code 参数
+        req_body = request.get_json()
+        exchange = req_body.get('exchange') if req_body else None
+        code = req_body.get('code') if req_body else None
+
+        # 构建基础查询
+        query = TradingStrategy.query.order_by(TradingStrategy.updated_at.desc())
+
+        # 按 exchange 和 code 添加过滤条件（如果存在）
+        if exchange:
+            query = query.filter_by(exchange=exchange)
+        if code:
+            query = query.filter_by(code=code)
+
         # 查询数据并分页
-        pagination = TradingStrategy.query.order_by(TradingStrategy.updated_at.desc()).paginate(
+        pagination = query.paginate(
             page=page,
             per_page=page_size,
             error_out=False
         )
+
         data = {
             "total": pagination.total,
             "page_num": pagination.pages,
@@ -37,6 +52,7 @@ def get_analyzed_stocks():
             "has_prev": pagination.has_prev,
             "items": [strategy.to_dict() for strategy in pagination.items]
         }
+
         # 返回格式化数据
         return jsonify({"code": 0, 'data': data, "msg": "success"})
     except Exception as e:
