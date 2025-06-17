@@ -35,7 +35,7 @@ def get_stock(code):
     url = f'{env_vars.TRADING_DATA_URL}/stock?code={code}'
     stock = http_get_with_retries(url, 3, None)
     if stock is not None:
-        redis_client.set(f'Trading-Plus:Stock:{code}', json.dumps(stock), 30)
+        redis_client.set(f'Trading-Plus:Stock:{code}', json.dumps(stock), 60 * 60)
     return stock
 
 
@@ -65,7 +65,7 @@ def get_stock_prices(code, k_type=KType.DAY):
         prices = http_get_with_retries(url, 3, [])
 
         if len(prices) > 0:
-            redis_client.set(f'Trading-Plus:Stock:{code}:{k_type}', json.dumps(prices), 90)
+            redis_client.set(f'Trading-Plus:Stock:{code}:{k_type}', json.dumps(prices), 60 * 5)
 
         return prices
     # 如果k_type不是DAY，直接返回空列表，表示不支持的k_type
