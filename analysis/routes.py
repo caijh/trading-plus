@@ -48,9 +48,17 @@ def analysis_index():
         # 如果没有提供code参数，返回错误信息和400状态码
         return jsonify({'msg': 'Param code is required'}), 400
 
-    # 调用analyze_index_stocks函数获取指数成分股信息
-    # stocks = analyze_index_stocks(code)
-    # print(stocks)
+    stock = get_stock(code)
+
+    # 检查股票信息是否找到
+    if stock is None:
+        return jsonify({'msg': 'stock not found'}), 404
+
+    # 分析股票信息, 是否有买入信号
+    analyze_stock(stock)
+    if len(stock['patterns']) == 0:
+        return jsonify({'code': 0, 'msg': 'Index pattern not match, analysis_index_task not run.'}), 200
+
     future = executor.submit(analysis_index_task, code)
 
     # 返回任务id和200状态码

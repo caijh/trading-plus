@@ -52,6 +52,9 @@ def apply_forward_adjustment_all_prices(stock, df):
     if exchange not in ['SSE', 'SZSE']:
         return df
 
+    if stock["stock_type"] == 'Index':
+        return df
+
     adj_df = df.copy()
 
     start_date = adj_df.index.min().strftime("%Y-%m-%d")

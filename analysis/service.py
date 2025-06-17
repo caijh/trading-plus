@@ -49,7 +49,6 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1):
     code = stock['code']
     name = stock['name']
     stock['patterns'] = []
-    stock['predict_price'] = None
     prices = get_stock_prices(code, k_type)
     if not prices:
         print(f'No prices get for  stock {code}')
@@ -83,9 +82,6 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1):
                 append_matched_pattern_label(matched_ma_patterns, stock)
                 append_matched_pattern_label(matched_volume_patterns, stock)
 
-        # predict_prices = predict_and_plot(stock, prices, 7)
-        # stock['predict_price'] = round(float(predict_prices[0]), 2)
-
         # 计算给定股票的支持位和阻力位
         # 参数:
         #   stock: 包含股票数据的字典或数据框，应包括历史价格等信息
@@ -114,7 +110,7 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1):
         stock['price'] = float(prices[-1]['close'])
 
     print(
-        f'Analyzing Complete code = {code}, name = {name}, patterns = {stock["patterns"]}, predict_price = {stock["predict_price"]}')
+        f'Analyzing Complete code = {code}, name = {name}, patterns = {stock["patterns"]}')
 
     return stock
 
