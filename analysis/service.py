@@ -221,20 +221,40 @@ def calculate_vwap_support_resistance(stock, df, window=14, multiplier=2):
 
 def detect_turning_points(series):
     """
-    识别拐点：由上升变下降（局部最高）或由下降变上升（局部最低）
-    返回：索引列表，包含每一个拐点位置
+    Detect turning points in a given series.
+
+    This function aims to identify the turning points in a series, which include both upward and downward turning points.
+    An upward turning point is defined as a point where the value is lower than the values before and after it.
+    A downward turning point is defined as a point where the value is higher than the values before and after it.
+
+    Parameters:
+    series (pd.Series): The input series, assumed to be a pandas series.
+
+    Returns:
+    tuple: A tuple containing three lists, the first list contains all turning points (upward and downward),
+           the second list contains only upward turning points, and the third list contains only downward turning points.
     """
+    # Initialize lists to store all turning points, upward turning points, and downward turning points
     turning_points = []
     turning_up_points = []
     turning_down_points = []
+
+    # Iterate through the series, excluding the first and last elements, as they cannot form a turning point by definition
     for i in range(1, len(series) - 1):
+        # Get the previous, current, and next values
         prev, curr, next_ = series.iloc[i - 1], series.iloc[i], series.iloc[i + 1]
+
+        # Determine if the current point is an upward turning point
         if prev > curr and curr < next_:
             turning_up_points.append(i)
             turning_points.append(i)
+
+        # Determine if the current point is a downward turning point
         if prev < curr and curr > next_:
             turning_down_points.append(i)
             turning_points.append(i)
+
+    # Return all turning points and the respective upward and downward turning points
     return turning_points, turning_up_points, turning_down_points
 
 
