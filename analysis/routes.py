@@ -151,6 +151,32 @@ def analysis_funds():
         # 如果没有提供code参数，返回错误信息和400状态码
         return jsonify({'msg': 'Param exchange is required'}), 400
 
+    index = None
+    if exchange == 'SSE' or exchange == 'SZSE':
+        index = '000001.SH'
+    elif exchange == 'HKEX':
+        index = 'HSI.HK'
+    elif exchange == 'NASDAQ':
+        index = 'SPX.NS'
+
+    exec_analyze_funds = True
+    if index is not None:
+        # 根据代码获取股票信息
+        stock = get_stock(index)
+        # 检查股票信息是否找到
+        if stock is None:
+            return jsonify({'msg': 'stock not found'}), 404
+
+        analyze_stock(stock)
+        if len(stock['patterns']) == 0:
+            # 分析股票是否有卖出信号
+            analyze_stock(stock, k_type=KType.DAY, signal=-1)
+            if len(stock['patterns']) == 0:
+                exec_analyze_funds = False
+
+    if not exec_analyze_funds:
+        return jsonify({'code': 0, 'msg': 'Index pattern not match, analysis_funds_task not run.'}), 200
+
     executor.submit(analysis_funds_task, exchange)
 
     # 返回任务id和200状态码
