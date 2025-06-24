@@ -39,18 +39,15 @@ class SMA:
         ma_price = round(ma.iloc[-1], 3)
         pre_ma_price = round(ma.iloc[-2], 3) if len(ma) > 1 else None
 
-        # 使用Technical Analysis库计算收盘价的5日指数移动平均(EMA)
+        # 计算收盘价的5日指数移动平均(EMA)
         ema = ta.ema(df['close'], 5)
-        # 获取最新的EMA值
         latest_ema_price = ema.iloc[-1]
-        # 获取次新的EMA值
         pre_ema_price = ema.iloc[-2]
-
-        close_price = price['close']
 
         if pre_ma_price is None or pre_ema_price is None:
             return False
 
+        close_price = price['close']
         if self.signal == 1:
             # EMA大于SMA，且向上拐，股价在EMA上方
             return (close_price >= latest_ema_price) and (latest_ema_price > ma_price) and (

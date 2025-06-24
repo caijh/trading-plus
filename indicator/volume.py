@@ -2,7 +2,7 @@ import pandas_ta as ta
 
 
 class VOL:
-    def __init__(self, ma=20, signal=1, threshold=1.1):
+    def __init__(self, ma=20, signal=1, threshold=1.2):
         """
         初始化 VOL 策略
 
@@ -73,17 +73,16 @@ class OBV:
 
         # 计算 OBV 指标
         obv = ta.obv(df['close'], df['volume'])
-        # 提取最新和前一个 OBV 值
         latest_obv = obv.iloc[-1]
         pre_obv = obv.iloc[-2]
-
+        obv_ma = obv.rolling(window=5).mean()
         # 判断买入信号
         if self.signal == 1:
             # OBV 上升，确认买入信号
-            return latest_obv > pre_obv
+            return latest_obv > pre_obv and latest_obv > obv_ma.iloc[-1]
         else:
             # OBV 下降，确认卖出信号
-            return latest_obv < pre_obv
+            return latest_obv < pre_obv and latest_obv < obv_ma.iloc[-1]
 
 
 class ADOSC:
@@ -121,15 +120,16 @@ class ADOSC:
         # 计算 ADOSC 指标
         adosc = ta.adosc(df['high'], df['low'], df['close'], df['volume'])
         # 获取最新的 ADOSC 值和前一个 ADOSC 值
-        latest_adosc = adosc.iloc[-1]
-        pre_adosc = adosc.iloc[-2]
+        latest = adosc.iloc[-1]
+        prev = adosc.iloc[-2]
+        prev2 = adosc.iloc[-3]
 
         # 判断买入信号
         if self.signal == 1:
-            return latest_adosc > pre_adosc
+            return latest > prev > prev2 and latest > 0
         # 判断卖出信号
         else:
-            return latest_adosc < pre_adosc
+            return latest < prev < prev2 and latest < 0
 
 
 class CMF:
@@ -162,15 +162,20 @@ class CMF:
         # 计算 CMF
         cmf = ta.cmf(df['high'], df['low'], df['close'], df['volume'], length=self.period)
         latest = cmf.iloc[-1]
-        previous = cmf.iloc[-2]
+        prev = cmf.iloc[-2]
+        prev2 = cmf.iloc[-3]
+
+        dead_zone = 0.05  # 中性带
 
         # 买入信号：CMF 上升且为正
         if self.signal == 1:
-            return latest > previous and latest > 0
+            # 连续上升 + 当前为正 + 高于中性带
+            return latest > prev > prev2 and latest > dead_zone
 
         # 卖出信号：CMF 下降且为负
         elif self.signal == -1:
-            return latest < previous and latest < 0
+            # 连续下降 + 当前为负 + 低于中性带
+            return latest < prev < prev2 and latest < -dead_zone
 
         else:
             raise False
