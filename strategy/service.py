@@ -5,7 +5,7 @@ from analysis.service import analyze_stock
 from environment.service import env_vars
 from extensions import db
 from holdings.service import get_holdings
-from stock.service import get_stock, KType, get_stock_price
+from stock.service import get_stock, KType
 from strategy.model import TradingStrategy
 
 
@@ -47,12 +47,14 @@ def generate_strategy(stock):
             if holdings is None:
                 # 没有持仓, 更新已有策略
                 existing_strategy.patterns = stock['patterns']
+                existing_strategy.sell_patterns = []
                 existing_strategy.buy_price = buy_price
                 existing_strategy.sell_price = sell_price
                 existing_strategy.stop_loss = stop_loss
             else:
-                # 如果有持仓信息，则更新持仓信息
-                existing_strategy.sell_price = sell_price
+                # 如果有持仓信息，则更新卖出信息
+                if sell_price < float(existing_strategy.sell_price):
+                    existing_strategy.sell_price = sell_price
             existing_strategy.signal = 1
             existing_strategy.updated_at = datetime.now()
             print(f"🔄 更新交易策略：{stock_name}")
@@ -148,37 +150,39 @@ def check_strategy_reverse_task():
                 # 如果没有持仓信息
                 if holdings is None:
                     # 获取最新价格
-                    price = get_stock_price(code)
-                    if price is None:
-                        print(f'无法获取{code}-{strategy.stock_name}股价')
-                        continue
+                    # price = get_stock_price(code)
+                    # if price is None:
+                    #     print(f'无法获取{code}-{strategy.stock_name}股价')
+                    #     continue
 
                     # 更新策略的买入价、卖出价和止损价
                     # 根据股票类型确定保留的小数位数
-                    n_digits = 3 if stock['stock_type'] == 'Fund' else 2
-                    direction = stock['direction']
-                    if "UP" == direction:
-                        strategy.buy_price = round(float(price['close']), n_digits)
-                        strategy.stop_loss = stock['support']
-                    elif "DOWN" == direction:
-                        strategy.buy_price = stock['support']
-                        strategy.stop_loss = round(strategy.buy_price * env_vars.STOP_LOSS_RATE, n_digits)
-                    strategy.sell_price = stock['resistance']
+                    # n_digits = 3 if stock['stock_type'] == 'Fund' else 2
+                    # direction = stock['direction']
+                    # if "UP" == direction:
+                    #     strategy.buy_price = round(float(price['close']), n_digits)
+                    #     strategy.stop_loss = stock['support']
+                    # elif "DOWN" == direction:
+                    #     strategy.buy_price = stock['support']
+                    #     strategy.stop_loss = round(strategy.buy_price * env_vars.STOP_LOSS_RATE, n_digits)
+                    # strategy.sell_price = stock['resistance']
                     # 更新时间戳
                     strategy.updated_at = datetime.now()
                     # 更新太旧策略signal = -1
                     if datetime.now() - strategy.created_at > timedelta(days=9):
                         strategy.signal = -1
                     # 盈亏比不够，更新signal = -1
-                    if (strategy.sell_price - strategy.buy_price) / (
-                        strategy.buy_price - strategy.stop_loss) < float(env_vars.MIN_PROFIT_RATE):
-                        strategy.signal = -1
+                    # if (strategy.sell_price - strategy.buy_price) / (
+                    #     strategy.buy_price - strategy.stop_loss) < float(env_vars.MIN_PROFIT_RATE):
+                    #     strategy.signal = -1
                 else:
                     # 如果有持仓信息，仅更新卖出价
                     new_sell_price = float(stock['resistance'])
+                    sell_price = float(strategy.sell_price)
                     buy_price = float(strategy.buy_price)
                     stop_loss = float(strategy.stop_loss)
-                    if new_sell_price > buy_price and ((new_sell_price - buy_price) / (buy_price - stop_loss) > 1):
+                    if (sell_price > new_sell_price > buy_price) and (
+                        (new_sell_price - buy_price) / (buy_price - stop_loss) > 0):
                         strategy.sell_price = new_sell_price
 
             # 打印更新策略的日志信息
