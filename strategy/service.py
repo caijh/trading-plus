@@ -162,7 +162,6 @@ def check_strategy_reverse_task():
                         strategy.stop_loss = stock['support']
                     elif "DOWN" == direction:
                         strategy.buy_price = stock['support']
-                        n_digits = 3 if stock['stock_type'] == 'Fund' else 2
                         strategy.stop_loss = round(strategy.buy_price * env_vars.STOP_LOSS_RATE, n_digits)
                     strategy.sell_price = stock['resistance']
                     # 更新时间戳
