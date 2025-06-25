@@ -292,9 +292,9 @@ class RSI:
 
     def match(self, stock, prices, df):
         # 计算 RSI 指标
-        rsi_df = ta.rsi(df['close'], length=14, signal_indicators=True)
+        rsi_df = ta.rsi(df['close'], length=14, signal_indicators=True)  # type: ignore
         # 重命名列
-        rsi_df.rename(columns={'RSI_14': 'RSI'}, inplace=True)
+        rsi_df.rename(columns={'RSI_14': 'RSI'}, inplace=True)  # type: ignore
         df[f'{self.label}'] = rsi_df['RSI']
         if self.signal == 1:
             # 识别 RSI 低于 30 且反弹（买入信号）
