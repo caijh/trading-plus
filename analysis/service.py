@@ -315,7 +315,7 @@ def cal_price_from_kline(stock, df, point, current_price, is_support):
     elif not is_support and price < current_price:
         price = kline['high']
 
-    if price < current_price:
+    if price > current_price:
         price = kline['ma']
 
     formatted_date = point.name.strftime('%Y-%m-%d %H:%M:%S')
