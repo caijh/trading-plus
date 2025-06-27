@@ -333,73 +333,83 @@ def score_turning_point(
     point_index,
     current_price,
     window=5,
-    price_tolerance=0.005
+    slope_window=3,
+    price_tolerance=0.005,
+    weights=None
 ):
     """
-    综合评分拐点强度，包含：
-    - 距离评分
-    - 拐头角度评分
-    - 触碰次数评分
-    - 成交量评分
+    计算给定点的转折点得分。
 
     参数:
-    - df: 包含 'ma', 'close', 'volume' 的 DataFrame
-    - point_index: 拐点的时间索引（Timestamp）
-    - current_price: 当前价格
-    - window: 前后计算斜率的偏移窗口
-    - price_tolerance: 支撑/阻力有效价格范围比例
+    - df: 包含价格和成交量等数据的DataFrame。
+    - point_index: 需要计算得分的转折点索引。
+    - current_price: 当前价格。
+    - window: 计算得分时考虑的数据窗口大小，默认为5。
+    - slope_window: 计算斜率时考虑的数据窗口大小，默认为3。
+    - price_tolerance: 价格容忍度，用于计算触价得分，默认为0.005。
+    - weights: 各个得分项的权重，默认为{"dist": 0.5, "slope": 0.2, "touch": 0.15, "volume": 0.15}。
 
     返回:
-    - score（float），或评分字典
+    - 一个字典，包含转折点得分和其他相关信息。
     """
-
+    # 检查point_index是否在DataFrame的索引中
     if point_index not in df.index:
         return {"score": 0}
 
+    # 设置默认的权重值
+    weights = weights or {"dist": 0.5, "slope": 0.2, "touch": 0.15, "volume": 0.15}
+
     try:
+        # 获取转折点在DataFrame中的位置索引
         idx = df.index.get_loc(point_index)
+        # 确保有足够的数据点来计算得分
         if idx < window or idx + window >= len(df):
             return {"score": 0}
 
+        # 提取移动平均价格序列和转折点的价格
         ma_series = df['ma']
         price_at_turn = ma_series.iloc[idx]
 
-        # ===== 1. 距离评分 =====
+        # 计算价格的最大可能距离
         max_dist = max(abs(df['close'].max() - df['close'].min()), 1e-3)
+        # 计算转折点价格与当前价格的原始距离
         raw_dist = abs(price_at_turn - current_price)
+        # 计算距离得分
         dist_score = 1 - min(raw_dist / max_dist, 1)
 
-        # ===== 2. 拐头角度评分（归一化）=====
-        left_slope = ma_series.iloc[idx] - ma_series.iloc[idx - window]
-        right_slope = ma_series.iloc[idx + window] - ma_series.iloc[idx]
+        # 计算左右斜率
+        left_slope = ma_series.iloc[idx] - ma_series.iloc[idx - slope_window]
+        right_slope = ma_series.iloc[idx + slope_window] - ma_series.iloc[idx]
+        # 计算斜率得分
         slope_score = abs(left_slope - right_slope)
         slope_score /= max(ma_series.std(), 1e-6)
-        slope_score = min(slope_score, 1.0)  # 限制最大值
+        slope_score = min(slope_score, 1.0)
 
-        # ===== 3. 触碰次数评分 =====
+        # 计算触价得分
         tolerance_range = price_at_turn * price_tolerance
         touch_count = df[
             (df['close'] >= price_at_turn - tolerance_range) &
             (df['close'] <= price_at_turn + tolerance_range)
-            ].shape[0]
+        ].shape[0]
         touch_score = touch_count / len(df)
 
-        # ===== 4. 成交量评分（参考历史均值）=====
+        # 计算成交量得分
         local_volume = df['volume'].iloc[idx - window: idx + window + 1].mean()
         avg_volume = df['volume'].mean()
-        volume_score = local_volume / max(avg_volume, 1e-6)
-        volume_score = min(volume_score, 1.0)
+        volume_score = min(local_volume / max(avg_volume, 1e-6), 1.0)
 
-        # ===== 综合加权评分 =====
+        # 综合各项得分计算最终得分
         score = (
-            0.5 * dist_score +
-            0.2 * slope_score +
-            0.15 * touch_score +
-            0.15 * volume_score
+            weights["dist"] * dist_score +
+            weights["slope"] * slope_score +
+            weights["touch"] * touch_score +
+            weights["volume"] * volume_score
         )
 
+        # 返回包含各项得分和转折点信息的字典
         return {
             "score": round(score, 4),
+            "point": point_index,
             "dist_score": round(dist_score, 4),
             "slope_score": round(slope_score, 4),
             "touch_score": round(touch_score, 4),
@@ -407,7 +417,9 @@ def score_turning_point(
             "price_at_turn": round(price_at_turn, 2),
             "raw_dist": round(raw_dist, 4)
         }
+
     except Exception as e:
+        # 异常处理，打印错误信息并返回0分
         print(f"[score_turning_point] Error at {point_index}: {e}")
         return {"score": 0}
 
