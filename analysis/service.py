@@ -358,12 +358,15 @@ def score_turning_point(df, point_index, current_price, window=5, price_toleranc
         price_at_turn = ma_series.iloc[idx]
 
         # ====== 1. 距离评分（越近越好）======
-        dist_score = 1 / (abs(price_at_turn - current_price) + 1e-6)
+        max_dist = abs(df['close'].max() - current_price)  # 可交易区间内最大视为距离极限
+        raw_dist = abs(price_at_turn - current_price)
+        dist_score = 1 - min(raw_dist / max_dist, 1)  # 缩放到 0-1，越接近越接近1
 
         # ====== 2. 拐头角度评分（斜率突变）======
         left_slope = ma_series.iloc[idx] - ma_series.iloc[idx - window]
         right_slope = ma_series.iloc[idx + window] - ma_series.iloc[idx]
         slope_score = abs(left_slope - right_slope)
+        slope_score /= ma_series.std() + 1e-6  # 标准化斜率
 
         # ====== 3. 触碰次数评分 ======
         tolerance_range = price_at_turn * price_tolerance
@@ -379,10 +382,10 @@ def score_turning_point(df, point_index, current_price, window=5, price_toleranc
 
         # ====== 综合评分（加权平均）======
         score = (
-            0.4 * dist_score +
-            0.2 * slope_score +
-            0.2 * touch_score +
-            0.2 * volume_score
+            0.5 * dist_score +
+            0.1 * slope_score +
+            0.1 * touch_score +
+            0.3 * volume_score
         )
         return score
 
