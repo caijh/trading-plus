@@ -276,7 +276,7 @@ def select_score_point(stock, df, points, current_price, is_support=True):
 
     # 按 ma 离当前价格的距离升序排序
     recent_points = points
-    recent_points['score'] = recent_points.index.map(lambda idx: score_turning_point(df, idx, current_price))
+    recent_points['score'] = recent_points.index.map(lambda idx: score_turning_point(df, idx, current_price)['score'])
     point = recent_points.sort_values('score', ascending=False).iloc[0]
     print(point)
     return cal_price_from_kline(stock, df, point, current_price, is_support)
@@ -328,7 +328,13 @@ def cal_price_from_kline(stock, df, point, current_price, is_support):
     return price
 
 
-def score_turning_point(df, point_index, current_price, window=5, price_tolerance=0.005):
+def score_turning_point(
+    df,
+    point_index,
+    current_price,
+    window=5,
+    price_tolerance=0.005
+):
     """
     综合评分拐点强度，包含：
     - 距离评分
@@ -337,61 +343,73 @@ def score_turning_point(df, point_index, current_price, window=5, price_toleranc
     - 成交量评分
 
     参数:
-    - df: 包含'ma', 'close', 'volume' 的 DataFrame，index 为时间
+    - df: 包含 'ma', 'close', 'volume' 的 DataFrame
     - point_index: 拐点的时间索引（Timestamp）
     - current_price: 当前价格
     - window: 前后计算斜率的偏移窗口
-    - price_tolerance: 支撑/阻力有效价格范围比例（如 0.005 表示0.5%）
+    - price_tolerance: 支撑/阻力有效价格范围比例
 
     返回:
-    - score: 最终评分（float）
+    - score（float），或评分字典
     """
+
     if point_index not in df.index:
-        return 0
+        return {"score": 0}
 
     try:
         idx = df.index.get_loc(point_index)
         if idx < window or idx + window >= len(df):
-            return 0  # 防止越界
+            return {"score": 0}
 
         ma_series = df['ma']
         price_at_turn = ma_series.iloc[idx]
 
-        # ====== 1. 距离评分（越近越好）======
-        max_dist = abs(df['close'].max() - current_price)  # 可交易区间内最大视为距离极限
+        # ===== 1. 距离评分 =====
+        max_dist = max(abs(df['close'].max() - df['close'].min()), 1e-3)
         raw_dist = abs(price_at_turn - current_price)
-        dist_score = 1 - min(raw_dist / max_dist, 1)  # 缩放到 0-1，越接近越接近1
+        dist_score = 1 - min(raw_dist / max_dist, 1)
 
-        # ====== 2. 拐头角度评分（斜率突变）======
+        # ===== 2. 拐头角度评分（归一化）=====
         left_slope = ma_series.iloc[idx] - ma_series.iloc[idx - window]
         right_slope = ma_series.iloc[idx + window] - ma_series.iloc[idx]
         slope_score = abs(left_slope - right_slope)
-        slope_score /= ma_series.std() + 1e-6  # 标准化斜率
+        slope_score /= max(ma_series.std(), 1e-6)
+        slope_score = min(slope_score, 1.0)  # 限制最大值
 
-        # ====== 3. 触碰次数评分 ======
+        # ===== 3. 触碰次数评分 =====
         tolerance_range = price_at_turn * price_tolerance
         touch_count = df[
             (df['close'] >= price_at_turn - tolerance_range) &
             (df['close'] <= price_at_turn + tolerance_range)
             ].shape[0]
-        touch_score = touch_count / len(df)  # 比例越高评分越高
+        touch_score = touch_count / len(df)
 
-        # ====== 4. 成交量评分（取该点±window的均值）======
-        volume_score = df['volume'].iloc[idx - window: idx + window + 1].mean()
-        volume_score /= df['volume'].mean() + 1e-6  # 归一化相对平均成交量
+        # ===== 4. 成交量评分（参考历史均值）=====
+        local_volume = df['volume'].iloc[idx - window: idx + window + 1].mean()
+        avg_volume = df['volume'].mean()
+        volume_score = local_volume / max(avg_volume, 1e-6)
+        volume_score = min(volume_score, 1.0)
 
-        # ====== 综合评分（加权平均）======
+        # ===== 综合加权评分 =====
         score = (
             0.5 * dist_score +
-            0.1 * slope_score +
-            0.1 * touch_score +
-            0.3 * volume_score
+            0.2 * slope_score +
+            0.15 * touch_score +
+            0.15 * volume_score
         )
-        return score
 
+        return {
+            "score": round(score, 4),
+            "dist_score": round(dist_score, 4),
+            "slope_score": round(slope_score, 4),
+            "touch_score": round(touch_score, 4),
+            "volume_score": round(volume_score, 4),
+            "price_at_turn": round(price_at_turn, 2),
+            "raw_dist": round(raw_dist, 4)
+        }
     except Exception as e:
-        print(f"[score_turning_point] Error: {e}")
-        return 0
+        print(f"[score_turning_point] Error at {point_index}: {e}")
+        return {"score": 0}
 
 
 def calculate_support_resistance_by_turning_points(stock, df, window=5):
