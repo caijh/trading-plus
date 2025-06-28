@@ -1,3 +1,4 @@
+import numpy as np
 import pandas_ta as ta
 
 from analysis.model import AnalyzedStock
@@ -219,7 +220,7 @@ def calculate_vwap_support_resistance(stock, df, window=14, multiplier=2):
     return s, r
 
 
-def detect_turning_points(series):
+def detect_turning_points(series, angle_threshold_degrees=135):
     """
     Detect turning points in a given series.
 
@@ -238,11 +239,28 @@ def detect_turning_points(series):
     turning_points = []
     turning_up_points = []
     turning_down_points = []
+    angle_threshold_cos = np.cos(np.radians(angle_threshold_degrees))  # Convert to cosine for dot product check
 
     # Iterate through the series, excluding the first and last elements, as they cannot form a turning point by definition
     for i in range(1, len(series) - 1):
         # Get the previous, current, and next values
-        prev, curr, next_ = series.iloc[i - 1], series.iloc[i], series.iloc[i + 1]
+        idx_prev, idx_cur, idx_next = i - 1, i, i + 1
+        prev, curr, next_ = series.iloc[idx_prev], series.iloc[idx_cur], series.iloc[idx_next]
+
+        # Vectors: v1 = P1->P2, v2 = P3->P2 (note the direction toward middle point)
+        v1 = np.array([idx_cur - idx_prev, curr - prev])
+        v2 = np.array([idx_next - idx_cur, next_ - curr])
+
+        v1_norm = np.linalg.norm(v1)
+        v2_norm = np.linalg.norm(v2)
+
+        if v1_norm == 0 or v2_norm == 0:
+            continue
+
+        cos_theta = np.dot(v1, v2) / (v1_norm * v2_norm)
+
+        if cos_theta > angle_threshold_cos:
+            continue
 
         # Determine if the current point is an upward turning point
         if prev > curr and curr < next_:
