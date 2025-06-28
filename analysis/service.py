@@ -220,7 +220,7 @@ def calculate_vwap_support_resistance(stock, df, window=14, multiplier=2):
     return s, r
 
 
-def detect_turning_points(series, angle_threshold_degrees=135):
+def detect_turning_points(series, angle_threshold_degrees_min=10, angle_threshold_degrees_max=80):
     """
     Detect turning points in a given series.
 
@@ -239,41 +239,58 @@ def detect_turning_points(series, angle_threshold_degrees=135):
     turning_points = []
     turning_up_points = []
     turning_down_points = []
-    angle_threshold_cos = np.cos(np.radians(angle_threshold_degrees))  # Convert to cosine for dot product check
+    acute_angle_threshold_cos_min = np.cos(np.radians(angle_threshold_degrees_min))
+    acute_angle_threshold_cos_max = np.cos(np.radians(angle_threshold_degrees_max))
+    obtuse_angle_threshold_degrees_min = angle_threshold_degrees_min + 90
+    obtuse_angle_threshold_degrees_max = angle_threshold_degrees_max + 90
+    obtuse_angle_threshold_cos_max = np.cos(np.radians(obtuse_angle_threshold_degrees_min))
+    obtuse_angle_threshold_cos_min = np.cos(np.radians(obtuse_angle_threshold_degrees_max))
 
     # Iterate through the series, excluding the first and last elements, as they cannot form a turning point by definition
     for i in range(1, len(series) - 1):
         # Get the previous, current, and next values
         idx_prev, idx_cur, idx_next = i - 1, i, i + 1
         prev, curr, next_ = series.iloc[idx_prev], series.iloc[idx_cur], series.iloc[idx_next]
-
         # Vectors: v1 = P1->P2, v2 = P3->P2 (note the direction toward middle point)
-        v1 = np.array([idx_cur - idx_prev, curr - prev])
+        v1 = np.array([idx_prev - idx_cur, prev - curr])
         v2 = np.array([idx_next - idx_cur, next_ - curr])
-
-        v1_norm = np.linalg.norm(v1)
-        v2_norm = np.linalg.norm(v2)
-
-        if v1_norm == 0 or v2_norm == 0:
-            continue
-
-        cos_theta = np.dot(v1, v2) / (v1_norm * v2_norm)
-
-        if cos_theta > angle_threshold_cos:
-            continue
 
         # Determine if the current point is an upward turning point
         if prev > curr and curr < next_:
-            turning_up_points.append(i)
-            turning_points.append(i)
+            cos = get_cos_angle(v1, v2)
+            if (acute_angle_threshold_cos_min > cos > acute_angle_threshold_cos_max) or (
+                obtuse_angle_threshold_cos_max > cos > obtuse_angle_threshold_cos_min):
+                # print(f'up, i = {i}, pre  = {prev} curr = {curr} next_ = {next_}, cos = {cos}')
+                turning_up_points.append(i)
+                turning_points.append(i)
 
         # Determine if the current point is a downward turning point
         if prev < curr and curr > next_:
-            turning_down_points.append(i)
-            turning_points.append(i)
+            cos = get_cos_angle(v1, v2)
+            if (acute_angle_threshold_cos_min > cos > acute_angle_threshold_cos_max) or (
+                obtuse_angle_threshold_cos_max > cos > obtuse_angle_threshold_cos_min):
+                # print(f'down, i = {i}, pre  = {prev} curr = {curr} next_ = {next_}, cos = {cos}')
+                turning_down_points.append(i)
+                turning_points.append(i)
 
     # Return all turning points and the respective upward and downward turning points
     return turning_points, turning_up_points, turning_down_points
+
+
+def get_cos_angle(v1, v2):
+    """
+    Calculate the cosine of the angle between two vectors.
+
+    Parameters:
+    v1 (numpy.ndarray): The first vector.
+    v2 (numpy.ndarray): The second vector.
+
+    Returns:
+    float: The cosine of the angle between the two vectors.
+    """
+    v1_norm = np.linalg.norm(v1)
+    v2_norm = np.linalg.norm(v2)
+    return np.dot(v1, v2) / (v1_norm * v2_norm)
 
 
 def select_score_point(stock, df, points, current_price, is_support=True):
