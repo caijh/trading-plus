@@ -93,7 +93,7 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1):
         (support, resistance) = calculate_support_resistance(stock, df)
         (support_n, resistance_n) = calculate_support_resistance_by_turning_points(stock, df)
         if support_n is not None:
-            support = 0.9 * support_n + 0.1 * support
+            support = support_n
         if resistance_n is not None:
             resistance = resistance_n
 

@@ -17,12 +17,12 @@ def generate_strategy(stock):
         direction = stock['direction']
         buy_price = stock['price']
         stop_loss = stock['support']
+        n_digits = 3 if stock['stock_type'] == 'Fund' else 2
         if "UP" == direction:
-            buy_price = stock['price']
-            stop_loss = stock['support']
+            buy_price = round(stock['price'] * 0.99, n_digits)
+            stop_loss = round(stock['support'] * 0.99, n_digits)
         elif "DOWN" == direction:
             buy_price = stock['support']
-            n_digits = 3 if stock['stock_type'] == 'Fund' else 2
             stop_loss = round(buy_price * env_vars.STOP_LOSS_RATE, n_digits)
 
         if (buy_price - stop_loss) / buy_price < 0.01:
