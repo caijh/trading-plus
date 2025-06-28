@@ -220,56 +220,62 @@ def calculate_vwap_support_resistance(stock, df, window=14, multiplier=2):
     return s, r
 
 
-def detect_turning_points(series, angle_threshold_degrees_min=10, angle_threshold_degrees_max=80):
+def detect_turning_points(series, window=3, angle_threshold_degrees_min=10, angle_threshold_degrees_max=89):
     """
-    Detect turning points in a given series.
+    Detect turning points in a given series with improved accuracy.
 
-    This function aims to identify the turning points in a series, which include both upward and downward turning points.
-    An upward turning point is defined as a point where the value is lower than the values before and after it.
-    A downward turning point is defined as a point where the value is higher than the values before and after it.
+    This function identifies both upward and downward turning points by analyzing the slope changes
+    in the smoothed version of the series.
 
     Parameters:
     series (pd.Series): The input series, assumed to be a pandas series.
+    window (int): The window size for smoothing the series.
+    angle_threshold_degrees_min (float): Minimum angle threshold for acute angles.
+    angle_threshold_degrees_max (float): Maximum angle threshold for acute angles.
 
     Returns:
     tuple: A tuple containing three lists, the first list contains all turning points (upward and downward),
            the second list contains only upward turning points, and the third list contains only downward turning points.
     """
+    # Smooth the series using a moving average
+    smoothed_series = series.rolling(window=window).mean().fillna(series)
+
     # Initialize lists to store all turning points, upward turning points, and downward turning points
     turning_points = []
     turning_up_points = []
     turning_down_points = []
+
+    # Convert angle thresholds to cosine values
     acute_angle_threshold_cos_min = np.cos(np.radians(angle_threshold_degrees_min))
     acute_angle_threshold_cos_max = np.cos(np.radians(angle_threshold_degrees_max))
-    obtuse_angle_threshold_degrees_min = angle_threshold_degrees_min + 90
-    obtuse_angle_threshold_degrees_max = angle_threshold_degrees_max + 90
-    obtuse_angle_threshold_cos_max = np.cos(np.radians(obtuse_angle_threshold_degrees_min))
-    obtuse_angle_threshold_cos_min = np.cos(np.radians(obtuse_angle_threshold_degrees_max))
+    obtuse_angle_threshold_cos_min = np.cos(np.radians(90 + angle_threshold_degrees_max))
+    obtuse_angle_threshold_cos_max = np.cos(np.radians(90 + angle_threshold_degrees_min))
 
-    # Iterate through the series, excluding the first and last elements, as they cannot form a turning point by definition
-    for i in range(1, len(series) - 1):
+    # Iterate through the series, excluding the first and last elements
+    for i in range(1, len(smoothed_series) - 1):
         # Get the previous, current, and next values
         idx_prev, idx_cur, idx_next = i - 1, i, i + 1
-        prev, curr, next_ = series.iloc[idx_prev], series.iloc[idx_cur], series.iloc[idx_next]
+        prev, curr, next_ = smoothed_series.iloc[idx_prev], smoothed_series.iloc[idx_cur], smoothed_series.iloc[
+            idx_next]
+
         # Vectors: v1 = P1->P2, v2 = P3->P2 (note the direction toward middle point)
         v1 = np.array([idx_prev - idx_cur, prev - curr])
         v2 = np.array([idx_next - idx_cur, next_ - curr])
 
+        # Calculate the cosine of the angle between the two vectors
+        cos_angle = get_cos_angle(v1, v2)
+
         # Determine if the current point is an upward turning point
         if prev > curr and curr < next_:
-            cos = get_cos_angle(v1, v2)
-            if (acute_angle_threshold_cos_min > cos > acute_angle_threshold_cos_max) or (
-                obtuse_angle_threshold_cos_max > cos > obtuse_angle_threshold_cos_min):
-                # print(f'up, i = {i}, pre  = {prev} curr = {curr} next_ = {next_}, cos = {cos}')
+            if (acute_angle_threshold_cos_min > cos_angle > acute_angle_threshold_cos_max) or \
+                (obtuse_angle_threshold_cos_max > cos_angle > obtuse_angle_threshold_cos_min):
                 turning_up_points.append(i)
                 turning_points.append(i)
 
         # Determine if the current point is a downward turning point
         if prev < curr and curr > next_:
-            cos = get_cos_angle(v1, v2)
-            if (acute_angle_threshold_cos_min > cos > acute_angle_threshold_cos_max) or (
-                obtuse_angle_threshold_cos_max > cos > obtuse_angle_threshold_cos_min):
-                # print(f'down, i = {i}, pre  = {prev} curr = {curr} next_ = {next_}, cos = {cos}')
+            if (acute_angle_threshold_cos_min > cos_angle > acute_angle_threshold_cos_max) or \
+                (obtuse_angle_threshold_cos_max > cos_angle > obtuse_angle_threshold_cos_min):
                 turning_down_points.append(i)
                 turning_points.append(i)
 
