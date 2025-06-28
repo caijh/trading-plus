@@ -220,7 +220,7 @@ def calculate_vwap_support_resistance(stock, df, window=14, multiplier=2):
     return s, r
 
 
-def detect_turning_points(series, window=3, angle_threshold_degrees_min=10, angle_threshold_degrees_max=89):
+def detect_turning_points(series, window=3, angle_threshold_degrees_min=10, angle_threshold_degrees_max=88):
     """
     Detect turning points in a given series with improved accuracy.
 
@@ -238,8 +238,9 @@ def detect_turning_points(series, window=3, angle_threshold_degrees_min=10, angl
            the second list contains only upward turning points, and the third list contains only downward turning points.
     """
     # Smooth the series using a moving average
-    smoothed_series = series.rolling(window=window).mean().fillna(series)
+    # smoothed_series = series.rolling(window=window).mean().fillna(series)
 
+    smoothed_series = series
     # Initialize lists to store all turning points, upward turning points, and downward turning points
     turning_points = []
     turning_up_points = []
@@ -252,9 +253,11 @@ def detect_turning_points(series, window=3, angle_threshold_degrees_min=10, angl
     obtuse_angle_threshold_cos_max = np.cos(np.radians(90 + angle_threshold_degrees_min))
 
     # Iterate through the series, excluding the first and last elements
-    for i in range(1, len(smoothed_series) - 1):
+    start = 2
+    step = 2
+    for i in range(start, len(smoothed_series) - step):
         # Get the previous, current, and next values
-        idx_prev, idx_cur, idx_next = i - 1, i, i + 1
+        idx_prev, idx_cur, idx_next = i - step, i, i + step
         prev, curr, next_ = smoothed_series.iloc[idx_prev], smoothed_series.iloc[idx_cur], smoothed_series.iloc[
             idx_next]
 
