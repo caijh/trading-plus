@@ -220,7 +220,7 @@ def calculate_vwap_support_resistance(stock, df, window=14, multiplier=2):
     return s, r
 
 
-def detect_turning_points(series, window=3, angle_threshold_degrees_min=10, angle_threshold_degrees_max=88):
+def detect_turning_points(series, angle_threshold_degrees_min=2, angle_threshold_degrees_max=88):
     """
     Detect turning points in a given series with improved accuracy.
 
@@ -237,10 +237,6 @@ def detect_turning_points(series, window=3, angle_threshold_degrees_min=10, angl
     tuple: A tuple containing three lists, the first list contains all turning points (upward and downward),
            the second list contains only upward turning points, and the third list contains only downward turning points.
     """
-    # Smooth the series using a moving average
-    # smoothed_series = series.rolling(window=window).mean().fillna(series)
-
-    smoothed_series = series
     # Initialize lists to store all turning points, upward turning points, and downward turning points
     turning_points = []
     turning_up_points = []
@@ -253,30 +249,28 @@ def detect_turning_points(series, window=3, angle_threshold_degrees_min=10, angl
     obtuse_angle_threshold_cos_max = np.cos(np.radians(90 + angle_threshold_degrees_min))
 
     # Iterate through the series, excluding the first and last elements
-    start = 2
-    step = 2
-    for i in range(start, len(smoothed_series) - step):
+    start = 1
+    step = 1
+    for i in range(start, len(series) - step):
         # Get the previous, current, and next values
         idx_prev, idx_cur, idx_next = i - step, i, i + step
-        prev, curr, next_ = smoothed_series.iloc[idx_prev], smoothed_series.iloc[idx_cur], smoothed_series.iloc[
+        prev, curr, next_ = series.iloc[idx_prev], series.iloc[idx_cur], series.iloc[
             idx_next]
 
-        # Vectors: v1 = P1->P2, v2 = P3->P2 (note the direction toward middle point)
-        v1 = np.array([idx_prev - idx_cur, prev - curr])
-        v2 = np.array([idx_next - idx_cur, next_ - curr])
-
-        # Calculate the cosine of the angle between the two vectors
-        cos_angle = get_cos_angle(v1, v2)
-
+        diff = min(abs(prev - curr), abs(next_ - curr)) / curr
         # Determine if the current point is an upward turning point
-        if prev > curr and curr < next_:
+        if prev > curr and curr < next_ and diff >= 0.0002:
+            # Calculate the cosine of the angle between the two vectors
+            cos_angle = get_cos_angle((idx_prev, prev), (idx_cur, curr), (idx_next, next_))
             if (acute_angle_threshold_cos_min > cos_angle > acute_angle_threshold_cos_max) or \
                 (obtuse_angle_threshold_cos_max > cos_angle > obtuse_angle_threshold_cos_min):
                 turning_up_points.append(i)
                 turning_points.append(i)
 
         # Determine if the current point is a downward turning point
-        if prev < curr and curr > next_:
+        if prev < curr and curr > next_ and diff >= 0.0002:
+            # Calculate the cosine of the angle between the two vectors
+            cos_angle = get_cos_angle((idx_prev, prev), (idx_cur, curr), (idx_next, next_))
             if (acute_angle_threshold_cos_min > cos_angle > acute_angle_threshold_cos_max) or \
                 (obtuse_angle_threshold_cos_max > cos_angle > obtuse_angle_threshold_cos_min):
                 turning_down_points.append(i)
@@ -286,7 +280,7 @@ def detect_turning_points(series, window=3, angle_threshold_degrees_min=10, angl
     return turning_points, turning_up_points, turning_down_points
 
 
-def get_cos_angle(v1, v2):
+def get_cos_angle(p1, p2, p3):
     """
     Calculate the cosine of the angle between two vectors.
 
@@ -297,9 +291,9 @@ def get_cos_angle(v1, v2):
     Returns:
     float: The cosine of the angle between the two vectors.
     """
-    v1_norm = np.linalg.norm(v1)
-    v2_norm = np.linalg.norm(v2)
-    return np.dot(v1, v2) / (v1_norm * v2_norm)
+    v1 = np.array([p1[0] - p2[0], p1[1] - p2[1]])
+    v2 = np.array([p3[0] - p2[0], p3[1] - p2[1]])
+    return np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
 
 
 def select_score_point(stock, df, points, current_price, is_support=True):
