@@ -39,7 +39,7 @@ class Candlestick:
         :return: 布尔值，表示是否匹配到了指定的K线形态。
         """
         # 获取最近几个交易日的数据，以便进行K线形态识别
-        recent_df = df.tail(5)
+        recent_df = df.tail(7)
 
         # 使用技术分析库ta，计算指定K线形态
         recent_df = ta.cdl_pattern(recent_df['open'], recent_df['high'], recent_df['low'], recent_df['close'],
