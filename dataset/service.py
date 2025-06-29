@@ -52,7 +52,7 @@ def apply_forward_adjustment_all_prices(stock, df):
     if exchange not in ['SSE', 'SZSE']:
         return df
 
-    if stock["stock_type"] == 'Index':
+    if stock["stock_type"] == 'Index' or stock["stock_type"] == 'Fund':
         return df
 
     adj_df = df.copy()
