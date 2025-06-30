@@ -67,6 +67,7 @@ def generate_strategy(stock):
                 patterns=stock['patterns'],
                 buy_price=buy_price,
                 sell_price=sell_price,
+                sell_patterns=[],
                 stop_loss=stop_loss,
                 signal=1
             )
