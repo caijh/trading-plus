@@ -48,16 +48,20 @@ def analysis_index():
         # 如果没有提供code参数，返回错误信息和400状态码
         return jsonify({'msg': 'Param code is required'}), 400
 
-    stock = get_stock(code)
+    stock_code = code
+    if code == 'NDX.NS':
+        # NDX 没有成交量
+        stock_code = 'QQQ.NS'
+
+    stock = get_stock(stock_code)
 
     # 检查股票信息是否找到
     if stock is None:
         return jsonify({'msg': 'stock not found'}), 404
-    # NDX, NASDAQ上没有成交量
-    if code != 'NDX.NS':
-        analyze_stock(stock)
-        if len(stock['patterns']) == 0:
-            return jsonify({'code': 0, 'msg': 'Index pattern not match, analysis_index_task not run.'}), 200
+
+    analyze_stock(stock)
+    if len(stock['patterns']) == 0:
+        return jsonify({'code': 0, 'msg': 'Index pattern not match, analysis_index_task not run.'}), 200
 
     future = executor.submit(analysis_index_task, code)
 
@@ -156,8 +160,8 @@ def analysis_funds():
         index = '000001.SH'
     elif exchange == 'HKEX':
         index = 'HSI.HK'
-    # elif exchange == 'NASDAQ':
-    #     index = 'SPX.NS'
+    elif exchange == 'NASDAQ':
+        index = 'SPY.NS'
 
     exec_analyze_funds = True
     if index is not None:
