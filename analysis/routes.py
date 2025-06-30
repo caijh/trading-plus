@@ -53,7 +53,7 @@ def analysis_index():
     # 检查股票信息是否找到
     if stock is None:
         return jsonify({'msg': 'stock not found'}), 404
-
+    # NDX, NASDAQ上没有成交量
     if code != 'NDX.NS':
         analyze_stock(stock)
         if len(stock['patterns']) == 0:
