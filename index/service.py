@@ -59,6 +59,16 @@ def analyze_index(signal):
             signal = 1
         index['stock_type'] = 'Index'
         stock = analyze_stock(index, k_type=KType.DAY, signal=signal)
+        if index['code'] == 'NDX.NS':
+            qqq = {
+                "code": "QQQ.NS",
+                "name": "QQQ",
+                "exchange": "NASDAQ",
+                "stock_type": "Fund",
+                "stock_code": "QQQ"
+            }
+            qqq = analyze_stock(qqq, k_type=KType.DAY, signal=signal)
+            stock['patterns'] = qqq['patterns']
         indexes.append(stock)
 
     return indexes
