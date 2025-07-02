@@ -43,11 +43,8 @@ class SMA:
         ema = ta.ema(df['close'], 5)
         latest_ema_price = ema.iloc[-1]
         pre_ema_price = ema.iloc[-2]
-
-        if pre_ma_price is None or pre_ema_price is None:
-            return False
-
         close_price = price['close']
+
         if self.signal == 1:
             # EMA大于SMA，且向上拐，股价在EMA上方
             return (close_price >= latest_ema_price) and (latest_ema_price > ma_price) and (
