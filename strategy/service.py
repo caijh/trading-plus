@@ -57,7 +57,7 @@ def generate_strategy(stock):
                     existing_strategy.sell_price = sell_price
             existing_strategy.signal = 1
             existing_strategy.updated_at = datetime.now()
-            print(f"🔄 更新交易策略：{stock_name}")
+            print(f"🔄 更新交易策略：{stock_code} - {stock_name}")
         else:
             # 插入新策略
             new_strategy = TradingStrategy(
@@ -72,7 +72,7 @@ def generate_strategy(stock):
                 signal=1
             )
             db.session.add(new_strategy)
-            print(f"✅ 插入新交易策略：{stock_name}")
+            print(f"✅ 插入新交易策略：{stock_code} - {stock_name}")
 
         db.session.commit()
 

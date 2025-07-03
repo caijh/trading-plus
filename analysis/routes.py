@@ -111,7 +111,7 @@ def analysis_stock():
     analyze_stock(stock)
     if len(stock['patterns']) == 0:
         # 分析股票是否有卖出信号
-        analyze_stock(stock, k_type=KType.DAY, signal=-1)
+        analyze_stock(stock, k_type=KType.DAY, signal=-1, sell_candlestick_weight=1)
         if len(stock['patterns']) > 0:
             stock['signal'] = -1
     else:
