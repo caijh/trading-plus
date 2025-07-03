@@ -59,8 +59,8 @@ def analysis_index():
     if stock is None:
         return jsonify({'msg': 'stock not found'}), 404
 
-    analyze_stock(stock)
-    if len(stock['patterns']) == 0:
+    analyze_stock(stock, k_type=KType.DAY, signal=-1)
+    if len(stock['patterns']) > 0:
         return jsonify({'code': 0, 'msg': 'Index pattern not match, analysis_index_task not run.'}), 200
 
     future = executor.submit(analysis_index_task, code)
