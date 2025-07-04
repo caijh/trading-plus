@@ -395,10 +395,10 @@ class CCI:
         # 识别交易信号
         if self.signal == 1:
             # 买入信号：CCI 从低于 -100 反弹
-            df[f'{self.label}_Signal'] = (cci_df.shift(1) < -100) & (cci_df > cci_df.shift(1))
+            df[f'{self.label}_Signal'] = (cci_df.shift(1) < -100) & (cci_df > -100)
         else:
             # 卖出信号：CCI 从高于 100 回落
-            df[f'{self.label}_Signal'] = (cci_df.shift(1) > 100) & (cci_df < cci_df.shift(1))
+            df[f'{self.label}_Signal'] = (cci_df.shift(1) > 100) & (cci_df < 100)
 
         # 获取最近几天的数据
         recent_signals = df.tail(self.recent)
