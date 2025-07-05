@@ -134,7 +134,7 @@ def append_matched_pattern_label(matched_patterns, stock):
         stock['patterns'].append(matched_pattern.label)
 
 
-def calculate_support_resistance(stock, df):
+def calculate_support_resistance(stock, df, window=20, num_std=2):
     """
     计算给定股票的支撑位和阻力位。
 
@@ -157,13 +157,21 @@ def calculate_support_resistance(stock, df):
     df['S3'] = df['S2'] - (df['high'] - df['low'])
     df['R3'] = df['R2'] + (df['high'] - df['low'])
 
+    # ========== 计算 Bollinger Bands ==========
+    df['MA'] = df['close'].rolling(window).mean()
+    df['STD'] = df['close'].rolling(window).std()
+    df['Upper'] = df['MA'] + num_std * df['STD']
+    df['Lower'] = df['MA'] - num_std * df['STD']
+
     # 提取最新数据行，用于计算最终的支撑位和阻力位
-    latest_data = df.iloc[-1][['Pivot', 'S1', 'R1', 'S2', 'R2', 'S3', 'R3']]
+    latest_data = df.iloc[-1][['Pivot', 'S1', 'R1', 'S2', 'R2', 'S3', 'R3', 'Upper', 'Lower']]
 
     n_digits = 3 if stock['stock_type'] == 'Fund' else 2
     # 计算最终的支撑位和阻力位
     s = round(float(min(latest_data['S1'], latest_data['S2'], latest_data['S3'])), n_digits)
     r = round(float(min(latest_data['R1'], latest_data['R2'], latest_data['R3'])), n_digits)
+    s = round((s + latest_data['Lower']) / 2, n_digits)
+    r = round((r + latest_data['Upper']) / 2, n_digits)
 
     # 打印计算结果
     print(f'{stock["code"]} calculate_support_resistance Support = {s}, Resistance = {r}')
