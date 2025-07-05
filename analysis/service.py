@@ -259,21 +259,27 @@ def detect_turning_points(series, angle_threshold_degrees_min=2, angle_threshold
         diff = min(abs(prev - curr), abs(next_ - curr)) / curr
         # Determine if the current point is an upward turning point
         if prev > curr and curr < next_ and diff >= 0.0002:
+            turning_up_points.append(i)
+            turning_points.append(i)
             # Calculate the cosine of the angle between the two vectors
-            cos_angle = get_cos_angle((idx_prev, prev), (idx_cur, curr), (idx_next, next_))
-            if (acute_angle_threshold_cos_min > cos_angle > acute_angle_threshold_cos_max) or \
-                (obtuse_angle_threshold_cos_max > cos_angle > obtuse_angle_threshold_cos_min):
-                turning_up_points.append(i)
-                turning_points.append(i)
+            # cos_angle = get_cos_angle((idx_prev, prev), (idx_cur, curr), (idx_next, next_))
+            # print(f'down prev = {prev}, curr = {curr}, next_ = {next_}, diff = {diff}, cos_angle = {cos_angle}')
+            # if (acute_angle_threshold_cos_min > cos_angle > acute_angle_threshold_cos_max) or \
+            #     (obtuse_angle_threshold_cos_max > cos_angle > obtuse_angle_threshold_cos_min):
+            #     turning_up_points.append(i)
+            #     turning_points.append(i)
 
         # Determine if the current point is a downward turning point
         if prev < curr and curr > next_ and diff >= 0.0002:
+            turning_down_points.append(i)
+            turning_points.append(i)
             # Calculate the cosine of the angle between the two vectors
-            cos_angle = get_cos_angle((idx_prev, prev), (idx_cur, curr), (idx_next, next_))
-            if (acute_angle_threshold_cos_min > cos_angle > acute_angle_threshold_cos_max) or \
-                (obtuse_angle_threshold_cos_max > cos_angle > obtuse_angle_threshold_cos_min):
-                turning_down_points.append(i)
-                turning_points.append(i)
+            # cos_angle = get_cos_angle((idx_prev, prev), (idx_cur, curr), (idx_next, next_))
+            # print(f'up prev = {prev}, curr = {curr}, next_ = {next_}, diff = {diff}, cos_angle = {cos_angle}')
+            # if (acute_angle_threshold_cos_min > cos_angle > acute_angle_threshold_cos_max) or \
+            #     (obtuse_angle_threshold_cos_max > cos_angle > obtuse_angle_threshold_cos_min):
+            #     turning_down_points.append(i)
+            #     turning_points.append(i)
 
     # Return all turning points and the respective upward and downward turning points
     return turning_points, turning_up_points, turning_down_points
