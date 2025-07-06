@@ -10,7 +10,20 @@ from strategy.model import TradingStrategy
 
 
 def generate_strategy(stock):
+    """
+    根据给定的股票信息生成交易策略。
+
+    该函数会根据股票的当前信息和市场环境，计算出买入价、止损价等关键指标，并根据这些指标判断是否生成交易策略。
+    如果符合条件，则会更新或插入相应的交易策略到数据库中。
+
+    参数:
+    - stock (dict): 包含股票详细信息的字典，包括股票代码、名称、阻力位、方向、价格、支撑位等。
+
+    返回:
+    无直接返回值，但会根据条件打印相关信息并更新或插入数据库记录。
+    """
     with db.session.begin():
+        # 提取股票基本信息
         stock_code = stock['code']
         stock_name = stock['name']
         sell_price = stock['resistance']
@@ -18,6 +31,8 @@ def generate_strategy(stock):
         buy_price = stock['price']
         stop_loss = stock['support']
         n_digits = 3 if stock['stock_type'] == 'Fund' else 2
+
+        # 根据股票方向调整买入价和止损价
         if "UP" == direction:
             buy_price = round(stock['price'] * 0.99, n_digits)
             stop_loss = round(stock['support'] * 0.99, n_digits)
@@ -25,14 +40,17 @@ def generate_strategy(stock):
             buy_price = stock['support']
             stop_loss = round(buy_price * env_vars.STOP_LOSS_RATE, n_digits)
 
+        # 检查止损空间是否过小
         if (buy_price - stop_loss) / buy_price < 0.01:
             print(f'{stock_code} {stock_name} 止损空间过小，不生成交易策略')
             return
 
+        # 检查止损空间是否过大
         if (buy_price - stop_loss) / buy_price > 0.05:
             print(f'{stock_code} {stock_name} 止损过大，不生成交易策略')
             return
 
+        # 计算盈利比率并检查是否满足最小盈利比率要求
         profit_rate = round((sell_price - buy_price) / (buy_price - stop_loss), 3)
         if profit_rate < float(env_vars.MIN_PROFIT_RATE):
             print(f'{stock_code} {stock_name} 盈亏比例为{profit_rate}不满足要求，不生成交易策略')
@@ -74,6 +92,7 @@ def generate_strategy(stock):
             db.session.add(new_strategy)
             print(f"✅ 插入新交易策略：{stock_code} - {stock_name}")
 
+        # 提交数据库更改
         db.session.commit()
 
 
