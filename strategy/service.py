@@ -60,7 +60,6 @@ def generate_strategy(stock):
         existing_strategy = TradingStrategy.query.filter_by(stock_code=stock_code).first()
 
         if existing_strategy:
-            # 如果没有卖出信号，获取股票的持仓信息
             holdings = get_holdings(stock_code)
             if holdings is None:
                 # 没有持仓, 更新已有策略
