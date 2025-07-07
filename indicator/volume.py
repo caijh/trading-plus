@@ -1,3 +1,4 @@
+import pandas as pd
 import pandas_ta as ta
 
 
@@ -179,3 +180,97 @@ class CMF:
 
         else:
             raise False
+
+
+class MFI:
+    def __init__(self, signal=1, period=14):
+        """
+        初始化 Money Flow Index（MFI）策略
+
+        参数:
+        - signal: 1 表示买入信号（MFI 上升并脱离超卖区），-1 表示卖出信号（MFI 下降并脱离超买区）
+        - period: MFI 计算周期，默认为 14
+        """
+        self.signal = signal
+        self.period = period
+        self.label = f'MFI{period}'
+        self.weight = 1
+
+    def match(self, stock, prices, df, overbought=80, oversold=20):
+        if df is None or len(df) < self.period + 3:
+            print(f'{stock["code"]} 数据不足，无法计算 MFI 指标')
+            return False
+
+        # 获取最新价格信息
+        price = df.iloc[-1]
+        latest_volume = float(price['volume'])
+        if not latest_volume > 0:
+            return False
+
+        # 计算 MFI 指标
+        mfi = ta.mfi(df['high'], df['low'], df['close'], df['volume'], length=self.period)
+        latest = mfi.iloc[-1]
+        prev = mfi.iloc[-2]
+        prev2 = mfi.iloc[-3]
+
+        # 买入信号：MFI 连续上升 + 上穿超卖区
+        if self.signal == 1:
+            return prev2 < prev < latest and prev < oversold < latest
+
+        # 卖出信号：MFI 连续下降 + 下穿超买区
+        elif self.signal == -1:
+            return prev2 > prev > latest and prev > overbought > latest
+
+        else:
+            raise ValueError("无效的 signal 值，应为 1（买入）或 -1（卖出）")
+
+
+def calculate_vpt(close, volume):
+    vpt = [0]
+    for i in range(1, len(close)):
+        change_pct = (close.iloc[i] - close.iloc[i - 1]) / close.iloc[i - 1] if close.iloc[i - 1] != 0 else 0
+        vpt.append(vpt[-1] + change_pct * volume.iloc[i])
+    return pd.Series(vpt, index=close.index)
+
+
+class VPT:
+    def __init__(self, signal=1, period=3):
+        self.signal = signal
+        self.period = period
+        self.label = f'VPT{period}'
+        self.weight = 1
+
+    def match(self, stock, prices, df):
+        if df is None or len(df) < self.period + 2:
+            print(f'{stock["code"]} 数据不足，无法计算 VPT')
+            return False
+
+        if df['volume'].iloc[-1] <= 0:
+            return False
+
+        vpt = calculate_vpt(df['close'], df['volume'])
+        recent_vpt = vpt.iloc[-(self.period + 1):]
+        diffs = recent_vpt.diff().dropna()
+
+        if self.signal == 1:
+            return all(d > 0 for d in diffs)
+        elif self.signal == -1:
+            return all(d < 0 for d in diffs)
+        else:
+            raise ValueError("无效的 signal 值，应为 1（买入）或 -1（卖出）")
+
+
+def get_breakthrough_up_volume_pattern():
+    return [VOL(20, 1), OBV(1), ADOSC(1), CMF(1), MFI(1), VPT(1)]
+
+
+def get_breakthrough_down_volume_pattern():
+    return [VOL(20, 1), OBV(-1), ADOSC(-1), CMF(-1), MFI(-1), VPT(-1)]
+
+
+def get_oversold_volume_patterns():
+    return [VOL(20, -1), OBV(1), ADOSC(1), CMF(1), MFI(1), VPT(1)]
+
+
+def get_overbought_volume_patterns():
+    return [VOL(20, 1), OBV(-1), ADOSC(-1), CMF(-1), MFI(-1), VPT(-1)]

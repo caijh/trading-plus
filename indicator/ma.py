@@ -1,6 +1,7 @@
 import pandas_ta as ta
 
-from indicator.volume import VOL, OBV, ADOSC, CMF
+from indicator.volume import get_breakthrough_up_volume_pattern, \
+    get_breakthrough_down_volume_pattern, get_oversold_volume_patterns, get_overbought_volume_patterns
 
 
 class SMA:
@@ -48,71 +49,16 @@ class SMA:
         if self.signal == 1:
             # EMA大于SMA，且向上拐，股价在EMA上方
             return (close_price >= latest_ema_price) and (latest_ema_price > ma_price) and (
-                    pre_ema_price <= pre_ma_price)
+                pre_ema_price <= pre_ma_price)
         else:
             # EMA小于SMA，且向下拐，股价在EMA下方
             return (close_price < latest_ema_price) and (latest_ema_price < ma_price) and (
-                    pre_ema_price >= pre_ma_price)
+                pre_ema_price >= pre_ma_price)
 
     def get_volume_confirm_patterns(self):
         if self.signal == 1:
-            return [VOL(20, 1), OBV(1), ADOSC(1), CMF(1)]
-        return [VOL(20, 1), OBV(-1), ADOSC(-1), CMF(-1)]
-
-
-class VWAP:
-    label = 'VWAP'
-    weight = 1
-
-    def __init__(self, signal=1, volume_lookback=20):
-        """
-        初始化 VWAP 策略类
-        :param signal: 1 = 买入，-1 = 卖出
-        :param volume_lookback: 量能平均判断用的历史天数
-        """
-        self.signal = signal
-        self.volume_lookback = volume_lookback
-
-    def match(self, stock, prices, df):
-        """
-        使用 VWAP 判断买卖点。
-        :param stock: 股票信息字典
-        :param prices: 价格信息（未使用）
-        :param df: 包含 open/high/low/close/volume 的 DataFrame
-        :return: 是否发出信号
-        """
-        if len(df) < max(3, self.volume_lookback + 1):
-            print(f"{stock['code']} 数据不足")
-            return False
-
-        df['VWAP'] = df.ta.vwap(high='high', low='low', close='close', volume='volume')
-
-        # 最近两天价格与VWAP
-        close_price = df.iloc[-1]['close']
-        close_pre_price = df.iloc[-2]['close']
-        vwap_today = df.iloc[-1]['VWAP']
-        vwap_yesterday = df.iloc[-2]['VWAP']
-
-        # 量能确认：当前成交量 > 过去N天均值
-        avg_volume = df['volume'].iloc[-self.volume_lookback - 1:-1].mean()
-        volume = df['volume'].iloc[-1]
-        volume_confirm = volume > avg_volume
-
-        if self.signal == 1:
-            # 买入信号：股价上穿 VWAP 且量能支持
-            price_cross = (close_pre_price < vwap_yesterday) and (close_price > vwap_today)
-            result = price_cross and volume_confirm
-        else:
-            # 卖出信号：股价下穿 VWAP 且无需量能支持
-            price_cross = (close_pre_price > vwap_yesterday) and (close_price < vwap_today)
-            result = price_cross
-
-        return result
-
-    def get_volume_confirm_patterns(self):
-        if self.signal == 1:
-            return [VOL(20, 1), OBV(1), ADOSC(1), CMF(1)]
-        return [VOL(20, 1), OBV(-1), ADOSC(-1), CMF(-1)]
+            return get_breakthrough_up_volume_pattern()
+        return get_breakthrough_down_volume_pattern()
 
 
 class MACD:
@@ -185,8 +131,8 @@ class MACD:
 
     def get_volume_confirm_patterns(self):
         if self.signal == 1:
-            return [VOL(20, 1), OBV(1), ADOSC(1), CMF(1)]
-        return [VOL(20, 1), OBV(-1), ADOSC(-1), CMF(-1)]
+            return get_breakthrough_up_volume_pattern()
+        return get_breakthrough_down_volume_pattern()
 
 
 class BIAS:
@@ -230,8 +176,8 @@ class BIAS:
 
     def get_volume_confirm_patterns(self):
         if self.signal == 1:
-            return [VOL(20, -1), OBV(1), ADOSC(1), CMF(1)]
-        return [VOL(20, 1), OBV(-1), ADOSC(-1), CMF(-1)]
+            return get_oversold_volume_patterns()
+        return get_overbought_volume_patterns()
 
 
 class KDJ:
@@ -273,8 +219,8 @@ class KDJ:
 
     def get_volume_confirm_patterns(self):
         if self.signal == 1:
-            return [VOL(20, -1), OBV(1), ADOSC(1), CMF(1)]
-        return [VOL(20, 1), OBV(-1), ADOSC(-1), CMF(-1)]
+            return get_oversold_volume_patterns()
+        return get_overbought_volume_patterns()
 
 
 class RSI:
@@ -311,8 +257,8 @@ class RSI:
 
     def get_volume_confirm_patterns(self):
         if self.signal == 1:
-            return [VOL(20, -1), OBV(1), ADOSC(1), CMF(1)]
-        return [VOL(20, 1), OBV(-1), ADOSC(-1), CMF(-1)]
+            return get_oversold_volume_patterns()
+        return get_overbought_volume_patterns()
 
 
 class WR:
@@ -358,8 +304,8 @@ class WR:
 
     def get_volume_confirm_patterns(self):
         if self.signal == 1:
-            return [VOL(20, -1), OBV(1), ADOSC(1), CMF(1)]
-        return [VOL(20, 1), OBV(-1), ADOSC(-1), CMF(-1)]
+            return get_oversold_volume_patterns()
+        return get_overbought_volume_patterns()
 
 
 class CCI:
@@ -410,8 +356,8 @@ class CCI:
 
     def get_volume_confirm_patterns(self):
         if self.signal == 1:
-            return [VOL(20, -1), OBV(1), ADOSC(1), CMF(1)]
-        return [VOL(20, 1), OBV(-1), ADOSC(-1), CMF(-1)]
+            return get_oversold_volume_patterns()
+        return get_overbought_volume_patterns()
 
 
 def get_up_ma_patterns():
@@ -422,7 +368,7 @@ def get_up_ma_patterns():
     以及一个特定参数的偏差率模式。这些模式用于在金融数据分析中计算和应用各种移动平均线和偏差率指标。
     """
     # 初始化均线和偏差率模式列表
-    ma_patterns = [SMA(10, 1), SMA(20, 1), SMA(60, 1), SMA(200, 1), MACD(1), VWAP(1),
+    ma_patterns = [SMA(10, 1), SMA(20, 1), SMA(60, 1), SMA(200, 1), MACD(1),
                    BIAS(20, -0.09, 1), KDJ(1), RSI(1), WR(1), CCI(1)]
     return ma_patterns
 
@@ -435,6 +381,6 @@ def get_down_ma_patterns():
     以及一个特定参数的偏差率模式。这些模式用于在金融数据分析中计算和应用各种移动平均线和偏差率指标。
     """
     # 初始化均线和偏差率
-    ma_patterns = [SMA(10, -1), SMA(20, -1), SMA(60, -1), SMA(200, -1), MACD(-1), VWAP(-1),
+    ma_patterns = [SMA(10, -1), SMA(20, -1), SMA(60, -1), SMA(200, -1), MACD(-1),
                    BIAS(20, 0.09, -1), KDJ(-1), RSI(-1), WR(-1), CCI(-1)]
     return ma_patterns

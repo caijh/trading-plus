@@ -45,7 +45,10 @@ def save_analyzed_stock(stock):
     print(f"Add {analyzed_stock} to AnalyzedStock")
 
 
-def analyze_stock(stock, k_type=KType.DAY, signal=1, buy_candlestick_weight=1, sell_candlestick_weight=0):
+def analyze_stock(stock, k_type=KType.DAY, signal=1,
+                  buy_candlestick_weight=1, sell_candlestick_weight=0,
+                  buy_ma_weight=1, sell_ma_weight=1,
+                  buy_volume_weight=1, sell_volume_weight=1):
     print("=====================================================")
     code = stock['code']
     name = stock['name']
@@ -67,7 +70,7 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1, buy_candlestick_weight=1, s
                 matched_ma_patterns, ma_weight = get_match_patterns(ma_patterns, stock, prices, df)
                 volume_patterns = get_volume_patterns(matched_ma_patterns)
                 matched_volume_patterns, volume_weight = get_match_patterns(volume_patterns, stock, prices, df)
-                if ma_weight > 1 and volume_weight > 1:
+                if ma_weight >= buy_ma_weight and volume_weight > buy_volume_weight:
                     # 将所有匹配的K线形态、均线和量能模式的标签添加到股票的模式列表中
                     append_matched_pattern_label(matched_candlestick_patterns, stock)
                     append_matched_pattern_label(matched_ma_patterns, stock)
@@ -76,7 +79,7 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1, buy_candlestick_weight=1, s
             matched_ma_patterns, ma_weight = get_match_patterns(ma_patterns, stock, prices, df)
             volume_patterns = get_volume_patterns(matched_ma_patterns)
             matched_volume_patterns, volume_weight = get_match_patterns(volume_patterns, stock, prices, df)
-            if candlestick_weight >= sell_candlestick_weight and ma_weight > 1 and volume_weight > 0:
+            if candlestick_weight >= sell_candlestick_weight and ma_weight >= sell_ma_weight and volume_weight > sell_volume_weight:
                 # 同样将所有匹配的模式标签添加到股票的模式列表中
                 append_matched_pattern_label(matched_candlestick_patterns, stock)
                 append_matched_pattern_label(matched_ma_patterns, stock)
