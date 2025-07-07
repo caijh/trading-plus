@@ -173,8 +173,8 @@ def calculate_support_resistance(stock, df, window=20, num_std=2):
     # 计算最终的支撑位和阻力位
     s = round(float(min(latest_data['S1'], latest_data['S2'], latest_data['S3'])), n_digits)
     r = round(float(max(latest_data['R1'], latest_data['R2'], latest_data['R3'])), n_digits)
-    s = round((s + latest_data['Lower']) / 2, n_digits)
-    r = round((r + latest_data['Upper']) / 2, n_digits)
+    s = round(float(s + latest_data['Lower']) / 2, n_digits)
+    r = round(float(r + latest_data['Upper']) / 2, n_digits)
 
     # 打印计算结果
     print(f'{stock["code"]} calculate_support_resistance Support = {s}, Resistance = {r}')
