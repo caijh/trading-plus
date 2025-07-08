@@ -160,8 +160,8 @@ def analysis_funds():
         index = '000001.SH'
     elif exchange == 'HKEX':
         index = 'HSI.HK'
-    elif exchange == 'NASDAQ':
-        index = 'SPY.NS'
+    # elif exchange == 'NASDAQ':
+    #     index = 'SPY.NS'
 
     exec_analyze_funds = True
     if index is not None:
