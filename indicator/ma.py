@@ -1,3 +1,4 @@
+import pandas as pd
 import pandas_ta as ta
 
 from indicator.volume import get_breakthrough_up_volume_pattern, \
@@ -128,6 +129,106 @@ class MACD:
             recent_signals = df.tail(self.recent)
             macd_sell_signal = recent_signals[f'{self.label}_Signal'].any()
             return macd_sell_signal
+
+    def get_volume_confirm_patterns(self):
+        if self.signal == 1:
+            return get_breakthrough_up_volume_pattern()
+        return get_breakthrough_down_volume_pattern()
+
+
+class SAR:
+    def __init__(self, signal=1):
+        """
+        Parabolic SAR 策略
+
+        参数:
+        - signal: 1 表示买入信号（SAR 从上转到下），-1 表示卖出信号（SAR 从下转到上）
+        """
+        self.signal = signal
+        self.label = 'SAR'
+        self.weight = 1
+
+    def match(self, stock, prices, df):
+        if df is None or len(df) < 3:
+            print(f'{stock["code"]} 数据不足，无法计算 PSAR')
+            return False
+
+        # 计算 SAR（默认加速因子 step=0.02, max_step=0.2）
+        psar = ta.psar(df['high'], df['low'], df['close'])
+        if 'PSARl_0.02_0.2' not in psar.columns or 'PSARs_0.02_0.2' not in psar.columns:
+            print(f'{stock["code"]} PSAR计算失败')
+            return False
+
+        # 最新一条 SAR 值
+        psar_last = psar['PSARl_0.02_0.2'].iloc[-1] if not pd.isna(psar['PSARl_0.02_0.2'].iloc[-1]) else \
+            psar['PSARs_0.02_0.2'].iloc[-1]
+        psar_prev = psar['PSARl_0.02_0.2'].iloc[-2] if not pd.isna(psar['PSARl_0.02_0.2'].iloc[-2]) else \
+            psar['PSARs_0.02_0.2'].iloc[-2]
+        close_last = df['close'].iloc[-1]
+        close_prev = df['close'].iloc[-2]
+
+        # 买入信号：SAR 从上转到下（之前 close < SAR，当前 close > SAR）
+        if self.signal == 1:
+            return close_prev < psar_prev and close_last > psar_last
+
+        # 卖出信号：SAR 从下转到上（之前 close > SAR，当前 close < SAR）
+        elif self.signal == -1:
+            return close_prev > psar_prev and close_last < psar_last
+
+        else:
+            raise ValueError("无效的 signal 值，应为 1（买入）或 -1（卖出）")
+
+    def get_volume_confirm_patterns(self):
+        if self.signal == 1:
+            return get_breakthrough_up_volume_pattern()
+        return get_breakthrough_down_volume_pattern()
+
+
+class DMI:
+    def __init__(self, signal=1, period=14, adx_threshold=20):
+        """
+        DMI 策略（+DI/-DI 交叉，趋势方向判断）
+
+        参数:
+        - signal: 1 表示买入信号（+DI 上穿 -DI），-1 表示卖出信号（-DI 上穿 +DI）
+        - period: 计算周期
+        - adx_threshold: 趋势强度过滤阈值
+        """
+        self.signal = signal
+        self.period = period
+        self.adx_threshold = adx_threshold
+        self.label = f'DMI{period}'
+        self.weight = 1
+
+    def match(self, stock, prices, df):
+        if df is None or len(df) < self.period + 2:
+            print(f'{stock["code"]} 数据不足，无法计算 DMI')
+            return False
+
+        # 使用 ta.adx 计算 +DI, -DI 和 ADX
+        dmi = ta.adx(df['high'], df['low'], df['close'], length=self.period)
+        if dmi is None or dmi.isnull().values.any():
+            return False
+
+        plus_di = dmi[f'DMP_{self.period}']
+        minus_di = dmi[f'DMN_{self.period}']
+        adx = dmi[f'ADX_{self.period}']
+
+        # 最近两个周期的 DI 值
+        p1, p2 = plus_di.iloc[-2], plus_di.iloc[-1]
+        m1, m2 = minus_di.iloc[-2], minus_di.iloc[-1]
+        adx_now = adx.iloc[-1]
+
+        # 趋势强度判断
+        if adx_now < self.adx_threshold:
+            return False
+
+        if self.signal == 1:
+            return p2 > m2 and p2 > p1 and m2 < m1  # +DI 上穿 -DI 且趋势增强
+        elif self.signal == -1:
+            return m2 > p2 and m2 > m1 and p2 < p1  # -DI 上穿 +DI 且趋势增强
+        else:
+            raise ValueError("signal 必须为 1 或 -1")
 
     def get_volume_confirm_patterns(self):
         if self.signal == 1:
@@ -368,7 +469,8 @@ def get_up_ma_patterns():
     以及一个特定参数的偏差率模式。这些模式用于在金融数据分析中计算和应用各种移动平均线和偏差率指标。
     """
     # 初始化均线和偏差率模式列表
-    ma_patterns = [SMA(10, 1), SMA(20, 1), SMA(60, 1), SMA(200, 1), MACD(1),
+    ma_patterns = [SMA(10, 1), SMA(20, 1), SMA(60, 1), SMA(200, 1),
+                   MACD(1), SAR(1), DMI(1),
                    BIAS(20, -0.09, 1), KDJ(1), RSI(1), WR(1), CCI(1)]
     return ma_patterns
 
@@ -381,6 +483,7 @@ def get_down_ma_patterns():
     以及一个特定参数的偏差率模式。这些模式用于在金融数据分析中计算和应用各种移动平均线和偏差率指标。
     """
     # 初始化均线和偏差率
-    ma_patterns = [SMA(10, -1), SMA(20, -1), SMA(60, -1), SMA(200, -1), MACD(-1),
+    ma_patterns = [SMA(10, -1), SMA(20, -1), SMA(60, -1), SMA(200, -1),
+                   MACD(-1), SAR(-1), DMI(-1),
                    BIAS(20, 0.09, -1), KDJ(-1), RSI(-1), WR(-1), CCI(-1)]
     return ma_patterns
