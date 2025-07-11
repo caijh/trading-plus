@@ -301,4 +301,4 @@ def get_oversold_volume_patterns():
 
 
 def get_overbought_volume_patterns():
-    return [VOL(20, 1), OBV(-1), ADLine(1), ADOSC(-1), CMF(-1), MFI(-1), VPT(-1)]
+    return [VOL(20, 1), OBV(-1), ADLine(-1), ADOSC(-1), CMF(-1), MFI(-1), VPT(-1)]
