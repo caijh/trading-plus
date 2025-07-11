@@ -76,7 +76,7 @@ class OBV:
         obv = ta.obv(df['close'], df['volume'])
         latest_obv = obv.iloc[-1]
         pre_obv = obv.iloc[-2]
-        obv_ma = obv.rolling(window=5).mean()
+        obv_ma = obv.rolling(window=10).mean()
         # 判断买入信号
         if self.signal == 1:
             # OBV 上升，确认买入信号
