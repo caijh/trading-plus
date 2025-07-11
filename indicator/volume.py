@@ -48,9 +48,10 @@ class OBV:
     signal = 1
     weight = 1
 
-    def __init__(self, signal):
+    def __init__(self, signal, ma_period=10):
         self.signal = signal
         self.label = 'OBV'
+        self.ma_period = ma_period
 
     def match(self, stock, prices, df):
         """
@@ -76,7 +77,7 @@ class OBV:
         obv = ta.obv(df['close'], df['volume'])
         latest_obv = obv.iloc[-1]
         pre_obv = obv.iloc[-2]
-        obv_ma = obv.rolling(window=10).mean()
+        obv_ma = obv.rolling(window=self.ma_period).mean()
         # 判断买入信号
         if self.signal == 1:
             # OBV 上升，确认买入信号
@@ -91,9 +92,10 @@ class ADOSC:
     signal = 1
     weight = 1
 
-    def __init__(self, signal):
+    def __init__(self, signal, threshold=5000):
         self.signal = signal
         self.label = 'ADOSC'
+        self.threshold = threshold
 
     def match(self, stock, prices, df):
         """
@@ -127,7 +129,7 @@ class ADOSC:
 
         # 判断买入信号
         if self.signal == 1:
-            return latest > prev > prev2 and latest > 0
+            return latest > prev > prev2 and latest > self.threshold
         # 判断卖出信号
         else:
             return latest < prev < prev2 and latest < 0
@@ -234,24 +236,24 @@ def calculate_vpt(close, volume):
 
 
 class VPT:
-    def __init__(self, signal=1, period=3):
+    def __init__(self, signal=1, period=3, normalize=True):
         self.signal = signal
         self.period = period
         self.label = f'VPT{period}'
         self.weight = 1
+        self.normalize = normalize
 
     def match(self, stock, prices, df):
         if df is None or len(df) < self.period + 2:
             print(f'{stock["code"]} 数据不足，无法计算 VPT')
             return False
-
         if df['volume'].iloc[-1] <= 0:
             return False
-
         vpt = calculate_vpt(df['close'], df['volume'])
         recent_vpt = vpt.iloc[-(self.period + 1):]
+        if self.normalize:
+            recent_vpt = (recent_vpt - recent_vpt.mean()) / recent_vpt.std() if recent_vpt.std() != 0 else recent_vpt
         diffs = recent_vpt.diff().dropna()
-
         if self.signal == 1:
             return all(d > 0 for d in diffs)
         elif self.signal == -1:
