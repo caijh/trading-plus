@@ -135,6 +135,32 @@ class ADOSC:
             return latest < prev < prev2 and latest < 0
 
 
+class ADLine:
+    def __init__(self, signal=1):
+        self.signal = signal
+        self.label = 'ADLine'
+        self.weight = 1
+
+    def match(self, stock, prices, df):
+        if df is None or len(df) < 3:
+            print(f'{stock["code"]} 数据不足，无法计算 ADLine')
+            return False
+        price = df.iloc[-1]
+        latest_volume = float(price['volume'])
+        if not latest_volume > 0:
+            return False
+        ad_line = ta.ad(df['high'], df['low'], df['close'], df['volume'])
+        latest = ad_line.iloc[-1]
+        prev = ad_line.iloc[-2]
+        prev2 = ad_line.iloc[-3]
+        if self.signal == 1:
+            return latest > prev > prev2
+        elif self.signal == -1:
+            return latest < prev < prev2
+        else:
+            raise ValueError("无效的 signal 值，应为 1（买入）或 -1（卖出）")
+
+
 class CMF:
     def __init__(self, signal=1, period=20):
         """
@@ -263,16 +289,16 @@ class VPT:
 
 
 def get_breakthrough_up_volume_pattern():
-    return [VOL(20, 1), OBV(1), ADOSC(1), CMF(1), MFI(1), VPT(1)]
+    return [VOL(20, 1), OBV(1), ADLine(1), CMF(1), MFI(1), VPT(1)]
 
 
 def get_breakthrough_down_volume_pattern():
-    return [VOL(20, 1), OBV(-1), ADOSC(-1), CMF(-1), MFI(-1), VPT(-1)]
+    return [VOL(20, 1), OBV(-1), ADLine(-1), CMF(-1), MFI(-1), VPT(-1)]
 
 
 def get_oversold_volume_patterns():
-    return [VOL(20, -1), OBV(1), ADOSC(1), CMF(1), MFI(1), VPT(1)]
+    return [VOL(20, -1), OBV(1), ADLine(1), ADOSC(1), CMF(1), MFI(1), VPT(1)]
 
 
 def get_overbought_volume_patterns():
-    return [VOL(20, 1), OBV(-1), ADOSC(-1), CMF(-1), MFI(-1), VPT(-1)]
+    return [VOL(20, 1), OBV(-1), ADLine(1), ADOSC(-1), CMF(-1), MFI(-1), VPT(-1)]
