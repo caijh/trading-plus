@@ -386,83 +386,90 @@ def score_turning_point(
     df,
     point_index,
     current_price,
-    window=5,
-    slope_window=3,
+    window=None,
+    slope_window=None,
     price_tolerance=0.005,
     weights=None
 ):
     """
-    计算给定点的转折点得分。
+    计算给定点的转势点得分。
 
     参数:
-    - df: 包含价格和成交量等数据的DataFrame。
-    - point_index: 需要计算得分的转折点索引。
-    - current_price: 当前价格。
-    - window: 计算得分时考虑的数据窗口大小，默认为5。
-    - slope_window: 计算斜率时考虑的数据窗口大小，默认为3。
-    - price_tolerance: 价格容忍度，用于计算触价得分，默认为0.005。
-    - weights: 各个得分项的权重，默认为{"dist": 0.5, "slope": 0.2, "touch": 0.15, "volume": 0.15}。
+    - df: DataFrame, 包含价格和成交量等数据的 DataFrame。
+    - point_index: int, 转势点的索引。
+    - current_price: float, 当前价格。
+    - window: int, 计算窗口大小，默认为数据长度的1/20或5。
+    - slope_window: int, 斜率计算窗口大小，默认为数据长度的1/50或3。
+    - price_tolerance: float, 价格容忍度，默认为0.005。
+    - weights: dict, 各个得分项的权重，默认为{"dist": 0.4, "slope": 0.2, "touch": 0.2, "volume": 0.2}。
 
     返回:
-    - 一个字典，包含转折点得分和其他相关信息。
+    - dict: 包含转势点得分和其他相关信息的字典。
     """
+    # 初始化权重，如果未提供则使用默认值
+    weights = weights or {"dist": 0.5, "slope": 0.1, "touch": 0.1, "volume": 0.3}
+    # 计算总权重
+    total_weight = sum(weights.values())
     # 检查point_index是否在DataFrame的索引中
     if point_index not in df.index:
         return {"score": 0}
-
-    # 设置默认的权重值
-    weights = weights or {"dist": 0.5, "slope": 0.2, "touch": 0.15, "volume": 0.15}
-
     try:
-        # 获取转折点在DataFrame中的位置索引
+        # 获取数据长度
+        data_len = len(df)
+        # 计算或设置窗口大小
+        window = window or max(data_len // 20, 5)
+        # 计算或设置斜率窗口大小
+        slope_window = slope_window or max(data_len // 50, 3)
+        # 获取转势点的索引位置
         idx = df.index.get_loc(point_index)
-        # 确保有足够的数据点来计算得分
-        if idx < window or idx + window >= len(df):
+        # 检查索引位置是否在有效范围内
+        if idx < window or idx + window >= data_len:
             return {"score": 0}
-
-        # 提取移动平均价格序列和转折点的价格
+        # 获取移动平均价系列
         ma_series = df['ma']
+        # 获取转势点的价格
         price_at_turn = ma_series.iloc[idx]
-
-        # 计算价格的最大可能距离
+        # 计算最大距离
         max_dist = max(abs(df['close'].max() - df['close'].min()), 1e-3)
-        # 计算转折点价格与当前价格的原始距离
+        # 计算转势点与当前价格的原始距离
         raw_dist = abs(price_at_turn - current_price)
         # 计算距离得分
         dist_score = 1 - min(raw_dist / max_dist, 1)
-
         # 计算左右斜率
         left_slope = ma_series.iloc[idx] - ma_series.iloc[idx - slope_window]
         right_slope = ma_series.iloc[idx + slope_window] - ma_series.iloc[idx]
+        # 计算最大斜率
+        max_slope = max(abs(ma_series.max() - ma_series.min()), 1e-6)
         # 计算斜率得分
-        slope_score = abs(left_slope - right_slope)
-        slope_score /= max(ma_series.std(), 1e-6)
-        slope_score = min(slope_score, 1.0)
-
-        # 计算触价得分
+        slope_score = min(abs(left_slope - right_slope) / max_slope, 1.0)
+        # 计算价格容忍范围
         tolerance_range = price_at_turn * price_tolerance
-        touch_count = df[
-            (df['close'] >= price_at_turn - tolerance_range) &
-            (df['close'] <= price_at_turn + tolerance_range)
-        ].shape[0]
-        touch_score = touch_count / len(df)
-
+        # 筛选在价格容忍范围内的数据
+        touch_df = df[
+            (df['close'] >= price_at_turn - tolerance_range) & (df['close'] <= price_at_turn + tolerance_range)]
+        # 计算触及次数和触及均量
+        touch_count = touch_df.shape[0]
+        touch_volume_avg = touch_df['volume'].mean() if not touch_df.empty else 0
+        # 计算触及得分
+        touch_score = min(touch_count / data_len * (touch_volume_avg / max(df['volume'].median(), 1)), 1.0)
+        # 计算成交量的对数
+        volume_log = np.log1p(df['volume'])
+        # 计算局部成交量对数均值
+        local_volume_log = volume_log.iloc[idx - window: idx + window + 1].mean()
         # 计算成交量得分
-        local_volume = df['volume'].iloc[idx - window: idx + window + 1].mean()
-        avg_volume = df['volume'].mean()
-        volume_score = min(local_volume / max(avg_volume, 1e-6), 1.0)
-
-        # 综合各项得分计算最终得分
-        score = (
+        volume_score = min(local_volume_log / max(volume_log.median(), 1e-6), 1.0)
+        # 计算加权和
+        weighted_sum = (
             weights["dist"] * dist_score +
             weights["slope"] * slope_score +
             weights["touch"] * touch_score +
             weights["volume"] * volume_score
         )
-
-        # 返回包含各项得分和转折点信息的字典
+        # 计算最终得分
+        score = round(weighted_sum / total_weight, 4)
+        # 返回结果字典
         return {
-            "score": round(score, 4),
+            "score": score,
             "point": point_index,
             "dist_score": round(dist_score, 4),
             "slope_score": round(slope_score, 4),
@@ -471,7 +478,6 @@ def score_turning_point(
             "price_at_turn": round(price_at_turn, 2),
             "raw_dist": round(raw_dist, 4)
         }
-
     except Exception as e:
         # 异常处理，打印错误信息并返回0分
         print(f"[score_turning_point] Error at {point_index}: {e}")
