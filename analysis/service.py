@@ -382,6 +382,57 @@ def cal_price_from_kline(stock, df, point, current_price, is_support):
     return price
 
 
+def cal_price_from_ma(stock, df, point, current_price, is_support):
+    """
+    根据移动平均线计算目标价格。
+
+    参数:
+    stock: 股票对象，用于获取股票相关信息（未在本函数中使用，但可能在上下文中需要）。
+    df: DataFrame，包含股票历史数据的表格。
+    point: 字符串，表示当前的时间点（未在本函数中使用，但可能在上下文中需要）。
+    current_price: 浮点数，当前股票价格。
+    is_support: 布尔值，如果为True，则寻找支撑位；如果为False，则寻找压力位。
+
+    返回:
+    price: 浮点数，根据移动平均线计算得到的目标价格，如果没有合适的移动平均线价格，则返回None。
+    """
+
+    # 计算10日、20日、30日的移动平均线价格
+    df['MA10'] = df['close'].rolling(10).mean()
+    df['MA20'] = df['close'].rolling(20).mean()
+    df['MA30'] = df['close'].rolling(30).mean()
+
+    # 初始化目标价格为None
+    price = None
+
+    # 获取最新一日的10日、20日、30日移动平均线价格
+    ma10_price = df['MA10'].iloc[-1]
+    ma20_price = df['MA20'].iloc[-1]
+    ma30_price = df['MA30'].iloc[-1]
+
+    # 根据是否是支撑位来确定目标价格
+    if is_support:
+        # 如果移动平均线价格低于当前价格，则选择作为支撑位
+        if ma10_price < current_price:
+            price = ma10_price
+        elif ma20_price < current_price:
+            price = ma20_price
+        elif ma30_price < current_price:
+            price = ma30_price
+    else:
+        # 如果移动平均线价格高于当前价格，则选择作为压力位
+        if ma10_price > current_price:
+            price = ma10_price
+        elif ma20_price > current_price:
+            price = ma20_price
+        elif ma30_price > current_price:
+            price = ma30_price
+
+    # 返回目标价格
+    return price
+
+
+
 def score_turning_point(
     df,
     point_index,
@@ -539,10 +590,14 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
         if not resistances.empty and resistance is None:
             print("Resistance point:")
             resistance = select_score_point(stock, recent_df, resistances, current_price, is_support=False)
+        else:
+            resistance = cal_price_from_ma(stock, recent_df, resistance, current_price, is_support=False)
     else:
         if not supports.empty and support is None:
             print("Support point:")
             support = select_nearest_point(stock, recent_df, supports, current_price, is_support=True)  # 时间上最靠近当前的支撑点
+        else:
+            support = cal_price_from_ma(stock, recent_df, support, current_price, is_support=True)
 
         first_point = turning_points.iloc[-1]
         second_point = turning_points.iloc[-2]
