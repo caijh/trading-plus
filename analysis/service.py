@@ -482,10 +482,10 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
 
     # 获取当前价格、最近的向上拐点和向下拐点
     current_price = recent_df['close'].iloc[-1]
-    nearest_up_index = turning_up_idxes[-1]
-    nearest_down_index = turning_down_idxes[-1]
+    current_ma_price = recent_df['ma'].iloc[-1]
+    pre_ma_price = recent_df['ma'].iloc[-2]
     # 判断当前趋势
-    upping = True if nearest_up_index > nearest_down_index else False
+    upping = True if current_ma_price > pre_ma_price else False
     stock['direction'] = 'UP' if upping else 'DOWN'
 
     # 支撑点：拐点价格 < 当前价格
