@@ -1,6 +1,8 @@
 import pandas as pd
 import pandas_ta as ta
 
+from calculate.service import detect_turning_points
+
 
 class VOL:
     def __init__(self, ma=20, signal=1, threshold=1.2):
@@ -48,10 +50,9 @@ class OBV:
     signal = 1
     weight = 1
 
-    def __init__(self, signal, ma_period=10):
+    def __init__(self, signal):
         self.signal = signal
         self.label = 'OBV'
-        self.ma_period = ma_period
 
     def match(self, stock, prices, df):
         """
@@ -76,15 +77,15 @@ class OBV:
         # 计算 OBV 指标
         obv = ta.obv(df['close'], df['volume'])
         latest_obv = obv.iloc[-1]
-        pre_obv = obv.iloc[-2]
-        obv_ma = obv.rolling(window=self.ma_period).mean()
+        turning_point_indexes, turning_up_point_indexes, turning_down_point_indexes = detect_turning_points(obv)
+        turning_point = obv.iloc[turning_point_indexes[-1]]
         # 判断买入信号
         if self.signal == 1:
             # OBV 上升，确认买入信号
-            return latest_obv > pre_obv and latest_obv > obv_ma.iloc[-1]
+            return turning_point < latest_obv
         else:
             # OBV 下降，确认卖出信号
-            return latest_obv < pre_obv and latest_obv < obv_ma.iloc[-1]
+            return turning_point > latest_obv
 
 
 class ADOSC:
@@ -124,15 +125,15 @@ class ADOSC:
         adosc = ta.adosc(df['high'], df['low'], df['close'], df['volume'])
         # 获取最新的 ADOSC 值和前一个 ADOSC 值
         latest = adosc.iloc[-1]
-        prev = adosc.iloc[-2]
-        prev2 = adosc.iloc[-3]
+        turning_point_indexes, turning_up_point_indexes, turning_down_point_indexes = detect_turning_points(adosc)
+        turning_point = adosc.iloc[turning_point_indexes[-1]]
 
         # 判断买入信号
         if self.signal == 1:
-            return latest > prev > prev2 and latest > self.threshold
+            return latest > turning_point and latest > self.threshold
         # 判断卖出信号
         else:
-            return latest < prev < prev2 and latest < 0
+            return latest < turning_point and latest < 0
 
 
 class ADLine:
@@ -151,12 +152,12 @@ class ADLine:
             return False
         ad_line = ta.ad(df['high'], df['low'], df['close'], df['volume'])
         latest = ad_line.iloc[-1]
-        prev = ad_line.iloc[-2]
-        prev2 = ad_line.iloc[-3]
+        turning_point_indexes, turning_up_point_indexes, turning_down_point_indexes = detect_turning_points(ad_line)
+        turning_point = ad_line.iloc[turning_point_indexes[-1]]
         if self.signal == 1:
-            return latest > prev > prev2
+            return latest > turning_point
         elif self.signal == -1:
-            return latest < prev < prev2
+            return latest < turning_point
         else:
             raise ValueError("无效的 signal 值，应为 1（买入）或 -1（卖出）")
 
@@ -191,20 +192,20 @@ class CMF:
         # 计算 CMF
         cmf = ta.cmf(df['high'], df['low'], df['close'], df['volume'], length=self.period)
         latest = cmf.iloc[-1]
-        prev = cmf.iloc[-2]
-        prev2 = cmf.iloc[-3]
+        turning_point_indexes, turning_up_point_indexes, turning_down_point_indexes = detect_turning_points(cmf)
+        turning_point = cmf.iloc[turning_point_indexes[-1]]
 
         dead_zone = 0.05  # 中性带
 
         # 买入信号：CMF 上升且为正
         if self.signal == 1:
             # 连续上升 + 当前为正 + 高于中性带
-            return latest > prev > prev2 and latest > dead_zone
+            return latest > turning_point and latest > dead_zone
 
         # 卖出信号：CMF 下降且为负
         elif self.signal == -1:
             # 连续下降 + 当前为负 + 低于中性带
-            return latest < prev < prev2 and latest < -dead_zone
+            return latest < turning_point and latest < -dead_zone
 
         else:
             raise False
@@ -239,15 +240,16 @@ class MFI:
         mfi = ta.mfi(df['high'], df['low'], df['close'], df['volume'], length=self.period)
         latest = mfi.iloc[-1]
         prev = mfi.iloc[-2]
-        prev2 = mfi.iloc[-3]
+        turning_point_indexes, turning_up_point_indexes, turning_down_point_indexes = detect_turning_points(mfi)
+        turning_point = mfi.iloc[turning_point_indexes[-1]]
 
         # 买入信号：MFI 连续上升 + 上穿超卖区
         if self.signal == 1:
-            return prev2 < prev < latest and prev < oversold < latest
+            return turning_point < latest and prev < oversold < latest
 
         # 卖出信号：MFI 连续下降 + 下穿超买区
         elif self.signal == -1:
-            return prev2 > prev > latest and prev > overbought > latest
+            return turning_point > latest and prev > overbought > latest
 
         else:
             raise ValueError("无效的 signal 值，应为 1（买入）或 -1（卖出）")

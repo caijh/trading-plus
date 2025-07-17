@@ -2,6 +2,7 @@ import numpy as np
 import pandas_ta as ta
 
 from analysis.model import AnalyzedStock
+from calculate.service import detect_turning_points
 from dataset.service import create_dataframe
 from extensions import db
 from indicator.service import get_patterns, get_volume_patterns, get_match_patterns
@@ -228,88 +229,6 @@ def calculate_vwap_support_resistance(stock, df, window=14, multiplier=2):
     print(f'{stock["code"]} calculate_vwap_support_resistance Support = {s}, Resistance = {r}')
 
     return s, r
-
-
-def detect_turning_points(series, angle_threshold_degrees_min=2, angle_threshold_degrees_max=88):
-    """
-    Detect turning points in a given series with improved accuracy.
-
-    This function identifies both upward and downward turning points by analyzing the slope changes
-    in the smoothed version of the series.
-
-    Parameters:
-    series (pd.Series): The input series, assumed to be a pandas series.
-    window (int): The window size for smoothing the series.
-    angle_threshold_degrees_min (float): Minimum angle threshold for acute angles.
-    angle_threshold_degrees_max (float): Maximum angle threshold for acute angles.
-
-    Returns:
-    tuple: A tuple containing three lists, the first list contains all turning points (upward and downward),
-           the second list contains only upward turning points, and the third list contains only downward turning points.
-    """
-    # Initialize lists to store all turning points, upward turning points, and downward turning points
-    turning_points = []
-    turning_up_points = []
-    turning_down_points = []
-
-    # Convert angle thresholds to cosine values
-    acute_angle_threshold_cos_min = np.cos(np.radians(angle_threshold_degrees_min))
-    acute_angle_threshold_cos_max = np.cos(np.radians(angle_threshold_degrees_max))
-    obtuse_angle_threshold_cos_min = np.cos(np.radians(90 + angle_threshold_degrees_max))
-    obtuse_angle_threshold_cos_max = np.cos(np.radians(90 + angle_threshold_degrees_min))
-
-    # Iterate through the series, excluding the first and last elements
-    start = 1
-    step = 1
-    for i in range(start, len(series) - step):
-        # Get the previous, current, and next values
-        idx_prev, idx_cur, idx_next = i - step, i, i + step
-        prev, curr, next_ = series.iloc[idx_prev], series.iloc[idx_cur], series.iloc[
-            idx_next]
-
-        diff = min(abs(prev - curr), abs(next_ - curr)) / curr
-        # Determine if the current point is an upward turning point
-        if prev > curr and curr < next_ and diff >= 0.0002:
-            turning_up_points.append(i)
-            turning_points.append(i)
-            # Calculate the cosine of the angle between the two vectors
-            # cos_angle = get_cos_angle((idx_prev, prev), (idx_cur, curr), (idx_next, next_))
-            # print(f'down prev = {prev}, curr = {curr}, next_ = {next_}, diff = {diff}, cos_angle = {cos_angle}')
-            # if (acute_angle_threshold_cos_min > cos_angle > acute_angle_threshold_cos_max) or \
-            #     (obtuse_angle_threshold_cos_max > cos_angle > obtuse_angle_threshold_cos_min):
-            #     turning_up_points.append(i)
-            #     turning_points.append(i)
-
-        # Determine if the current point is a downward turning point
-        if prev < curr and curr > next_ and diff >= 0.0002:
-            turning_down_points.append(i)
-            turning_points.append(i)
-            # Calculate the cosine of the angle between the two vectors
-            # cos_angle = get_cos_angle((idx_prev, prev), (idx_cur, curr), (idx_next, next_))
-            # print(f'up prev = {prev}, curr = {curr}, next_ = {next_}, diff = {diff}, cos_angle = {cos_angle}')
-            # if (acute_angle_threshold_cos_min > cos_angle > acute_angle_threshold_cos_max) or \
-            #     (obtuse_angle_threshold_cos_max > cos_angle > obtuse_angle_threshold_cos_min):
-            #     turning_down_points.append(i)
-            #     turning_points.append(i)
-
-    # Return all turning points and the respective upward and downward turning points
-    return turning_points, turning_up_points, turning_down_points
-
-
-def get_cos_angle(p1, p2, p3):
-    """
-    Calculate the cosine of the angle between two vectors.
-
-    Parameters:
-    v1 (numpy.ndarray): The first vector.
-    v2 (numpy.ndarray): The second vector.
-
-    Returns:
-    float: The cosine of the angle between the two vectors.
-    """
-    v1 = np.array([p1[0] - p2[0], p1[1] - p2[1]])
-    v2 = np.array([p3[0] - p2[0], p3[1] - p2[1]])
-    return np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
 
 
 def select_score_point(stock, df, points, current_price, is_support=True):
