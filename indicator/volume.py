@@ -5,44 +5,59 @@ from calculate.service import detect_turning_points
 
 
 class VOL:
-    def __init__(self, ma=20, signal=1, threshold=1.2):
+    """
+    VOL类用于根据给定信号判断股票成交量是否达到特定条件。
+
+    属性:
+    - signal (int): 信号类型，1代表看涨信号，非1则代表看跌信号。
+    - label (str): 用于标识的标签，默认为 'VOL'。
+    - weight (float): 信号的权重，默认为1。
+    """
+
+    def __init__(self, signal=1):
         """
-        初始化 VOL 策略
+        初始化VOL类的实例。
 
         参数:
-        - ma: 长期均线周期（默认20）
-        - signal: 1 表示买入信号，-1 表示卖出信号
-        - threshold: 放量或缩量的强度倍数，如 1.2 表示需放大/缩小20%
+        - signal (int): 信号类型，决定是看涨还是看跌条件。
         """
-        self.ma = ma
         self.signal = signal
-        self.label = f'VOL{self.ma}'
+        self.label = f'VOL'
         self.weight = 1
-        self.threshold = threshold
 
     def match(self, stock, prices, df):
-        if df is None or len(df) < max(self.ma, 6):
-            print(f'{stock["code"]} 数据不足，无法计算 VOL 指标')
-            return False
+        """
+        判断给定股票的成交量是否符合特定的信号条件。
 
-        # 计算短期和长期的成交量均线
-        long_ma = ta.sma(df['volume'], self.ma)
-        short_ma = ta.sma(df['volume'], 5)
+        参数:
+        - stock: 股票对象，未在当前逻辑中使用。
+        - prices: 价格信息，未在当前逻辑中使用。
+        - df (DataFrame): 包含股票成交量等信息的数据框。
 
-        if long_ma.isna().iloc[-1] or short_ma.isna().iloc[-1]:
+        返回:
+        - bool: 成交量是否符合预设的信号条件。
+        """
+        # 获取最新成交量数据并确保其为正值
+        price = df.iloc[-1]
+        latest_volume = float(price['volume'])
+        if not latest_volume > 0:
+            # 如果成交量为负，则不进行后续判断，返回False
             return False
 
         # 获取最近成交量均值
-        short_vol = short_ma.iloc[-1]
-        long_vol = long_ma.iloc[-1]
-
-        # 信号判断
+        latest_vol = df['volume'].iloc[-1]
+        # 检测成交量的转折点
+        turning_point_indexes, turning_up_point_indexes, turning_down_point_indexes = detect_turning_points(
+            df['volume'])
+        turning_point = df['volume'].iloc[turning_point_indexes[-1]]
+        # 根据信号类型判断最新成交量与最近转折点的成交量关系
         if self.signal == 1:
-            signal = short_vol > (long_vol * self.threshold)
+            signal = latest_vol > turning_point
         else:
-            signal = short_vol < (long_vol / self.threshold)
+            signal = latest_vol < turning_point
 
         return signal
+
 
 
 class OBV:
@@ -82,10 +97,10 @@ class OBV:
         # 判断买入信号
         if self.signal == 1:
             # OBV 上升，确认买入信号
-            return turning_point < latest_obv
+            return latest_obv > turning_point
         else:
             # OBV 下降，确认卖出信号
-            return turning_point > latest_obv
+            return latest_obv < turning_point
 
 
 class ADOSC:
@@ -291,16 +306,16 @@ class VPT:
 
 
 def get_breakthrough_up_volume_pattern():
-    return [VOL(20, 1), OBV(1), ADLine(1), CMF(1), MFI(1), VPT(1)]
+    return [VOL(1), OBV(1), ADLine(1), CMF(1), MFI(1), VPT(1)]
 
 
 def get_breakthrough_down_volume_pattern():
-    return [VOL(20, 1), OBV(-1), ADLine(-1), CMF(-1), MFI(-1), VPT(-1)]
+    return [VOL(1), OBV(-1), ADLine(-1), CMF(-1), MFI(-1), VPT(-1)]
 
 
 def get_oversold_volume_patterns():
-    return [VOL(20, -1), OBV(1), ADLine(1), ADOSC(1), CMF(1), MFI(1), VPT(1)]
+    return [VOL(-1), OBV(1), ADLine(1), ADOSC(1), CMF(1), MFI(1), VPT(1)]
 
 
 def get_overbought_volume_patterns():
-    return [VOL(20, 1), OBV(-1), ADLine(-1), ADOSC(-1), CMF(-1), MFI(-1), VPT(-1)]
+    return [VOL(1), OBV(-1), ADLine(-1), ADOSC(-1), CMF(-1), MFI(-1), VPT(-1)]
