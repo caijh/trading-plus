@@ -5,59 +5,55 @@ from calculate.service import detect_turning_points
 
 
 class VOL:
-    """
-    VOL类用于根据给定信号判断股票成交量是否达到特定条件。
-
-    属性:
-    - signal (int): 信号类型，1代表看涨信号，非1则代表看跌信号。
-    - label (str): 用于标识的标签，默认为 'VOL'。
-    - weight (float): 信号的权重，默认为1。
-    """
-
-    def __init__(self, signal=1):
+    def __init__(self, signal=1, window=5, rise_days=2, volatility_threshold=0.1):
         """
-        初始化VOL类的实例。
+        改进后的成交量判断类。
 
         参数:
-        - signal (int): 信号类型，决定是看涨还是看跌条件。
+        - signal: 1 表示放量上涨，-1 表示缩量下跌
+        - window: 检查转折点前后波动的窗口长度
+        - rise_days: 判断连续上涨/下跌的天数
+        - volatility_threshold: 标准差阈值，判断转折点周围是否波动剧烈
         """
         self.signal = signal
-        self.label = f'VOL'
+        self.label = 'VOL'
         self.weight = 1
+        self.rise_days = rise_days
+        self.volatility_threshold = volatility_threshold
 
     def match(self, stock, prices, df):
         """
-        判断给定股票的成交量是否符合特定的信号条件。
+        判断给定股票是否满足特定条件。
 
-        参数:
-        - stock: 股票对象，未在当前逻辑中使用。
-        - prices: 价格信息，未在当前逻辑中使用。
-        - df (DataFrame): 包含股票成交量等信息的数据框。
-
-        返回:
-        - bool: 成交量是否符合预设的信号条件。
+        :param stock: 股票代码
+        :param prices: 价格数据
+        :param df: 包含股票数据的DataFrame，包括'volume'等列
+        :return: 布尔值，表示是否满足条件
         """
-        # 获取最新成交量数据并确保其为正值
-        price = df.iloc[-1]
-        latest_volume = float(price['volume'])
-        if not latest_volume > 0:
-            # 如果成交量为负，则不进行后续判断，返回False
+        # 获取最新成交量
+        latest_vol = df['volume'].iloc[-1]
+        if latest_vol <= 0:
             return False
 
-        # 获取最近成交量均值
-        latest_vol = df['volume'].iloc[-1]
-        # 检测成交量的转折点
-        turning_point_indexes, turning_up_point_indexes, turning_down_point_indexes = detect_turning_points(
-            df['volume'])
-        turning_point = df['volume'].iloc[turning_point_indexes[-1]]
-        # 根据信号类型判断最新成交量与最近转折点的成交量关系
+        # 转折点检测
+        turning_point_indexes, _, _ = detect_turning_points(df['volume'])
+        if not turning_point_indexes:
+            return False
+
+        turning_idx = turning_point_indexes[-1]
+        turning_point = df['volume'].iloc[turning_idx]
+
+        # 进一步确认趋势：看是否连续 rise_days 日上涨（或下跌）
+        recent_vol = df['volume'].iloc[-(self.rise_days + 1):]
+        diffs = recent_vol.diff().dropna()
+
+        # 根据signal的值决定是放量还是缩量
         if self.signal == 1:
-            signal = latest_vol > turning_point
+            # 放量确认
+            return latest_vol > turning_point and all(d > 0 for d in diffs)
         else:
-            signal = latest_vol < turning_point
-
-        return signal
-
+            # 缩量确认
+            return latest_vol < turning_point and all(d < 0 for d in diffs)
 
 
 class OBV:
