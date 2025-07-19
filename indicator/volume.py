@@ -5,7 +5,7 @@ from calculate.service import detect_turning_points
 
 
 class VOL:
-    def __init__(self, signal=1, window=5, rise_days=2, volatility_threshold=0.1):
+    def __init__(self, signal=1, rise_days=2):
         """
         改进后的成交量判断类。
 
@@ -19,7 +19,6 @@ class VOL:
         self.label = 'VOL'
         self.weight = 1
         self.rise_days = rise_days
-        self.volatility_threshold = volatility_threshold
 
     def match(self, stock, prices, df):
         """
@@ -87,8 +86,10 @@ class OBV:
 
         # 计算 OBV 指标
         obv = ta.obv(df['close'], df['volume'])
-        latest_obv = obv.iloc[-1]
         turning_point_indexes, turning_up_point_indexes, turning_down_point_indexes = detect_turning_points(obv)
+        if not turning_point_indexes:
+            return False
+        latest_obv = obv.iloc[-1]
         turning_point = obv.iloc[turning_point_indexes[-1]]
         # 判断买入信号
         if self.signal == 1:
@@ -134,9 +135,11 @@ class ADOSC:
 
         # 计算 ADOSC 指标
         adosc = ta.adosc(df['high'], df['low'], df['close'], df['volume'])
+        turning_point_indexes, turning_up_point_indexes, turning_down_point_indexes = detect_turning_points(adosc)
+        if not turning_point_indexes:
+            return False
         # 获取最新的 ADOSC 值和前一个 ADOSC 值
         latest = adosc.iloc[-1]
-        turning_point_indexes, turning_up_point_indexes, turning_down_point_indexes = detect_turning_points(adosc)
         turning_point = adosc.iloc[turning_point_indexes[-1]]
 
         # 判断买入信号
@@ -162,8 +165,10 @@ class ADLine:
         if not latest_volume > 0:
             return False
         ad_line = ta.ad(df['high'], df['low'], df['close'], df['volume'])
-        latest = ad_line.iloc[-1]
         turning_point_indexes, turning_up_point_indexes, turning_down_point_indexes = detect_turning_points(ad_line)
+        if not turning_point_indexes:
+            return False
+        latest = ad_line.iloc[-1]
         turning_point = ad_line.iloc[turning_point_indexes[-1]]
         if self.signal == 1:
             return latest > turning_point
@@ -202,8 +207,10 @@ class CMF:
 
         # 计算 CMF
         cmf = ta.cmf(df['high'], df['low'], df['close'], df['volume'], length=self.period)
-        latest = cmf.iloc[-1]
         turning_point_indexes, turning_up_point_indexes, turning_down_point_indexes = detect_turning_points(cmf)
+        if not turning_point_indexes:
+            return False
+        latest = cmf.iloc[-1]
         turning_point = cmf.iloc[turning_point_indexes[-1]]
 
         dead_zone = 0.05  # 中性带
@@ -249,9 +256,11 @@ class MFI:
 
         # 计算 MFI 指标
         mfi = ta.mfi(df['high'], df['low'], df['close'], df['volume'], length=self.period)
+        turning_point_indexes, turning_up_point_indexes, turning_down_point_indexes = detect_turning_points(mfi)
+        if not turning_point_indexes:
+            return False
         latest = mfi.iloc[-1]
         prev = mfi.iloc[-2]
-        turning_point_indexes, turning_up_point_indexes, turning_down_point_indexes = detect_turning_points(mfi)
         turning_point = mfi.iloc[turning_point_indexes[-1]]
 
         # 买入信号：MFI 连续上升 + 上穿超卖区
