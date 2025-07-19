@@ -2,7 +2,8 @@ import pandas as pd
 import pandas_ta as ta
 
 from indicator.volume import get_breakthrough_up_volume_pattern, \
-    get_breakthrough_down_volume_pattern, get_oversold_volume_patterns, get_overbought_volume_patterns
+    get_breakthrough_down_volume_pattern, OBV, CMF, VPT, \
+    ADOSC, ADLine, MFI, VOL, get_overbought_volume_patterns, get_oversold_volume_patterns
 
 
 class SMA:
@@ -10,11 +11,12 @@ class SMA:
     label = ''
     signal = 1
     weight = 1
+    name = 'SMA'
 
     def __init__(self, ma, signal):
         self.ma = ma
         self.signal = signal
-        self.label = f'MA{self.ma}'
+        self.label = f'SMA{self.ma}'
 
     def match(self, stock, prices, df):
         """
@@ -57,9 +59,9 @@ class SMA:
                 pre_ema_price >= pre_ma_price)
 
     def get_volume_confirm_patterns(self):
-        if self.signal == 1:
-            return get_breakthrough_up_volume_pattern()
-        return get_breakthrough_down_volume_pattern()
+        return volume_registry.get(self.label, {
+            self.signal: get_breakthrough_up_volume_pattern() if self.signal == 1 else get_breakthrough_down_volume_pattern()}).get(
+            self.signal)
 
 
 class MACD:
@@ -67,6 +69,7 @@ class MACD:
     signal = 1
     weight = 1
     recent = 3
+    name = 'MACD'
 
     def __init__(self, signal, recent=3):
         self.label = 'MACD'
@@ -131,12 +134,14 @@ class MACD:
             return macd_sell_signal
 
     def get_volume_confirm_patterns(self):
-        if self.signal == 1:
-            return get_breakthrough_up_volume_pattern()
-        return get_breakthrough_down_volume_pattern()
+        return volume_registry.get(self.label, {
+            self.signal: get_breakthrough_up_volume_pattern() if self.signal == 1 else get_breakthrough_down_volume_pattern()}).get(
+            self.signal)
 
 
 class SAR:
+    name = 'SAR'
+
     def __init__(self, signal=1):
         """
         Parabolic SAR 策略
@@ -179,12 +184,14 @@ class SAR:
             raise ValueError("无效的 signal 值，应为 1（买入）或 -1（卖出）")
 
     def get_volume_confirm_patterns(self):
-        if self.signal == 1:
-            return get_breakthrough_up_volume_pattern()
-        return get_breakthrough_down_volume_pattern()
+        return volume_registry.get(self.label, {
+            self.signal: get_breakthrough_up_volume_pattern() if self.signal == 1 else get_breakthrough_down_volume_pattern()}).get(
+            self.signal)
 
 
 class DMI:
+    name = 'DMI'
+
     def __init__(self, signal=1, period=14, adx_threshold=20):
         """
         DMI 策略（+DI/-DI 交叉，趋势方向判断）
@@ -231,9 +238,9 @@ class DMI:
             raise ValueError("signal 必须为 1 或 -1")
 
     def get_volume_confirm_patterns(self):
-        if self.signal == 1:
-            return get_breakthrough_up_volume_pattern()
-        return get_breakthrough_down_volume_pattern()
+        return volume_registry.get(self.label, {
+            self.signal: get_breakthrough_up_volume_pattern() if self.signal == 1 else get_breakthrough_down_volume_pattern()}).get(
+            self.signal)
 
 
 class BIAS:
@@ -242,6 +249,7 @@ class BIAS:
     label = ''
     signal = 1
     weight = 1
+    name = 'BIAS'
 
     def __init__(self, ma, bias, signal):
         self.signal = signal
@@ -276,15 +284,16 @@ class BIAS:
             return latest_bias > self.bias
 
     def get_volume_confirm_patterns(self):
-        if self.signal == 1:
-            return get_oversold_volume_patterns()
-        return get_overbought_volume_patterns()
+        return volume_registry.get(self.label, {
+            self.signal: get_oversold_volume_patterns() if self.signal == 1 else get_overbought_volume_patterns()}).get(
+            self.signal)
 
 
 class KDJ:
     label = ''
     signal = 1
     weight = 1
+    name = 'KDJ'
 
     def __init__(self, signal, recent=3):
         self.signal = signal
@@ -319,15 +328,15 @@ class KDJ:
         return kdj_signal
 
     def get_volume_confirm_patterns(self):
-        if self.signal == 1:
-            return get_oversold_volume_patterns()
-        return get_overbought_volume_patterns()
-
+        return volume_registry.get(self.label, {
+            self.signal: get_oversold_volume_patterns() if self.signal == 1 else get_overbought_volume_patterns()}).get(
+            self.signal)
 
 class RSI:
     weight = 1
     signal = 1
     recent = 3
+    name = 'RSI'
 
     def __init__(self, signal, recent=3):
         self.signal = signal
@@ -357,15 +366,16 @@ class RSI:
         return rsi_signal
 
     def get_volume_confirm_patterns(self):
-        if self.signal == 1:
-            return get_oversold_volume_patterns()
-        return get_overbought_volume_patterns()
+        return volume_registry.get(self.label, {
+            self.signal: get_oversold_volume_patterns() if self.signal == 1 else get_overbought_volume_patterns()}).get(
+            self.signal)
 
 
 class WR:
     weight = 1
     signal = 1
     recent = 3
+    name = 'WR'
 
     def __init__(self, signal=1, recent=3):
         """
@@ -404,15 +414,16 @@ class WR:
         return signal
 
     def get_volume_confirm_patterns(self):
-        if self.signal == 1:
-            return get_oversold_volume_patterns()
-        return get_overbought_volume_patterns()
+        return volume_registry.get(self.label, {
+            self.signal: get_oversold_volume_patterns() if self.signal == 1 else get_overbought_volume_patterns()}).get(
+            self.signal)
 
 
 class CCI:
     signal = 1  # 1 表示买入信号，-1 表示卖出信号
     weight = 1
     period = 20
+    name = 'CCI'
 
     def __init__(self, signal, period=20, recent=3):
         self.signal = signal
@@ -456,9 +467,9 @@ class CCI:
         return signal
 
     def get_volume_confirm_patterns(self):
-        if self.signal == 1:
-            return get_oversold_volume_patterns()
-        return get_overbought_volume_patterns()
+        return volume_registry.get(self.label, {
+            self.signal: get_oversold_volume_patterns() if self.signal == 1 else get_overbought_volume_patterns()}).get(
+            self.signal)
 
 
 def get_up_ma_patterns():
@@ -487,3 +498,16 @@ def get_down_ma_patterns():
                    MACD(-1), SAR(-1), DMI(-1),
                    BIAS(20, 0.09, -1), KDJ(-1), RSI(-1), WR(-1)]
     return ma_patterns
+
+
+volume_registry = {
+    'SMA': {1: [OBV(1), CMF(1), VPT(1)], -1: [OBV(-1), CMF(-1), VPT(-1)]},
+    'MACD': {1: [ADOSC(1), CMF(1), OBV(1)], -1: [ADOSC(-1), CMF(-1), OBV(-1)]},
+    'SAR': {1: [OBV(1), ADLine(1)], -1: [OBV(-1), ADLine(-1)]},
+    'DMI': {1: [ADOSC(1), CMF(1), VPT(1)], -1: [ADOSC(-1), CMF(-1), VPT(-1)]},
+    'BIAS': {1: [CMF(1), MFI(1), VOL(1)], -1: [CMF(-1), MFI(-1), VOL(-1)]},
+    'KDJ': {1: [MFI(1), VOL(1), OBV(1)], -1: [MFI(-1), VOL(-1), OBV(-1)]},
+    'RSI': {1: [MFI(1), OBV(1)], -1: [MFI(-1), OBV(-1)]},
+    'WR': {1: [CMF(1), OBV(1), VPT(1)], -1: [CMF(-1), OBV(-1), VPT(-1)]},
+    'CCI': {1: [OBV(1), CMF(1), ADOSC(1)], -1: [OBV(-1), CMF(-1), ADOSC(-1)]},
+}
