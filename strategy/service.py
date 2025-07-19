@@ -42,8 +42,7 @@ def generate_strategy(stock):
 
         # 检查止损空间是否过小
         if (buy_price - stop_loss) / buy_price < 0.01:
-            print(f'{stock_code} {stock_name} 止损空间过小，不生成交易策略')
-            return
+            stop_loss = round(buy_price - buy_price * 0.01, n_digits)
 
         # 检查止损空间是否过大
         if (buy_price - stop_loss) / buy_price > 0.05:
