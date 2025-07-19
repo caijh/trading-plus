@@ -59,7 +59,7 @@ class SMA:
                 pre_ema_price >= pre_ma_price)
 
     def get_volume_confirm_patterns(self):
-        return volume_registry.get(self.label, {
+        return volume_registry.get(self.name, {
             self.signal: get_breakthrough_up_volume_pattern() if self.signal == 1 else get_breakthrough_down_volume_pattern()}).get(
             self.signal)
 
@@ -134,7 +134,7 @@ class MACD:
             return macd_sell_signal
 
     def get_volume_confirm_patterns(self):
-        return volume_registry.get(self.label, {
+        return volume_registry.get(self.name, {
             self.signal: get_breakthrough_up_volume_pattern() if self.signal == 1 else get_breakthrough_down_volume_pattern()}).get(
             self.signal)
 
@@ -184,7 +184,7 @@ class SAR:
             raise ValueError("无效的 signal 值，应为 1（买入）或 -1（卖出）")
 
     def get_volume_confirm_patterns(self):
-        return volume_registry.get(self.label, {
+        return volume_registry.get(self.name, {
             self.signal: get_breakthrough_up_volume_pattern() if self.signal == 1 else get_breakthrough_down_volume_pattern()}).get(
             self.signal)
 
@@ -238,7 +238,7 @@ class DMI:
             raise ValueError("signal 必须为 1 或 -1")
 
     def get_volume_confirm_patterns(self):
-        return volume_registry.get(self.label, {
+        return volume_registry.get(self.name, {
             self.signal: get_breakthrough_up_volume_pattern() if self.signal == 1 else get_breakthrough_down_volume_pattern()}).get(
             self.signal)
 
@@ -328,7 +328,7 @@ class KDJ:
         return kdj_signal
 
     def get_volume_confirm_patterns(self):
-        return volume_registry.get(self.label, {
+        return volume_registry.get(self.name, {
             self.signal: get_oversold_volume_patterns() if self.signal == 1 else get_overbought_volume_patterns()}).get(
             self.signal)
 
@@ -366,7 +366,7 @@ class RSI:
         return rsi_signal
 
     def get_volume_confirm_patterns(self):
-        return volume_registry.get(self.label, {
+        return volume_registry.get(self.name, {
             self.signal: get_oversold_volume_patterns() if self.signal == 1 else get_overbought_volume_patterns()}).get(
             self.signal)
 
@@ -414,7 +414,7 @@ class WR:
         return signal
 
     def get_volume_confirm_patterns(self):
-        return volume_registry.get(self.label, {
+        return volume_registry.get(self.name, {
             self.signal: get_oversold_volume_patterns() if self.signal == 1 else get_overbought_volume_patterns()}).get(
             self.signal)
 
@@ -467,7 +467,7 @@ class CCI:
         return signal
 
     def get_volume_confirm_patterns(self):
-        return volume_registry.get(self.label, {
+        return volume_registry.get(self.name, {
             self.signal: get_oversold_volume_patterns() if self.signal == 1 else get_overbought_volume_patterns()}).get(
             self.signal)
 
