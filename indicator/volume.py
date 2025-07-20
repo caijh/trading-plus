@@ -78,11 +78,18 @@ class VOL:
 
 
 class OBV:
+    # 类变量定义
     label = ''
     signal = 1
     weight = 1
 
     def __init__(self, signal):
+        """
+        初始化OBV对象。
+
+        参数:
+        - signal: 指示信号类型，1代表买入信号，其他值代表卖出信号。
+        """
         self.signal = signal
         self.label = 'OBV'
 
@@ -108,9 +115,12 @@ class OBV:
 
         # 计算 OBV 指标
         obv = ta.obv(df['close'], df['volume'])
+        # 检测 OBV 曲线的拐点
         turning_point_indexes, turning_up_point_indexes, turning_down_point_indexes = detect_turning_points(obv)
         if not turning_point_indexes:
+            # 如果没有检测到拐点，返回False
             return False
+        # 获取最新OBV值和最近的拐点值
         latest_obv = obv.iloc[-1]
         turning_point = obv.iloc[turning_point_indexes[-1]]
         # 判断买入信号
