@@ -5,9 +5,15 @@ from scipy.signal import argrelextrema
 
 
 class VOL:
+    """
+    通用成交量确认类。
+
+    该类用于根据给定的参数判断股票的成交量是否符合特定的模式，以辅助投资决策。
+    """
+
     def __init__(self, signal=1, mode='any', volume_window=60, stddev_mult=1.0):
         """
-        通用成交量确认类。
+        初始化成交量确认对象。
 
         :param signal: 1 表示买入确认，-1 表示卖出确认
         :param mode: 模式，可选 ['heavy', 'light', 'turning_up', 'turning_down', 'any']
@@ -22,13 +28,24 @@ class VOL:
         self.weight = 1
 
     def match(self, stock, prices, df):
+        """
+        根据成交量模式匹配股票。
+
+        :param stock: 股票代码
+        :param prices: 价格数据（未使用）
+        :param df: 包含成交量等信息的数据框
+        :return: 如果成交量模式匹配，则返回 True，否则返回 False
+        """
+        # 检查数据是否足够
         if df is None or len(df) < self.volume_window + 5:
             return False
 
+        # 获取最新成交量
         latest_vol = df['volume'].iloc[-1]
         if latest_vol <= 0:
             return False
 
+        # 计算最近的成交量均值和标准差
         recent_vol = df['volume'].iloc[-self.volume_window:]
         avg_vol = recent_vol.mean()
         std_vol = recent_vol.std()
@@ -37,10 +54,12 @@ class VOL:
         is_heavy_volume = latest_vol > (avg_vol + self.stddev_mult * std_vol)
         is_light_volume = latest_vol < (avg_vol - self.stddev_mult * std_vol)
 
+        # 检测成交量转折点
         turning_point_indexes, turning_up, turning_down = detect_turning_points(df['volume'])
         turning_idx = turning_up if self.signal == 1 else turning_down
         is_volume_turning = any(idx >= len(df) - 4 for idx in turning_idx)
 
+        # 根据模式返回匹配结果
         if self.mode == 'heavy':
             return is_heavy_volume
         elif self.mode == 'light':
