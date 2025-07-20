@@ -1,4 +1,7 @@
 import re
+from datetime import timedelta
+
+import pandas as pd
 
 from analysis.service import analyze_stock
 from dataset.service import create_dataframe
@@ -106,6 +109,8 @@ def alpha_run_backtest(stock_code):
             analyze_stock(stock, k_type=KType.DAY, prices=prices[0: i], prices_df=df.iloc[:i])
             if len(stock['patterns']) > 0:
                 strategy = creat_strategy(stock)
+                if strategy is not None:
+                    strategy.created_at = pd.to_datetime(df.index[i])
 
         if strategy is None:
             continue
@@ -118,6 +123,11 @@ def alpha_run_backtest(stock_code):
             if price < float(strategy.buy_price):
                 entry_price, entry_time = price, time
                 holding = True
+
+            if not holding and strategy is not None:
+                strategy.updated_at = pd.to_datetime(time)
+                if strategy.updated_at - strategy.created_at > timedelta(days=9):
+                    strategy = None
         else:
             if strategy.signal == -1:
                 records.append((entry_time, time, entry_price, price, 'stop_signal'))
