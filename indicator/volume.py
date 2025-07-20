@@ -1,58 +1,61 @@
+import numpy as np
 import pandas as pd
 import pandas_ta as ta
-
-from calculate.service import detect_turning_points
+from scipy.signal import argrelextrema
 
 
 class VOL:
-    def __init__(self, signal=1, rise_days=2):
+    def __init__(self, signal=1, mode='any', volume_window=60, stddev_mult=1.0):
         """
-        改进后的成交量判断类。
+        通用成交量确认类。
 
-        参数:
-        - signal: 1 表示放量上涨，-1 表示缩量下跌
-        - window: 检查转折点前后波动的窗口长度
-        - rise_days: 判断连续上涨/下跌的天数
-        - volatility_threshold: 标准差阈值，判断转折点周围是否波动剧烈
+        :param signal: 1 表示买入确认，-1 表示卖出确认
+        :param mode: 模式，可选 ['heavy', 'light', 'turning_up', 'turning_down', 'any']
+        :param volume_window: 均值/标准差计算的历史窗口
+        :param stddev_mult: 用于识别放量/缩量的标准差倍数
         """
         self.signal = signal
-        self.label = 'VOL'
+        self.mode = mode
+        self.volume_window = volume_window
+        self.stddev_mult = stddev_mult
+        self.label = f'VOL'
         self.weight = 1
-        self.rise_days = rise_days
 
     def match(self, stock, prices, df):
-        """
-        判断给定股票是否满足特定条件。
+        if df is None or len(df) < self.volume_window + 5:
+            return False
 
-        :param stock: 股票代码
-        :param prices: 价格数据
-        :param df: 包含股票数据的DataFrame，包括'volume'等列
-        :return: 布尔值，表示是否满足条件
-        """
-        # 获取最新成交量
         latest_vol = df['volume'].iloc[-1]
         if latest_vol <= 0:
             return False
 
-        # 转折点检测
-        turning_point_indexes, _, _ = detect_turning_points(df['volume'])
-        if not turning_point_indexes:
-            return False
+        recent_vol = df['volume'].iloc[-self.volume_window:]
+        avg_vol = recent_vol.mean()
+        std_vol = recent_vol.std()
 
-        turning_idx = turning_point_indexes[-1]
-        turning_point = df['volume'].iloc[turning_idx]
+        # 判断放量 / 缩量
+        is_heavy_volume = latest_vol > (avg_vol + self.stddev_mult * std_vol)
+        is_light_volume = latest_vol < (avg_vol - self.stddev_mult * std_vol)
 
-        # 进一步确认趋势：看是否连续 rise_days 日上涨（或下跌）
-        recent_vol = df['volume'].iloc[-(self.rise_days + 1):]
-        diffs = recent_vol.diff().dropna()
+        turning_point_indexes, turning_up, turning_down = detect_turning_points(df['volume'])
+        turning_idx = turning_up if self.signal == 1 else turning_down
+        is_volume_turning = any(idx >= len(df) - 4 for idx in turning_idx)
 
-        # 根据signal的值决定是放量还是缩量
-        if self.signal == 1:
-            # 放量确认
-            return latest_vol > turning_point and all(d > 0 for d in diffs)
+        if self.mode == 'heavy':
+            return is_heavy_volume
+        elif self.mode == 'light':
+            return is_light_volume
+        elif self.mode == 'turning_up':
+            return is_volume_turning if self.signal == 1 else False
+        elif self.mode == 'turning_down':
+            return is_volume_turning if self.signal == -1 else False
+        elif self.mode == 'any':
+            if self.signal == 1:
+                return is_heavy_volume or is_light_volume or is_volume_turning
+            else:
+                return is_heavy_volume or is_light_volume or is_volume_turning
         else:
-            # 缩量确认
-            return latest_vol < turning_point and all(d < 0 for d in diffs)
+            raise ValueError(f"不支持的 mode: {self.mode}")
 
 
 class OBV:
@@ -324,3 +327,66 @@ def get_oversold_volume_patterns():
 
 def get_overbought_volume_patterns():
     return [VOL(1), OBV(-1), ADLine(-1), ADOSC(-1), CMF(-1), MFI(-1), VPT(-1)]
+
+
+def detect_turning_points(series: pd.Series,
+                          order: int = 5,
+                          min_distance: int = 3,
+                          min_amplitude: float = 0.01,
+                          use_relative: bool = True):
+    """
+    检测转折点（极大值/极小值），并使用最小距离与最小振幅过滤。
+
+    参数:
+    - series: 待分析的Series（如收盘价、成交量等）
+    - order: 局部极值判断的窗口宽度
+    - min_distance: 相邻转折点的最小索引间距
+    - min_amplitude: 最小振幅变化（绝对值或百分比）
+    - use_relative: 振幅是否使用相对比例（百分比）
+
+    返回:
+    - turning_indexes: 所有保留的转折点索引
+    - turning_ups: 极小值点索引
+    - turning_downs: 极大值点索引
+    """
+
+    # 找局部极大值和极小值
+    maxima_idx = argrelextrema(series.values, np.greater, order=order)[0]
+    minima_idx = argrelextrema(series.values, np.less, order=order)[0]
+
+    # 合并并排序所有转折点
+    all_turning = sorted(np.concatenate((maxima_idx, minima_idx)))
+
+    filtered = []
+    last_value = None
+    last_index = None
+
+    for idx in all_turning:
+        current_value = series.iloc[idx]
+
+        if last_index is None:
+            filtered.append(idx)
+            last_index = idx
+            last_value = current_value
+            continue
+
+        # 1. 距离过滤
+        if idx - last_index < min_distance:
+            continue
+
+        # 2. 振幅过滤
+        amplitude = abs(current_value - last_value)
+        if use_relative:
+            base = max(abs(last_value), 1e-6)
+            amplitude /= base
+
+        if amplitude >= min_amplitude:
+            filtered.append(idx)
+            last_index = idx
+            last_value = current_value
+
+    # 分离高低点
+    turning_ups = [idx for idx in filtered if idx in minima_idx]
+    turning_downs = [idx for idx in filtered if idx in maxima_idx]
+
+    return filtered, turning_ups, turning_downs
