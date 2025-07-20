@@ -2,6 +2,7 @@ from flask import Flask, json
 
 from actuator import create_blueprint as actuator_blueprint
 from analysis import create_blueprint as analysis_blueprint
+from backtest import create_blueprint as backtest_blueprint
 from environment.service import env_vars
 from extensions import executor, db, scheduler
 from extensions import redis_client
@@ -35,5 +36,6 @@ def create_app():
     app.register_blueprint(actuator_blueprint())
     app.register_blueprint(analysis_blueprint())
     app.register_blueprint(strategy_blueprint())
+    app.register_blueprint(backtest_blueprint())
 
     return app

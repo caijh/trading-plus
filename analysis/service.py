@@ -49,12 +49,12 @@ def save_analyzed_stock(stock):
 def analyze_stock(stock, k_type=KType.DAY, signal=1,
                   buy_candlestick_weight=1, sell_candlestick_weight=0,
                   buy_ma_weight=2, sell_ma_weight=1,
-                  buy_volume_weight=1, sell_volume_weight=1):
+                  buy_volume_weight=1, sell_volume_weight=1, prices=None, prices_df=None):
     print("=====================================================")
     code = stock['code']
     name = stock['name']
     stock['patterns'] = []
-    prices = get_stock_prices(code, k_type)
+    prices = get_stock_prices(code, k_type) if prices is None else prices
     if not prices:
         print(f'No prices get for  stock {code}')
         return stock
@@ -62,7 +62,7 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1,
         print(f'Analyzing Stock, code = {code}, name = {name}')
         candlestick_patterns, ma_patterns = get_patterns(signal)
 
-        df = create_dataframe(stock, prices)
+        df = create_dataframe(stock, prices) if prices_df is None else prices_df
 
         matched_candlestick_patterns, candlestick_weight = get_match_patterns(candlestick_patterns, stock, prices,
                                                                               df)

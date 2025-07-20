@@ -9,6 +9,52 @@ from stock.service import get_stock, KType
 from strategy.model import TradingStrategy
 
 
+def creat_strategy(stock):
+    # 提取股票基本信息
+    stock_code = stock['code']
+    stock_name = stock['name']
+    sell_price = stock['resistance']
+    direction = stock['direction']
+    buy_price = stock['price']
+    stop_loss = stock['support']
+    n_digits = 3 if stock['stock_type'] == 'Fund' else 2
+
+    # 根据股票方向调整买入价和止损价
+    if "UP" == direction:
+        buy_price = round(stock['price'] * 0.995, n_digits)
+        stop_loss = round(stock['support'] * 0.995, n_digits)
+    elif "DOWN" == direction:
+        buy_price = stock['support']
+        stop_loss = round(buy_price * env_vars.STOP_LOSS_RATE, n_digits)
+
+    # 检查止损空间是否过小
+    if (buy_price - stop_loss) / buy_price < 0.01:
+        stop_loss = round(buy_price - buy_price * 0.01, n_digits)
+
+    # 检查止损空间是否过大
+    if (buy_price - stop_loss) / buy_price > 0.05:
+        print(f'{stock_code} {stock_name} 止损过大，不生成交易策略')
+        return None
+
+    # 计算盈利比率并检查是否满足最小盈利比率要求
+    profit_rate = round((sell_price - buy_price) / (buy_price - stop_loss), 3)
+    if profit_rate < float(env_vars.MIN_PROFIT_RATE):
+        print(f'{stock_code} {stock_name} 盈亏比例为{profit_rate}不满足要求，不生成交易策略')
+        return None
+
+    trading_strategy = TradingStrategy(
+        stock_code=stock_code,
+        stock_name=stock_name,
+        exchange=stock['exchange'],
+        patterns=stock['patterns'],
+        buy_price=buy_price,
+        sell_price=sell_price,
+        sell_patterns=[],
+        stop_loss=stop_loss,
+        signal=1
+    )
+    return trading_strategy
+
 def generate_strategy(stock):
     """
     根据给定的股票信息生成交易策略。
@@ -23,37 +69,9 @@ def generate_strategy(stock):
     无直接返回值，但会根据条件打印相关信息并更新或插入数据库记录。
     """
     with db.session.begin():
-        # 提取股票基本信息
         stock_code = stock['code']
         stock_name = stock['name']
-        sell_price = stock['resistance']
-        direction = stock['direction']
-        buy_price = stock['price']
-        stop_loss = stock['support']
-        n_digits = 3 if stock['stock_type'] == 'Fund' else 2
-
-        # 根据股票方向调整买入价和止损价
-        if "UP" == direction:
-            buy_price = round(stock['price'] * 0.995, n_digits)
-            stop_loss = round(stock['support'] * 0.995, n_digits)
-        elif "DOWN" == direction:
-            buy_price = stock['support']
-            stop_loss = round(buy_price * env_vars.STOP_LOSS_RATE, n_digits)
-
-        # 检查止损空间是否过小
-        if (buy_price - stop_loss) / buy_price < 0.01:
-            stop_loss = round(buy_price - buy_price * 0.01, n_digits)
-
-        # 检查止损空间是否过大
-        if (buy_price - stop_loss) / buy_price > 0.05:
-            print(f'{stock_code} {stock_name} 止损过大，不生成交易策略')
-            return
-
-        # 计算盈利比率并检查是否满足最小盈利比率要求
-        profit_rate = round((sell_price - buy_price) / (buy_price - stop_loss), 3)
-        if profit_rate < float(env_vars.MIN_PROFIT_RATE):
-            print(f'{stock_code} {stock_name} 盈亏比例为{profit_rate}不满足要求，不生成交易策略')
-            return
+        strategy = creat_strategy(stock)
 
         # 查询是否已存在该股票的交易策略
         existing_strategy = get_strategy_by_stock_code(stock_code)
@@ -62,32 +80,20 @@ def generate_strategy(stock):
             holdings = get_holdings(stock_code)
             if holdings is None:
                 # 没有持仓, 更新已有策略
-                existing_strategy.patterns = stock['patterns']
+                existing_strategy.patterns = strategy.patterns
                 existing_strategy.sell_patterns = []
-                existing_strategy.buy_price = buy_price
-                existing_strategy.sell_price = sell_price
-                existing_strategy.stop_loss = stop_loss
+                existing_strategy.buy_price = strategy.buy_price
+                existing_strategy.sell_price = strategy.sell_price
+                existing_strategy.stop_loss = strategy.stop_loss
             else:
                 # 如果有持仓信息，则更新卖出信息
-                if sell_price < float(existing_strategy.sell_price):
-                    existing_strategy.sell_price = sell_price
+                if strategy.sell_price < float(existing_strategy.sell_price):
+                    existing_strategy.sell_price = strategy.sell_price
             existing_strategy.signal = 1
             existing_strategy.updated_at = datetime.now()
             print(f"🔄 更新交易策略：{stock_code} - {stock_name}")
         else:
-            # 插入新策略
-            new_strategy = TradingStrategy(
-                stock_code=stock_code,
-                stock_name=stock_name,
-                exchange=stock['exchange'],
-                patterns=stock['patterns'],
-                buy_price=buy_price,
-                sell_price=sell_price,
-                sell_patterns=[],
-                stop_loss=stop_loss,
-                signal=1
-            )
-            db.session.add(new_strategy)
+            db.session.add(strategy)
             print(f"✅ 插入新交易策略：{stock_code} - {stock_name}")
 
         # 提交数据库更改
