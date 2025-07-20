@@ -358,7 +358,26 @@ def calculate_vpt(close, volume):
 
 
 class VPT:
+    """
+    VPT 指标计算类。
+
+    Attributes:
+        signal (int): 信号类型，1 表示买入信号，-1 表示卖出信号。
+        period (int): 计算周期。
+        label (str): 标识字符串，用于标识 VPT 和周期。
+        weight (int): 权重，默认为 1。
+        normalize (bool): 是否标准化 VPT 值。
+    """
+
     def __init__(self, signal=1, period=3, normalize=True):
+        """
+        初始化 VPT 实例。
+
+        Args:
+            signal (int, optional): 信号类型，默认为 1（买入信号）。
+            period (int, optional): 计算周期，默认为 3。
+            normalize (bool, optional): 是否标准化 VPT 值，默认为 True。
+        """
         self.signal = signal
         self.period = period
         self.label = f'VPT{period}'
@@ -366,16 +385,34 @@ class VPT:
         self.normalize = normalize
 
     def match(self, stock, prices, df):
+        """
+        判断当前数据是否满足 VPT 信号条件。
+
+        Args:
+            stock (dict): 股票信息字典。
+            prices (list): 价格列表，未使用。
+            df (pd.DataFrame): 包含股票数据的 DataFrame，包括'close'和'volume'列。
+
+        Returns:
+            bool: 如果满足信号条件返回 True，否则返回 False。
+        """
+        # 检查数据长度是否足够计算 VPT
         if df is None or len(df) < self.period + 2:
             print(f'{stock["code"]} 数据不足，无法计算 VPT')
             return False
+        # 检查最新成交量是否有效
         if df['volume'].iloc[-1] <= 0:
             return False
+        # 计算 VPT 值
         vpt = calculate_vpt(df['close'], df['volume'])
+        # 获取最近周期内的 VPT 值
         recent_vpt = vpt.iloc[-(self.period + 1):]
+        # 如果需要，对 VPT 值进行标准化
         if self.normalize:
             recent_vpt = (recent_vpt - recent_vpt.mean()) / recent_vpt.std() if recent_vpt.std() != 0 else recent_vpt
+        # 计算 VPT 值的差异
         diffs = recent_vpt.diff().dropna()
+        # 根据信号类型判断是否满足条件
         if self.signal == 1:
             return all(d > 0 for d in diffs)
         elif self.signal == -1:
