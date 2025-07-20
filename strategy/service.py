@@ -56,7 +56,7 @@ def generate_strategy(stock):
             return
 
         # 查询是否已存在该股票的交易策略
-        existing_strategy = TradingStrategy.query.filter_by(stock_code=stock_code).first()
+        existing_strategy = get_strategy_by_stock_code(stock_code)
 
         if existing_strategy:
             holdings = get_holdings(stock_code)
@@ -92,6 +92,10 @@ def generate_strategy(stock):
 
         # 提交数据库更改
         db.session.commit()
+
+
+def get_strategy_by_stock_code(stock_code):
+    return TradingStrategy.query.filter_by(stock_code=stock_code).first()
 
 
 def generate_strategies(stocks):
