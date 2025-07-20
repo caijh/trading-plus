@@ -272,6 +272,9 @@ class BIAS:
         - False：否则。
         """
         # 计算股票收盘价的偏差率
+        if df is None or len(df) < self.ma:
+            return False
+
         df[f'{self.label}'] = ta.bias(df['close'], self.ma)
         bias = df[f'{self.label}']
         # 获取最新的偏差率值
@@ -301,6 +304,9 @@ class KDJ:
         self.recent = recent
 
     def match(self, stock, prices, df):
+        if df is None or len(df) < 15:
+            return False
+
         # 计算 KDJ 指标
         kdj_df = df.ta.stoch(high='high', low='low', close='close', k=9, d=3, smooth_d=3)
 
