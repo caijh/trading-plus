@@ -123,5 +123,4 @@ def get_match_patterns(patterns, stock, prices, df, pattern_type=''):
                 matched_patterns.append(pattern)
     except Exception as e:
         print(e)
-        pass
     return matched_patterns, weight
