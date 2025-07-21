@@ -14,6 +14,7 @@ from strategy.service import creat_strategy
 
 def build_pattern_objects(pattern_names, signal=1):
     pattern_objects = []
+    pattern_labels = []
 
     for name in pattern_names:
         # 提取字母与数字部分（如 SMA10 -> SMA + 10）
@@ -23,6 +24,7 @@ def build_pattern_objects(pattern_names, signal=1):
 
         key, param = match.group(1).upper(), match.group(2)
         param = int(param) if param else None
+        pattern_labels.append(key)
 
         if key == "SMA" and param:
             pattern_objects.append(SMA(ma=param, signal=signal))
@@ -41,7 +43,10 @@ def build_pattern_objects(pattern_names, signal=1):
         elif key == 'WR':
             pattern_objects.append(WR(signal=signal))
         elif key == 'VOL':
-            pattern_objects.append(VOL(signal=signal, mode='any'))
+            if 'BIAS' in pattern_labels:
+                pattern_objects.append(VOL(signal=signal, mode='turning_up'))
+            else:
+                pattern_objects.append(VOL(signal=signal, mode='any'))
         elif key == "OBV":
             pattern_objects.append(OBV(signal=signal))
         elif key == 'ADOSC':
