@@ -36,11 +36,11 @@ def creat_strategy(stock):
     #     print(f'{stock_code} {stock_name} 止损过大，不生成交易策略')
     #     return None
     #
-    # # 计算盈利比率并检查是否满足最小盈利比率要求
-    # profit_rate = round((sell_price - buy_price) / (buy_price - stop_loss), 3)
-    # if profit_rate < float(env_vars.MIN_PROFIT_RATE):
-    #     print(f'{stock_code} {stock_name} 盈亏比例为{profit_rate}不满足要求，不生成交易策略')
-    #     return None
+    # 计算盈利比率并检查是否满足最小盈利比率要求
+    profit_rate = round((sell_price - buy_price) / (buy_price - stop_loss), 3)
+    if profit_rate < float(env_vars.MIN_PROFIT_RATE):
+        print(f'{stock_code} {stock_name} 盈亏比例为{profit_rate}不满足要求，不生成交易策略')
+        return None
 
     trading_strategy = TradingStrategy(
         stock_code=stock_code,
