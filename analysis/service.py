@@ -5,7 +5,7 @@ from analysis.model import AnalyzedStock
 from calculate.service import detect_turning_points
 from dataset.service import create_dataframe
 from extensions import db
-from indicator.service import get_patterns, get_volume_patterns, get_match_patterns
+from indicator.service import get_patterns, get_match_patterns, get_match_ma_patterns
 from stock.service import KType, get_stock_prices
 
 
@@ -65,22 +65,21 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1,
         df = create_dataframe(stock, prices) if prices_df is None else prices_df
 
         matched_candlestick_patterns, candlestick_weight = get_match_patterns(candlestick_patterns, stock, prices,
-                                                                              df)
+                                                                              df, 'candlestick')
         if signal == 1:
             if candlestick_weight >= buy_candlestick_weight:
-                matched_ma_patterns, ma_weight = get_match_patterns(ma_patterns, stock, prices, df)
-                volume_patterns = get_volume_patterns(matched_ma_patterns)
-                matched_volume_patterns, volume_weight = get_match_patterns(volume_patterns, stock, prices, df)
-                if ma_weight >= buy_ma_weight and volume_weight > buy_volume_weight:
+                matched_ma_patterns, ma_weight, matched_volume_patterns = get_match_ma_patterns(ma_patterns, stock,
+                                                                                                prices, df,
+                                                                                                buy_volume_weight)
+                if ma_weight >= buy_ma_weight:
                     # 将所有匹配的K线形态、均线和量能模式的标签添加到股票的模式列表中
                     append_matched_pattern_label(matched_candlestick_patterns, stock)
                     append_matched_pattern_label(matched_ma_patterns, stock)
                     append_matched_pattern_label(matched_volume_patterns, stock)
         else:
-            matched_ma_patterns, ma_weight = get_match_patterns(ma_patterns, stock, prices, df)
-            volume_patterns = get_volume_patterns(matched_ma_patterns)
-            matched_volume_patterns, volume_weight = get_match_patterns(volume_patterns, stock, prices, df)
-            if candlestick_weight >= sell_candlestick_weight and ma_weight >= sell_ma_weight and volume_weight > sell_volume_weight:
+            matched_ma_patterns, ma_weight, matched_volume_patterns = get_match_ma_patterns(ma_patterns, stock, prices,
+                                                                                            df, sell_volume_weight)
+            if candlestick_weight >= sell_candlestick_weight and ma_weight >= sell_ma_weight:
                 # 同样将所有匹配的模式标签添加到股票的模式列表中
                 append_matched_pattern_label(matched_candlestick_patterns, stock)
                 append_matched_pattern_label(matched_ma_patterns, stock)
