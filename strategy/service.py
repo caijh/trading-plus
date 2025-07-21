@@ -74,6 +74,9 @@ def generate_strategy(stock):
         stock_name = stock['name']
         strategy = creat_strategy(stock)
 
+        if strategy is None:
+            return None
+
         # 查询是否已存在该股票的交易策略
         existing_strategy = get_strategy_by_stock_code(stock_code)
 
