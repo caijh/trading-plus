@@ -69,6 +69,7 @@ def get_match_ma_patterns(patterns, stock, prices, df, volume_weight_limit=1):
 
     # 初始化匹配的成交量模式集合，避免重复计数
     matched_volume_patterns = set()
+    matched_volume_pattern_labels = set()
 
     try:
         # 遍历所有模式，寻找匹配的均线模式
@@ -80,7 +81,7 @@ def get_match_ma_patterns(patterns, stock, prices, df, volume_weight_limit=1):
 
                 # 更新volume_patterns列表，仅保留那些标签不在matched_volume_patterns中的volume_pattern对象
                 volume_patterns = [volume_pattern for volume_pattern in volume_patterns if
-                                   volume_pattern.label not in matched_volume_patterns]
+                                   volume_pattern.label not in matched_volume_pattern_labels]
 
                 # 检查成交量模式是否匹配，并获取匹配的模式和权重
                 volume_matched_patterns, volume_weight = get_match_patterns(volume_patterns, stock, prices, df,
@@ -99,7 +100,8 @@ def get_match_ma_patterns(patterns, stock, prices, df, volume_weight_limit=1):
 
                     # 将所有匹配的成交量模式标签添加到集合中
                     for volume_pattern in volume_matched_patterns:
-                        matched_volume_patterns.add(volume_pattern.label)
+                        matched_volume_pattern_labels.add(volume_pattern.label)
+                        matched_volume_patterns.add(volume_pattern)
     except Exception as e:
         # 捕获并打印任何异常，然后继续执行程序
         print(e)
