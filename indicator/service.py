@@ -70,6 +70,7 @@ def get_match_ma_patterns(patterns, stock, prices, df, volume_weight_limit=1):
     # 初始化匹配的成交量模式集合，避免重复计数
     matched_volume_patterns = set()
     matched_volume_pattern_labels = set()
+    exec_matched_volume_pattern_labels = set()
 
     try:
         # 遍历所有模式，寻找匹配的均线模式
@@ -77,14 +78,30 @@ def get_match_ma_patterns(patterns, stock, prices, df, volume_weight_limit=1):
             # 如果当前模式与股票匹配，则进一步检查成交量模式
             if pattern.match(stock, prices, df):
                 # 获取当前模式对应的成交量确认模式
-                volume_patterns = pattern.get_volume_confirm_patterns()
+                volume_confirm_patterns = pattern.get_volume_confirm_patterns()
+
+                volume_patterns = []
+                total_volume_weight = 0
+                total_volume_matched_patterns = []
+                for volume_pattern in volume_confirm_patterns:
+                    if volume_pattern.label not in exec_matched_volume_pattern_labels:
+                        volume_patterns.append(volume_pattern)
+                    else:
+                        total_volume_matched_patterns.append(volume_pattern)
+                        total_volume_weight += volume_pattern.weight
+
 
                 # 检查成交量模式是否匹配，并获取匹配的模式和权重
                 volume_matched_patterns, volume_weight = get_match_patterns(volume_patterns, stock, prices, df,
                                                                             'volume')
+                for volume_pattern in volume_matched_patterns:
+                    if volume_pattern.label not in exec_matched_volume_pattern_labels:
+                        exec_matched_volume_pattern_labels.add(volume_pattern.label)
+                    total_volume_matched_patterns.append(volume_pattern)
 
+                total_volume_weight += volume_weight
                 # 如果成交量权重超过阈值，则认为该模式有效
-                if volume_weight >= volume_weight_limit:
+                if total_volume_weight >= volume_weight_limit:
                     # 打印匹配信息
                     print(f'{code} {name} Match {pattern.label}')
 
@@ -95,7 +112,7 @@ def get_match_ma_patterns(patterns, stock, prices, df, volume_weight_limit=1):
                     matched_ma_patterns.append(pattern)
 
                     # 将所有匹配的成交量模式标签添加到集合中
-                    for volume_pattern in volume_matched_patterns:
+                    for volume_pattern in total_volume_matched_patterns:
                         if volume_pattern.label not in matched_volume_pattern_labels:
                             matched_volume_pattern_labels.add(volume_pattern.label)
                             matched_volume_patterns.add(volume_pattern)
