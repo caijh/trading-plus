@@ -438,7 +438,7 @@ def get_overbought_volume_patterns():
 
 
 def detect_turning_points(series: pd.Series,
-                          order: int = 5,
+                          order: int = 3,
                           min_distance: int = 3,
                           min_amplitude: float = 0.01,
                           use_relative: bool = True):
