@@ -39,8 +39,8 @@ class SMA:
         df[f'{self.label}'] = ta.sma(df['close'], self.ma)
         ma = df[f'{self.label}']
         # 获取最新和前一均线价格，用于比较
-        ma_price = round(ma.iloc[-1], 3)
-        pre_ma_price = round(ma.iloc[-2], 3) if len(ma) > 1 else None
+        ma_price = ma.iloc[-1]
+        pre_ma_price = ma.iloc[-2]
 
         # 计算收盘价的5日指数移动平均(EMA)
         ema = ta.ema(df['close'], 5)
