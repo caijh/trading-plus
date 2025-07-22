@@ -101,7 +101,7 @@ def get_match_ma_patterns(patterns, stock, prices, df, volume_weight_limit=1):
 
                 total_volume_weight += volume_weight
                 # 如果成交量权重超过阈值，则认为该模式有效
-                if total_volume_weight > volume_weight_limit:
+                if total_volume_weight >= volume_weight_limit:
                     # 打印匹配信息
                     print(f'{code} {name} Match {pattern.label}')
 
