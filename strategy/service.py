@@ -102,6 +102,7 @@ def generate_strategy(stock):
 
         # 提交数据库更改
         db.session.commit()
+        return None
 
 
 def get_strategy_by_stock_code(stock_code):

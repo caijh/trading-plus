@@ -76,23 +76,32 @@ def run_backtest(strategy: TradingStrategy):
     records = []
     holding = False
     entry_price, entry_time = None, None
-
+    strategy.signal = 1
     for i in range(len(df)):
         sub_df = df.iloc[:i + 1]
         price = sub_df['close'].iloc[-1]
         time = sub_df.index[-1]
 
         if not holding:
-            if price <= float(strategy.buy_price) and all(p.match(stock, prices, sub_df) for p in patterns):
+            if all(p.match(stock, prices[0: i + 1], sub_df) for p in patterns):
                 entry_price, entry_time = price, time
                 holding = True
         else:
-            if float(strategy.stop_loss or 0) > 0 and price < float(strategy.stop_loss):
-                records.append((entry_time, time, entry_price, price, 'stop_loss'))
-                holding = False
-            elif float(strategy.sell_price or 0) > 0 and price >= float(strategy.sell_price):
-                records.append((entry_time, time, entry_price, price, 'take_profit'))
-                holding = False
+            if strategy.signal == -1:
+                if price > entry_price:
+                    records.append((entry_time, time, entry_price, price, 'take_profit'))
+                    holding = False
+                else:
+                    records.append((entry_time, time, entry_price, price, 'stop_loss'))
+                    holding = False
+
+                strategy.signal = 1
+                continue
+
+            analyze_stock(stock, k_type=KType.DAY, prices=prices[0: i + 1], prices_df=sub_df, signal=-1,
+                          sell_volume_weight=0)
+            if len(stock['patterns']) > 0:
+                strategy.signal = -1
 
     return records
 
