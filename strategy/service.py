@@ -21,7 +21,7 @@ def creat_strategy(stock):
 
     # 根据股票方向调整买入价和止损价
     if "UP" == direction:
-        stop_loss = round(stock['support'] * env_vars.STOP_LOSS_RATE, n_digits)
+        stop_loss = round(stock['support'] * 0.99, n_digits)
         buy_price = round(stop_loss / env_vars.STOP_LOSS_RATE, n_digits)
     elif "DOWN" == direction:
         buy_price = stock['support']
