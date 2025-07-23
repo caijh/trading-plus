@@ -493,7 +493,7 @@ volume_registry = {
     'SAR': {1: [OBV(1), ADLine(1), VPT(1)], -1: [OBV(-1), ADLine(-1), VPT(-1)]},
     'DMI': {1: [ADOSC(1), CMF(1), VPT(1)], -1: [ADOSC(-1), CMF(-1), VPT(-1)]},
     'BIAS': {1: [CMF(1), MFI(1), VOL(1, mode='turning_up')], -1: [CMF(-1), MFI(-1), VOL(-1, mode='turning_down')]},
-    'KDJ': {1: [MFI(1), VOL(1, mode='any'), OBV(1)], -1: [MFI(-1), VOL(-1, mode='any'), OBV(-1)]},
+    'KDJ': {1: [MFI(1), OBV(1), VOL(1, mode='any')], -1: [MFI(-1), OBV(-1), VOL(-1, mode='any')]},
     'RSI': {1: [MFI(1), OBV(1), VOL(1, mode='any')], -1: [MFI(-1), OBV(-1), VOL(-1, mode='any')]},
     'WR': {1: [CMF(1), OBV(1), VPT(1)], -1: [CMF(-1), OBV(-1), VPT(-1)]},
     'CCI': {1: [OBV(1), CMF(1), ADOSC(1)], -1: [OBV(-1), CMF(-1), ADOSC(-1)]},
