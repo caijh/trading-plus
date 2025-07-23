@@ -325,6 +325,7 @@ class KDJ:
     def get_volume_confirm_patterns(self):
         return volume_registry.get(self.name).get(self.signal)
 
+
 class RSI:
     weight = 1
     signal = 1
@@ -489,12 +490,12 @@ def get_down_ma_patterns():
 
 volume_registry = {
     'SMA': {1: [OBV(1), CMF(1), VPT(1)], -1: [OBV(-1), CMF(-1), VPT(-1)]},
-    'MACD': {1: [ADOSC(1), CMF(1), OBV(1)], -1: [ADOSC(-1), CMF(-1), OBV(-1)]},
+    'MACD': {1: [OBV(1), ADOSC(1), CMF(1)], -1: [OBV(-1), ADOSC(-1), CMF(-1)]},
     'SAR': {1: [OBV(1), ADLine(1), VPT(1)], -1: [OBV(-1), ADLine(-1), VPT(-1)]},
     'DMI': {1: [ADOSC(1), CMF(1), VPT(1)], -1: [ADOSC(-1), CMF(-1), VPT(-1)]},
     'BIAS': {1: [CMF(1), MFI(1), VOL(1, mode='turning_up')], -1: [CMF(-1), MFI(-1), VOL(-1, mode='turning_down')]},
-    'KDJ': {1: [MFI(1), OBV(1), VOL(1, mode='any')], -1: [MFI(-1), OBV(-1), VOL(-1, mode='any')]},
-    'RSI': {1: [MFI(1), OBV(1), VOL(1, mode='any')], -1: [MFI(-1), OBV(-1), VOL(-1, mode='any')]},
-    'WR': {1: [CMF(1), OBV(1), VPT(1)], -1: [CMF(-1), OBV(-1), VPT(-1)]},
+    'KDJ': {1: [OBV(1), MFI(1), VOL(1, mode='any')], -1: [OBV(-1), MFI(-1), VOL(-1, mode='any')]},
+    'RSI': {1: [OBV(1), MFI(1), VOL(1, mode='any')], -1: [OBV(-1), MFI(-1), VOL(-1, mode='any')]},
+    'WR': {1: [OBV(1), CMF(1), VPT(1)], -1: [OBV(-1), CMF(-1), VPT(-1)]},
     'CCI': {1: [OBV(1), CMF(1), ADOSC(1)], -1: [OBV(-1), CMF(-1), ADOSC(-1)]},
 }
