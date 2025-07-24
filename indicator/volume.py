@@ -328,7 +328,7 @@ class VPT:
         weight (int): 权重，默认为 1。
     """
 
-    def __init__(self, signal=1, window=3):
+    def __init__(self, signal=1, window=5):
         """
         初始化 VPT 实例。
 
@@ -416,7 +416,7 @@ def detect_turning_points(series: pd.Series,
     minima_idx = argrelextrema(series.values, np.less, order=order)[0]
 
     # 合并并排序所有转折点
-    all_turning = sorted(np.concatenate((maxima_idx, minima_idx)))
+    all_turning = sorted(np.concatenate((maxima_idx, minima_idx)), reverse=True)
 
     filtered = []
     last_value = None
@@ -432,7 +432,7 @@ def detect_turning_points(series: pd.Series,
             continue
 
         # 1. 距离过滤
-        if idx - last_index < min_distance:
+        if last_index - idx < min_distance:
             continue
 
         # 2. 振幅过滤
@@ -445,7 +445,7 @@ def detect_turning_points(series: pd.Series,
             filtered.append(idx)
             last_index = idx
             last_value = current_value
-
+    filtered.reverse()
     # 分离高低点
     turning_ups = [idx for idx in filtered if idx in minima_idx]
     turning_downs = [idx for idx in filtered if idx in maxima_idx]
