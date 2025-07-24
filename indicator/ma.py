@@ -86,6 +86,9 @@ class MACD:
         - 如果signal为1，则返回MACD金叉信号。
         - 否则返回MACD死叉信号。
         """
+        if len(df) < 60:
+            return False
+
         # 计算MACD指标
         macd_df = ta.macd(df['close'])
 
