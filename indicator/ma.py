@@ -290,7 +290,7 @@ class KDJ:
     weight = 1
     name = 'KDJ'
 
-    def __init__(self, signal, recent=3):
+    def __init__(self, signal, recent=1):
         self.signal = signal
         self.label = 'KDJ'
         self.recent = recent
@@ -332,7 +332,7 @@ class KDJ:
 class RSI:
     weight = 1
     signal = 1
-    recent = 3
+    recent = 1
     name = 'RSI'
 
     def __init__(self, signal, recent=3):
@@ -369,7 +369,7 @@ class RSI:
 class WR:
     weight = 1
     signal = 1
-    recent = 3
+    recent = 1
     name = 'WR'
 
     def __init__(self, signal=1, recent=3):
