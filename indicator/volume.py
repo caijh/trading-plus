@@ -1,7 +1,7 @@
-import numpy as np
 import pandas as pd
 import pandas_ta as ta
-from scipy.signal import argrelextrema
+
+from calculate.service import detect_turning_points
 
 
 class VOL:
@@ -113,16 +113,27 @@ class OBV:
 
         # 计算 OBV 指标
         obv = ta.obv(df['close'], df['volume'])
-        # 计算最近一个窗口期的OBV差值
-        obv_diff = obv.diff().iloc[-self.window:]
-        # 根据信号类型判断OBV指标的正负
+        # 检测 OBV 曲线的拐点
+        turning_point_indexes, turning_up_point_indexes, turning_down_point_indexes = detect_turning_points(obv)
+        if not turning_point_indexes:
+            # 如果没有检测到拐点，返回False
+            return False
+        # 获取最新OBV值和最近的拐点值
+        latest_obv = obv.iloc[-1]
+        prev_obv = obv.iloc[-2]
+        # 判断买入信号
         if self.signal == 1:
-            # 买入信号，OBV差值应全为正
-            return (obv_diff > 0).all()
+            # OBV 上升，确认买入信号
+            turning_up_points = obv.iloc[turning_up_point_indexes]
+            turning_up_point_1 = turning_up_points.iloc[-1]
+            turning_up_point_2 = turning_up_points.iloc[-2]
+            return latest_obv > prev_obv and turning_up_point_1 >= turning_up_point_2
         elif self.signal == -1:
-            # 卖出信号，OBV差值应全为负
-            return (obv_diff < 0).all()
-        # 如果信号类型不符合条件，返回False
+            turning_down_points = obv.iloc[turning_down_point_indexes]
+            turning_down_point_1 = turning_down_points.iloc[-1]
+            turning_down_point_2 = turning_down_points.iloc[-2]
+            # OBV 下降，确认卖出信号
+            return latest_obv < prev_obv and turning_down_point_1 <= turning_down_point_2
         return False
 
 
@@ -167,9 +178,9 @@ class ADOSC:
         diff = adosc.diff().iloc[-self.window:]
 
         if self.signal == 1:
-            return (diff > 0).all() and latest > self.threshold
+            return (diff > 0).all()
         elif self.signal == -1:
-            return (diff < 0).all() and latest < -self.threshold
+            return (diff < 0).all()
         return False
 
 
@@ -389,65 +400,3 @@ def get_oversold_volume_patterns():
 def get_overbought_volume_patterns():
     return [VOL(1), OBV(-1), ADLine(-1), ADOSC(-1), CMF(-1), MFI(-1), VPT(-1)]
 
-
-def detect_turning_points(series: pd.Series,
-                          order: int = 3,
-                          min_distance: int = 3,
-                          min_amplitude: float = 0.01,
-                          use_relative: bool = True):
-    """
-    检测转折点（极大值/极小值），并使用最小距离与最小振幅过滤。
-
-    参数:
-    - series: 待分析的Series（如收盘价、成交量等）
-    - order: 局部极值判断的窗口宽度
-    - min_distance: 相邻转折点的最小索引间距
-    - min_amplitude: 最小振幅变化（绝对值或百分比）
-    - use_relative: 振幅是否使用相对比例（百分比）
-
-    返回:
-    - turning_indexes: 所有保留的转折点索引
-    - turning_ups: 极小值点索引
-    - turning_downs: 极大值点索引
-    """
-
-    # 找局部极大值和极小值
-    maxima_idx = argrelextrema(series.values, np.greater, order=order)[0]
-    minima_idx = argrelextrema(series.values, np.less, order=order)[0]
-
-    # 合并并排序所有转折点
-    all_turning = sorted(np.concatenate((maxima_idx, minima_idx)), reverse=True)
-
-    filtered = []
-    last_value = None
-    last_index = None
-
-    for idx in all_turning:
-        current_value = series.iloc[idx]
-
-        if last_index is None:
-            filtered.append(idx)
-            last_index = idx
-            last_value = current_value
-            continue
-
-        # 1. 距离过滤
-        if last_index - idx < min_distance:
-            continue
-
-        # 2. 振幅过滤
-        amplitude = abs(current_value - last_value)
-        if use_relative:
-            base = max(abs(last_value), 1e-6)
-            amplitude /= base
-
-        if amplitude >= min_amplitude:
-            filtered.append(idx)
-            last_index = idx
-            last_value = current_value
-    filtered.reverse()
-    # 分离高低点
-    turning_ups = [idx for idx in filtered if idx in minima_idx]
-    turning_downs = [idx for idx in filtered if idx in maxima_idx]
-
-    return filtered, turning_ups, turning_downs
