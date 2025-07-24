@@ -243,7 +243,7 @@ class ADLine:
 
 
 class CMF:
-    def __init__(self, signal=1, period=10):
+    def __init__(self, signal=1, period=20):
         """
         初始化 Chaikin Money Flow（CMF）策略
 
