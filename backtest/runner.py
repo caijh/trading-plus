@@ -6,6 +6,7 @@ import pandas as pd
 from analysis.service import analyze_stock
 from dataset.service import create_dataframe
 from indicator.ma import SMA, MACD, SAR, DMI, BIAS, KDJ, RSI, WR
+from indicator.service import get_match_ma_patterns
 from indicator.volume import VOL, OBV, ADOSC, ADLine, CMF, MFI, VPT
 from stock.service import get_stock_prices, get_stock, KType
 from strategy.model import TradingStrategy
@@ -102,6 +103,41 @@ def run_backtest(strategy: TradingStrategy):
                           sell_volume_weight=0)
             if len(stock['patterns']) > 0:
                 strategy.signal = -1
+
+    return records
+
+
+def run_backtest_patterns(stock_code, buy_patterns, sell_patterns):
+    stock = get_stock(stock_code)
+    prices = get_stock_prices(stock_code)
+    df = create_dataframe(stock, prices)
+    if df is None or df.empty:
+        return []
+
+    records = []
+    holding = False
+    entry_price, entry_time = None, None
+    for i in range(len(df)):
+        sub_df = df.iloc[:i + 1]
+        price = sub_df['close'].iloc[-1]
+        time = sub_df.index[-1]
+
+        if not holding:
+            _, ma_weight, _ = get_match_ma_patterns(buy_patterns, stock, prices[0: i + 1], sub_df,
+                                                    volume_weight_limit=2)
+            if ma_weight >= 2:
+                entry_price, entry_time = price, time
+                holding = True
+        else:
+            _, ma_weight, _ = get_match_ma_patterns(sell_patterns, stock, prices[0: i + 1], sub_df,
+                                                    volume_weight_limit=1)
+            if ma_weight >= 1:
+                if price > entry_price:
+                    records.append((entry_time, time, entry_price, price, 'take_profit'))
+                    holding = False
+                else:
+                    records.append((entry_time, time, entry_price, price, 'stop_loss'))
+                    holding = False
 
     return records
 
