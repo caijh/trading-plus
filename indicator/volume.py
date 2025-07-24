@@ -178,9 +178,9 @@ class ADOSC:
         diff = adosc.diff().iloc[-self.window:]
 
         if self.signal == 1:
-            return (diff > 0).all()
+            return (diff > 0).all() and latest > self.threshold
         elif self.signal == -1:
-            return (diff < 0).all()
+            return (diff < 0).all() and latest < -self.threshold
         return False
 
 
@@ -278,12 +278,12 @@ class CMF:
         # 买入信号：CMF 上升且为正
         if self.signal == 1:
             # 连续上升 + 当前为正 + 高于中性带
-            return latest > prev and latest > dead_zone
+            return (latest > prev and latest > dead_zone) or latest < -0.2
 
         # 卖出信号：CMF 下降且为负
         elif self.signal == -1:
             # 连续下降 + 当前为负 + 低于中性带
-            return latest < prev and latest < -dead_zone
+            return (latest < prev and latest < -dead_zone) or latest > 0.2
 
         else:
             raise False
@@ -399,4 +399,3 @@ def get_oversold_volume_patterns():
 
 def get_overbought_volume_patterns():
     return [VOL(1), OBV(-1), ADLine(-1), ADOSC(-1), CMF(-1), MFI(-1), VPT(-1)]
-
