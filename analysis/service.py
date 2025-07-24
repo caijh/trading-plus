@@ -319,6 +319,7 @@ def cal_price_from_ma(stock, df, point, current_price, is_support):
     df['MA10'] = df['close'].rolling(10).mean()
     df['MA20'] = df['close'].rolling(20).mean()
     df['MA30'] = df['close'].rolling(30).mean()
+    df['MA60'] = df['close'].rolling(60).mean()
 
     # 初始化目标价格为None
     price = None
@@ -327,6 +328,7 @@ def cal_price_from_ma(stock, df, point, current_price, is_support):
     ma10_price = df['MA10'].iloc[-1]
     ma20_price = df['MA20'].iloc[-1]
     ma30_price = df['MA30'].iloc[-1]
+    ma60_price = df['MA60'].iloc[-1]
 
     # 根据是否是支撑位来确定目标价格
     if is_support:
@@ -337,6 +339,8 @@ def cal_price_from_ma(stock, df, point, current_price, is_support):
             price = ma20_price
         elif ma30_price < current_price:
             price = ma30_price
+        elif ma60_price < current_price:
+            price = ma60_price
     else:
         # 如果移动平均线价格高于当前价格，则选择作为压力位
         if ma10_price > current_price:
@@ -345,6 +349,8 @@ def cal_price_from_ma(stock, df, point, current_price, is_support):
             price = ma20_price
         elif ma30_price > current_price:
             price = ma30_price
+        elif ma60_price > current_price:
+            price = ma60_price
 
     # 返回目标价格
     return price
