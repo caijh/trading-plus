@@ -178,8 +178,7 @@ class SAR:
         elif self.signal == -1:
             return close_prev > psar_prev and close_last < psar_last
 
-        else:
-            raise ValueError("无效的 signal 值，应为 1（买入）或 -1（卖出）")
+        return False
 
     def get_volume_confirm_patterns(self):
         return volume_registry.get(self.name).get(self.signal)
