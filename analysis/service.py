@@ -105,12 +105,12 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1,
         if support_n is not None:
             support = support_n
         elif signal == 1 and len(stock['patterns']) > 0:
-            stock['support'] = get_recent_price(df, 'low', 3)
+            support = get_recent_price(df, 'low', 5)
 
         if resistance_n is not None:
             resistance = resistance_n
         elif signal == -1 and len(stock['patterns']) > 0:
-            stock['resistance'] = get_recent_price(df, 'high', 3)
+            resistance = get_recent_price(df, 'high', 5)
 
 
         # latest_volume = df.iloc[-1]['volume']
