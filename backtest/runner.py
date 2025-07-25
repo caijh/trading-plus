@@ -170,13 +170,14 @@ def alpha_run_backtest(stock_code):
         time = sub_df.index[-1]
 
         if not holding:
+            price = sub_df['open'].iloc[-1]
             if price < float(strategy.buy_price):
                 entry_price, entry_time = price, time
                 holding = True
 
             if not holding and strategy is not None:
                 strategy.updated_at = pd.to_datetime(time)
-                if strategy.updated_at - strategy.created_at > timedelta(days=9):
+                if strategy.updated_at - strategy.created_at > timedelta(days=7):
                     strategy = None
         else:
             if strategy.signal == -1:
