@@ -46,6 +46,14 @@ def save_analyzed_stock(stock):
     print(f"Add {analyzed_stock} to AnalyzedStock")
 
 
+def get_recent_price(df, price_type, recent):
+    if price_type == 'high':
+        return df.iloc[-recent:]['high'].max()
+    elif price_type == 'low':
+        return df.iloc[-recent:]['low'].min()
+    return None
+
+
 def analyze_stock(stock, k_type=KType.DAY, signal=1,
                   buy_candlestick_weight=1, sell_candlestick_weight=0,
                   buy_ma_weight=2, sell_ma_weight=1,
@@ -96,8 +104,14 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1,
         (support_n, resistance_n) = calculate_support_resistance_by_turning_points(stock, df)
         if support_n is not None:
             support = support_n
+        elif signal == 1 and len(stock['patterns']) > 0:
+            stock['support'] = get_recent_price(df, 'low', 3)
+
         if resistance_n is not None:
             resistance = resistance_n
+        elif signal == -1 and len(stock['patterns']) > 0:
+            stock['resistance'] = get_recent_price(df, 'high', 3)
+
 
         # latest_volume = df.iloc[-1]['volume']
         # if latest_volume > 0:
@@ -354,7 +368,6 @@ def cal_price_from_ma(stock, df, point, current_price, is_support):
 
     # 返回目标价格
     return price
-
 
 
 def score_turning_point(
