@@ -54,10 +54,10 @@ class VOL:
         is_heavy_volume = latest_vol > (avg_vol + self.stddev_mult * std_vol)
         is_light_volume = latest_vol < (avg_vol - self.stddev_mult * std_vol)
 
+        vol_sma = ta.sma(df['volume'], 5)
+
         # 检测成交量转折点
-        turning_point_indexes, turning_up, turning_down = detect_turning_points(df['volume'])
-        turning_idx = turning_up if self.signal == 1 else turning_down
-        is_volume_turning = any(idx >= len(df) - 4 for idx in turning_idx)
+        turning_point_indexes, turning_up, turning_down = detect_turning_points(vol_sma)
 
         # 根据模式返回匹配结果
         if self.mode == 'heavy':
@@ -65,10 +65,13 @@ class VOL:
         elif self.mode == 'light':
             return is_light_volume
         elif self.mode == 'turning_up':
-            return is_volume_turning if self.signal == 1 else False
+            is_volume_turning = any(idx >= len(df) - 4 for idx in turning_up)
+            return is_volume_turning
         elif self.mode == 'turning_down':
-            return is_volume_turning if self.signal == -1 else False
+            is_volume_turning = any(idx >= len(df) - 4 for idx in turning_down)
+            return is_volume_turning
         elif self.mode == 'any':
+            is_volume_turning = any(idx >= len(df) - 4 for idx in turning_point_indexes)
             return is_heavy_volume or is_light_volume or is_volume_turning
         return False
 
@@ -79,17 +82,15 @@ class OBV:
     signal = 1
     weight = 1
 
-    def __init__(self, signal, window=3):
+    def __init__(self, signal):
         """
         初始化OBV对象。
 
         参数:
         - signal: 指示信号类型，1代表买入信号，其他值代表卖出信号。
-        - window: 计算OBV指标时考虑的周期，默认为3。
         """
         self.signal = signal
         self.label = 'OBV'
-        self.window = window
 
     def match(self, stock, prices, df):
         """
@@ -127,13 +128,13 @@ class OBV:
             turning_up_points = obv.iloc[turning_up_point_indexes]
             turning_up_point_1 = turning_up_points.iloc[-1]
             turning_up_point_2 = turning_up_points.iloc[-2]
-            return latest_obv > prev_obv and turning_up_point_1 >= turning_up_point_2
+            return latest_obv > prev_obv and turning_up_point_1 > turning_up_point_2
         elif self.signal == -1:
             turning_down_points = obv.iloc[turning_down_point_indexes]
             turning_down_point_1 = turning_down_points.iloc[-1]
             turning_down_point_2 = turning_down_points.iloc[-2]
             # OBV 下降，确认卖出信号
-            return latest_obv < prev_obv and turning_down_point_1 <= turning_down_point_2
+            return latest_obv < prev_obv and turning_down_point_1 < turning_down_point_2
         return False
 
 
