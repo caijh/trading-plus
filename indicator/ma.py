@@ -96,42 +96,21 @@ class MACD:
         macd_df.rename(columns={'MACD_12_26_9': 'MACD', 'MACDs_12_26_9': 'Signal', 'MACDh_12_26_9': 'Histogram'},
                        inplace=True)
 
-        # 检查数据长度是否足够
-        if len(macd_df) < 5:
-            print(f'{stock["code"]} 数据不足，无法判断金叉或死叉。')
+        hist = macd_df['Histogram'].dropna()
+        if len(hist) < self.recent + 1:
             return False
 
-        # 根据self.signal识别是买卖信号
+        recent_hist = hist.iloc[-self.recent:]
+
         if self.signal == 1:
-            # 识别并标记MACD金叉信号
-            macd_df['Buy_Signal'] = (macd_df['MACD'].shift(1) < macd_df['Signal'].shift(1)) & (
-                macd_df['MACD'] > macd_df['Signal'])
-            # 判断柱状图是否为正且增大
-            macd_df['Histogram_Positive'] = macd_df['Histogram'] > 0
-            macd_df['Histogram_Increasing'] = macd_df['Histogram'] > macd_df['Histogram'].shift(1)
-            # 结合金叉和柱状图的正值增大情况
-            df[f'{self.label}_Signal'] = macd_df['Buy_Signal'] & macd_df['Histogram_Positive'] & macd_df[
-                'Histogram_Increasing']
+            diffs = recent_hist.diff().dropna()
+            return all(d > 0 for d in diffs)
 
-            # 检查最近3个信号中是否有金叉
-            recent_signals = df.tail(self.recent)
-            macd_buy_signal = recent_signals[f'{self.label}_Signal'].any()
-            return macd_buy_signal
-        else:
-            # 识别并标记MACD死叉信号
-            macd_df['Sell_Signal'] = (macd_df['MACD'].shift(1) > macd_df['Signal'].shift(1)) & (
-                macd_df['MACD'] < macd_df['Signal'])
-            # 判断柱状图是否为负且增大
-            macd_df['Histogram_Negative'] = macd_df['Histogram'] < 0
-            macd_df['Histogram_Decreasing'] = macd_df['Histogram'] < macd_df['Histogram'].shift(1)
-            # 结合死叉和柱状图的负值增大情况
-            df[f'{self.label}_Signal'] = macd_df['Sell_Signal'] & macd_df['Histogram_Negative'] & macd_df[
-                'Histogram_Decreasing']
+        elif self.signal == -1:
+            diffs = recent_hist.diff().dropna()
+            return all(d < 0 for d in diffs)
 
-            # 检查最近3个信号中是否有死叉
-            recent_signals = df.tail(self.recent)
-            macd_sell_signal = recent_signals[f'{self.label}_Signal'].any()
-            return macd_sell_signal
+        return False
 
     def get_volume_confirm_patterns(self):
         return volume_registry.get(self.name).get(self.signal)
@@ -496,8 +475,8 @@ volume_registry = {
     'SAR': {1: [OBV(1), ADLine(1), VPT(1)], -1: [OBV(-1), ADLine(-1), VPT(-1)]},
     'DMI': {1: [ADOSC(1), CMF(1), VPT(1)], -1: [ADOSC(-1), CMF(-1), VPT(-1)]},
     'BIAS': {1: [CMF(1), MFI(1), VOL(1, mode='turning_up')], -1: [CMF(-1), MFI(-1), VOL(-1, mode='turning_down')]},
-    'KDJ': {1: [OBV(1), MFI(1), VOL(1, mode='any')], -1: [OBV(-1), MFI(-1), VOL(-1, mode='any')]},
-    'RSI': {1: [OBV(1), MFI(1), VOL(1, mode='any')], -1: [OBV(-1), MFI(-1), VOL(-1, mode='any')]},
+    'KDJ': {1: [OBV(1), MFI(1), VOL(1, mode='turning_up')], -1: [OBV(-1), MFI(-1), VOL(-1, mode='turning_down')]},
+    'RSI': {1: [OBV(1), MFI(1), VOL(1, mode='turning_up')], -1: [OBV(-1), MFI(-1), VOL(-1, mode='turning_down')]},
     'WR': {1: [OBV(1), CMF(1), VPT(1)], -1: [OBV(-1), CMF(-1), VPT(-1)]},
     'CCI': {1: [OBV(1), CMF(1), ADOSC(1)], -1: [OBV(-1), CMF(-1), ADOSC(-1)]},
 }

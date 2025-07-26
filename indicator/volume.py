@@ -11,7 +11,7 @@ class VOL:
     该类用于根据给定的参数判断股票的成交量是否符合特定的模式，以辅助投资决策。
     """
 
-    def __init__(self, signal=1, mode='any', volume_window=60, stddev_mult=1.0):
+    def __init__(self, signal=1, mode='any', volume_window=20, stddev_mult=1.0):
         """
         初始化成交量确认对象。
 
@@ -71,7 +71,8 @@ class VOL:
             is_volume_turning = any(idx >= len(df) - 4 for idx in turning_down)
             return is_volume_turning
         elif self.mode == 'any':
-            is_volume_turning = any(idx >= len(df) - 4 for idx in turning_point_indexes)
+            turning_point_idx = turning_up if self.signal == 1 else turning_down
+            is_volume_turning = any(idx >= len(df) - 4 for idx in turning_point_idx)
             return is_heavy_volume or is_light_volume or is_volume_turning
         return False
 
@@ -114,27 +115,15 @@ class OBV:
 
         # 计算 OBV 指标
         obv = ta.obv(df['close'], df['volume'])
-        # 检测 OBV 曲线的拐点
-        turning_point_indexes, turning_up_point_indexes, turning_down_point_indexes = detect_turning_points(obv)
-        if not turning_point_indexes:
-            # 如果没有检测到拐点，返回False
-            return False
         # 获取最新OBV值和最近的拐点值
         latest_obv = obv.iloc[-1]
         prev_obv = obv.iloc[-2]
         # 判断买入信号
         if self.signal == 1:
-            # OBV 上升，确认买入信号
-            turning_up_points = obv.iloc[turning_up_point_indexes]
-            turning_up_point_1 = turning_up_points.iloc[-1]
-            turning_up_point_2 = turning_up_points.iloc[-2]
-            return latest_obv > prev_obv and turning_up_point_1 > turning_up_point_2
+            return latest_obv > prev_obv
         elif self.signal == -1:
-            turning_down_points = obv.iloc[turning_down_point_indexes]
-            turning_down_point_1 = turning_down_points.iloc[-1]
-            turning_down_point_2 = turning_down_points.iloc[-2]
             # OBV 下降，确认卖出信号
-            return latest_obv < prev_obv and turning_down_point_1 < turning_down_point_2
+            return latest_obv < prev_obv
         return False
 
 
@@ -143,11 +132,10 @@ class ADOSC:
     signal = 1
     weight = 1
 
-    def __init__(self, signal, threshold=5000, window=3):
+    def __init__(self, signal, threshold=5000):
         self.signal = signal
         self.label = 'ADOSC'
         self.threshold = threshold
-        self.window = window
 
     def match(self, stock, prices, df):
         """
@@ -176,12 +164,12 @@ class ADOSC:
         adosc = ta.adosc(df['high'], df['low'], df['close'], df['volume'])
         # 获取最新的 ADOSC 值和前一个 ADOSC 值
         latest = adosc.iloc[-1]
-        diff = adosc.diff().iloc[-self.window:]
+        prev = adosc.iloc[-2]
 
         if self.signal == 1:
-            return (diff > 0).all() and latest > self.threshold
+            return latest > prev and latest > self.threshold
         elif self.signal == -1:
-            return (diff < 0).all() and latest < -self.threshold
+            return latest < prev and latest < -self.threshold
         return False
 
 
@@ -234,12 +222,11 @@ class ADLine:
 
         # 计算 ADLine
         ad_line = ta.ad(df['high'], df['low'], df['close'], df['volume'])
-        diff = ad_line.diff().iloc[-self.window:]
 
         if self.signal == 1:
-            return (diff > 0).all()
+            return ad_line.iloc[-1] > ad_line.iloc[-2]
         elif self.signal == -1:
-            return (diff < 0).all()
+            return ad_line.iloc[-1] < ad_line.iloc[-2]
         return False
 
 
@@ -321,10 +308,10 @@ class MFI:
         prev = mfi.iloc[-2]
 
         if self.signal == 1:
-            return prev < latest < oversold
+            return prev < latest <= oversold
 
         elif self.signal == -1:
-            return prev > latest > overbought
+            return prev > latest or latest >= overbought
 
         return False
 
@@ -340,18 +327,16 @@ class VPT:
         weight (int): 权重，默认为 1。
     """
 
-    def __init__(self, signal=1, window=5):
+    def __init__(self, signal=1):
         """
         初始化 VPT 实例。
 
         Args:
             signal (int, optional): 信号类型，默认为 1（买入信号）。
-            window (int, optional): 计算周期，默认为 3。
         """
         self.signal = signal
-        self.label = f'VPT{window}'
+        self.label = f'VPT'
         self.weight = 1
-        self.window = window
 
     def match(self, stock, prices, df):
         """
@@ -366,7 +351,7 @@ class VPT:
             bool: 如果满足信号条件返回 True，否则返回 False。
         """
         # 检查数据长度是否足够计算 VPT
-        if df is None or len(df) < self.window + 2:
+        if df is None or len(df) < 5:
             print(f'{stock["code"]} 数据不足，无法计算 VPT')
             return False
         # 检查最新成交量是否有效
@@ -375,14 +360,13 @@ class VPT:
         # 计算 VPT 值
         vpt = (df['close'].pct_change().fillna(0) * df['volume']).cumsum()
         # 获取最近的 VPT 值
-        recent = vpt.iloc[-self.window:]
-        # 计算 VPT 斜率
-        slope = (recent.iloc[-1] - recent.iloc[0]) / self.window
+        latest = vpt.iloc[-1]
+        prev = vpt.iloc[-2]
         # 根据信号类型判断是否满足条件
         if self.signal == 1:
-            return slope > 0
+            return latest > prev > 0
         elif self.signal == -1:
-            return slope < 0
+            return latest < prev
         return False
 
 
