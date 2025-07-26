@@ -167,6 +167,8 @@ def alpha_run_backtest(stock_code):
 
         sub_df = df.iloc[:i + 1]
         price = sub_df['close'].iloc[-1]
+        low_price = sub_df['low'].iloc[-1]
+        high_price = sub_df['high'].iloc[-1]
         time = sub_df.index[-1]
 
         if not holding:
@@ -181,16 +183,17 @@ def alpha_run_backtest(stock_code):
                     strategy = None
         else:
             if strategy.signal == -1:
+                price = sub_df['open'].iloc[-1]
                 records.append((entry_time, time, entry_price, price, 'stop_signal'))
                 holding = False
                 strategy = None
                 continue
 
-            if float(strategy.stop_loss or 0) > 0 and price < float(strategy.stop_loss):
+            if float(strategy.stop_loss or 0) > 0 and low_price < float(strategy.stop_loss) < high_price:
                 records.append((entry_time, time, entry_price, price, 'stop_loss'))
                 holding = False
                 strategy = None
-            elif float(strategy.sell_price or 0) > 0 and price >= float(strategy.sell_price):
+            elif float(strategy.sell_price or 0) > 0 and low_price <= float(strategy.sell_price) <= high_price:
                 records.append((entry_time, time, entry_price, price, 'take_profit'))
                 holding = False
                 strategy = None
