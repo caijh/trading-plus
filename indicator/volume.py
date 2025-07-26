@@ -169,7 +169,7 @@ class ADOSC:
         if self.signal == 1:
             return latest > prev and latest > self.threshold
         elif self.signal == -1:
-            return latest < prev and latest < -self.threshold
+            return latest < prev
         return False
 
 
