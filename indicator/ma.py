@@ -449,7 +449,7 @@ def get_up_ma_patterns():
     以及一个特定参数的偏差率模式。这些模式用于在金融数据分析中计算和应用各种移动平均线和偏差率指标。
     """
     # 初始化均线和偏差率模式列表
-    ma_patterns = [SMA(10, 1), SMA(20, 1), SMA(60, 1), SMA(200, 1),
+    ma_patterns = [SMA(10, 1), SMA(20, 1), SMA(50, 1),
                    MACD(1), SAR(1), DMI(1),
                    BIAS(20, -0.09, 1), KDJ(1), RSI(1), WR(1)]
     return ma_patterns
@@ -463,7 +463,7 @@ def get_down_ma_patterns():
     以及一个特定参数的偏差率模式。这些模式用于在金融数据分析中计算和应用各种移动平均线和偏差率指标。
     """
     # 初始化均线和偏差率
-    ma_patterns = [SMA(10, -1), SMA(20, -1), SMA(60, -1), SMA(200, -1),
+    ma_patterns = [SMA(10, -1), SMA(20, -1), SMA(50, -1),
                    MACD(-1), SAR(-1), DMI(-1),
                    BIAS(20, 0.09, -1), KDJ(-1), RSI(-1), WR(-1)]
     return ma_patterns

@@ -332,8 +332,8 @@ def cal_price_from_ma(stock, df, point, current_price, is_support):
     # 计算10日、20日、30日的移动平均线价格
     df['MA10'] = df['close'].rolling(10).mean()
     df['MA20'] = df['close'].rolling(20).mean()
-    df['MA30'] = df['close'].rolling(30).mean()
-    df['MA60'] = df['close'].rolling(60).mean()
+    df['MA50'] = df['close'].rolling(50).mean()
+    df['MA200'] = df['close'].rolling(200).mean()
 
     # 初始化目标价格为None
     price = None
@@ -341,8 +341,8 @@ def cal_price_from_ma(stock, df, point, current_price, is_support):
     # 获取最新一日的10日、20日、30日移动平均线价格
     ma10_price = df['MA10'].iloc[-1]
     ma20_price = df['MA20'].iloc[-1]
-    ma30_price = df['MA30'].iloc[-1]
-    ma60_price = df['MA60'].iloc[-1]
+    ma50_price = df['MA50'].iloc[-1]
+    ma200_price = df['MA200'].iloc[-1]
 
     # 根据是否是支撑位来确定目标价格
     if is_support:
@@ -351,20 +351,20 @@ def cal_price_from_ma(stock, df, point, current_price, is_support):
             price = ma10_price
         elif ma20_price < current_price:
             price = ma20_price
-        elif ma30_price < current_price:
-            price = ma30_price
-        elif ma60_price < current_price:
-            price = ma60_price
+        elif ma50_price < current_price:
+            price = ma50_price
+        elif ma200_price < current_price:
+            price = ma200_price
     else:
         # 如果移动平均线价格高于当前价格，则选择作为压力位
         if ma10_price > current_price:
             price = ma10_price
         elif ma20_price > current_price:
             price = ma20_price
-        elif ma30_price > current_price:
-            price = ma30_price
-        elif ma60_price > current_price:
-            price = ma60_price
+        elif ma50_price > current_price:
+            price = ma50_price
+        elif ma200_price > current_price:
+            price = ma200_price
 
     # 返回目标价格
     return price
@@ -513,38 +513,51 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     # 找最靠近当前价格的支撑和阻力（按时间最近，取所在K线的低 / 高点）
     support = None
     resistance = None
-    if upping:
-        first_point = turning_points.iloc[-1]
-        second_point = turning_points.iloc[-2]
+
+    if not supports.empty and support is None:
         print("Support point:")
-        if current_price > second_point['ma']:
-            print(second_point)
-            support = cal_price_from_kline(stock, recent_df, second_point, current_price, is_support=True)
-        else:
-            print(first_point)
-            support = cal_price_from_kline(stock, recent_df, first_point, current_price, is_support=True)
-
-        if not resistances.empty and resistance is None:
-            print("Resistance point:")
-            resistance = select_score_point(stock, recent_df, resistances, current_price, is_support=False)
-        else:
-            resistance = cal_price_from_ma(stock, recent_df, resistance, current_price, is_support=False)
+        support = select_nearest_point(stock, recent_df, supports, current_price, is_support=True)  # 时间上最靠近当前的支撑点
     else:
-        if not supports.empty and support is None:
-            print("Support point:")
-            support = select_nearest_point(stock, recent_df, supports, current_price, is_support=True)  # 时间上最靠近当前的支撑点
-        else:
-            support = cal_price_from_ma(stock, recent_df, support, current_price, is_support=True)
+        support = cal_price_from_ma(stock, recent_df, support, current_price, is_support=True)
 
-        first_point = turning_points.iloc[-1]
-        second_point = turning_points.iloc[-2]
+    if not resistances.empty and resistance is None:
         print("Resistance point:")
-        if current_price < second_point['ma']:
-            print(second_point)
-            resistance = cal_price_from_kline(stock, recent_df, second_point, current_price, is_support=False)
-        else:
-            print(first_point)
-            resistance = cal_price_from_kline(stock, recent_df, first_point, current_price, is_support=False)
+        resistance = select_score_point(stock, recent_df, resistances, current_price, is_support=False)
+    else:
+        resistance = cal_price_from_ma(stock, recent_df, resistance, current_price, is_support=False)
+
+    # if upping:
+    #     first_point = turning_points.iloc[-1]
+    #     second_point = turning_points.iloc[-2]
+    #     print("Support point:")
+    #     if current_price > second_point['ma']:
+    #         print(second_point)
+    #         support = cal_price_from_kline(stock, recent_df, second_point, current_price, is_support=True)
+    #     else:
+    #         print(first_point)
+    #         support = cal_price_from_kline(stock, recent_df, first_point, current_price, is_support=True)
+    #
+    #     if not resistances.empty and resistance is None:
+    #         print("Resistance point:")
+    #         resistance = select_score_point(stock, recent_df, resistances, current_price, is_support=False)
+    #     else:
+    #         resistance = cal_price_from_ma(stock, recent_df, resistance, current_price, is_support=False)
+    # else:
+    #     if not supports.empty and support is None:
+    #         print("Support point:")
+    #         support = select_nearest_point(stock, recent_df, supports, current_price, is_support=True)  # 时间上最靠近当前的支撑点
+    #     else:
+    #         support = cal_price_from_ma(stock, recent_df, support, current_price, is_support=True)
+    #
+    #     first_point = turning_points.iloc[-1]
+    #     second_point = turning_points.iloc[-2]
+    #     print("Resistance point:")
+    #     if current_price < second_point['ma']:
+    #         print(second_point)
+    #         resistance = cal_price_from_kline(stock, recent_df, second_point, current_price, is_support=False)
+    #     else:
+    #         print(first_point)
+    #         resistance = cal_price_from_kline(stock, recent_df, first_point, current_price, is_support=False)
 
     # 根据基金或股票类型决定小数点保留位数
     n_digits = 3 if stock.get('stock_type') == 'Fund' else 2

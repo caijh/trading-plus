@@ -20,12 +20,14 @@ def creat_strategy(stock):
     n_digits = 3 if stock['stock_type'] == 'Fund' else 2
 
     # 根据股票方向调整买入价和止损价
-    if "UP" == direction:
-        stop_loss = round(stock['support'] * 0.99, n_digits)
-        buy_price = round(stop_loss / env_vars.STOP_LOSS_RATE, n_digits)
-    elif "DOWN" == direction:
-        buy_price = stock['support']
-        stop_loss = round(buy_price * env_vars.STOP_LOSS_RATE, n_digits)
+    buy_price = stock['support']
+    stop_loss = round(buy_price * env_vars.STOP_LOSS_RATE, n_digits)
+    # if "UP" == direction:
+    #     stop_loss = round(stock['support'], n_digits)
+    #     buy_price = round(stop_loss / env_vars.STOP_LOSS_RATE, n_digits)
+    # elif "DOWN" == direction:
+    #     buy_price = stock['support']
+    #     stop_loss = round(buy_price * env_vars.STOP_LOSS_RATE, n_digits)
 
     # # 检查止损空间是否过小
     # if (buy_price - stop_loss) / buy_price < 0.01:
