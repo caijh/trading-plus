@@ -522,7 +522,7 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
 
     if not resistances.empty and resistance is None:
         print("Resistance point:")
-        resistance = select_score_point(stock, recent_df, resistances, current_price, is_support=False)
+        resistance = select_nearest_point(stock, recent_df, resistances, current_price, is_support=False)
     else:
         resistance = cal_price_from_ma(stock, recent_df, resistance, current_price, is_support=False)
 
