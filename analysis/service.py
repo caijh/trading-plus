@@ -112,7 +112,6 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1,
         elif signal == -1 and len(stock['patterns']) > 0:
             resistance = get_recent_price(df, 'high', 5)
 
-
         # latest_volume = df.iloc[-1]['volume']
         # if latest_volume > 0:
         #     (support_vwap, resistance_vwap) = calculate_vwap_support_resistance(stock, df, window=5)
@@ -502,9 +501,9 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     turning_points_idxes, turning_up_idxes, turning_down_idxes = detect_turning_points(recent_df['ma'])
 
     # 提取拐点价格及索引
-    turning_points = recent_df.iloc[turning_points_idxes][['ma', 'close']]
-    turning_up_points = recent_df.iloc[turning_up_idxes][['ma', 'close']]
-    turning_down_points = recent_df.iloc[turning_down_idxes][['ma', 'close']]
+    turning_points = recent_df.iloc[turning_points_idxes][['ma', 'close', 'low', 'high', 'open']]
+    turning_up_points = recent_df.iloc[turning_up_idxes][['ma', 'close', 'low', 'high', 'open']]
+    turning_down_points = recent_df.iloc[turning_down_idxes][['ma', 'close', 'low', 'high', 'open']]
 
     # 获取当前价格、最近的向上拐点和向下拐点
     current_price = recent_df['close'].iloc[-1]
@@ -513,6 +512,9 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     # 判断当前趋势
     upping = True if current_ma_price > pre_ma_price else False
     stock['direction'] = 'UP' if upping else 'DOWN'
+
+    if len(turning_up_points) > 1:
+        stock['trending'] = 'UP' if turning_up_points.iloc[-1]['low'] > turning_up_points.iloc[-2]['low'] else 'DOWN'
 
     # 支撑点：拐点价格 < 当前价格
     supports = turning_down_points[turning_down_points['ma'] < current_price]
