@@ -14,7 +14,7 @@ def creat_strategy(stock):
     stock_code = stock['code']
     stock_name = stock['name']
     sell_price = stock['resistance']
-    direction = stock['direction']
+    direction = stock['trending']
     buy_price = stock['price']
     stop_loss = stock['support']
     n_digits = 3 if stock['stock_type'] == 'Fund' else 2
