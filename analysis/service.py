@@ -349,22 +349,30 @@ def cal_price_from_ma(stock, df, point, current_price, is_support):
         # 如果移动平均线价格低于当前价格，则选择作为支撑位
         if ma10_price < current_price:
             price = ma10_price
+            stock['support_date'] = df.index[-1].strftime('%Y-%m-%d %H:%M:%S')
         elif ma20_price < current_price:
             price = ma20_price
+            stock['support_date'] = df.index[-1].strftime('%Y-%m-%d %H:%M:%S')
         elif ma50_price < current_price:
             price = ma50_price
+            stock['support_date'] = df.index[-1].strftime('%Y-%m-%d %H:%M:%S')
         elif ma200_price < current_price:
             price = ma200_price
+            stock['support_date'] = df.index[-1].strftime('%Y-%m-%d %H:%M:%S')
     else:
         # 如果移动平均线价格高于当前价格，则选择作为压力位
         if ma10_price > current_price:
             price = ma10_price
+            stock['resistance_date'] = df.index[-1].strftime('%Y-%m-%d %H:%M:%S')
         elif ma20_price > current_price:
             price = ma20_price
+            stock['resistance_date'] = df.index[-1].strftime('%Y-%m-%d %H:%M:%S')
         elif ma50_price > current_price:
             price = ma50_price
+            stock['resistance_date'] = df.index[-1].strftime('%Y-%m-%d %H:%M:%S')
         elif ma200_price > current_price:
             price = ma200_price
+            stock['resistance_date'] = df.index[-1].strftime('%Y-%m-%d %H:%M:%S')
 
     # 返回目标价格
     return price
