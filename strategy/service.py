@@ -21,21 +21,20 @@ def creat_strategy(stock):
 
     # 根据股票方向调整买入价和止损价
     if "UP" == direction:
-        stop_loss = round(stock['support'] * 0.98, n_digits)
-        buy_price = round(stop_loss / env_vars.STOP_LOSS_RATE, n_digits)
+        stop_loss = stock['support'] * 0.995
     elif "DOWN" == direction:
-        stop_loss = stock['support']
-        buy_price = round(stop_loss / env_vars.STOP_LOSS_RATE, n_digits)
+        buy_price = stock['support']
+        stop_loss = round(buy_price * env_vars.STOP_LOSS_RATE, n_digits)
 
-    # # 检查止损空间是否过小
-    # if (buy_price - stop_loss) / buy_price < 0.01:
-    #     stop_loss = round(buy_price - buy_price * 0.01, n_digits)
-    #
-    # # 检查止损空间是否过大
-    # if (buy_price - stop_loss) / buy_price > 0.05:
-    #     print(f'{stock_code} {stock_name} 止损过大，不生成交易策略')
-    #     return None
-    #
+    # 检查止损空间是否过小
+    if (buy_price - stop_loss) / buy_price < 0.01:
+        stop_loss = round(buy_price - buy_price * 0.01, n_digits)
+
+    # 检查止损空间是否过大
+    if (buy_price - stop_loss) / buy_price > 0.05:
+        print(f'{stock_code} {stock_name} 止损过大，不生成交易策略')
+        return None
+
     # 计算盈利比率并检查是否满足最小盈利比率要求
     profit_rate = round((sell_price - buy_price) / (buy_price - stop_loss), 3)
     if profit_rate < 1:
