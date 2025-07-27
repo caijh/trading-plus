@@ -57,7 +57,7 @@ def get_recent_price(df, price_type, recent):
 def analyze_stock(stock, k_type=KType.DAY, signal=1,
                   buy_candlestick_weight=1, sell_candlestick_weight=0,
                   buy_ma_weight=2, sell_ma_weight=1,
-                  buy_volume_weight=2, sell_volume_weight=1, prices=None, prices_df=None):
+                  buy_volume_weight=1, sell_volume_weight=1, prices=None, prices_df=None):
     print("=====================================================")
     code = stock['code']
     name = stock['name']

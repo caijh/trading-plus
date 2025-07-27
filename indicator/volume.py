@@ -322,7 +322,6 @@ class VPT:
 
     Attributes:
         signal (int): 信号类型，1 表示买入信号，-1 表示卖出信号。
-        window (int): 计算周期。
         label (str): 标识字符串，用于标识 VPT 和周期。
         weight (int): 权重，默认为 1。
     """
