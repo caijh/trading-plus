@@ -528,9 +528,9 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
 
     if upping:
         first_point = turning_points.iloc[-1]
-        second_point = turning_points.iloc[-2]
+        second_point = turning_points.iloc[-2] if len(turning_points) > 1 else None
         print("Support point:")
-        if current_price > second_point['ma']:
+        if second_point is not None and current_price > second_point['ma']:
             print(second_point)
             support = cal_price_from_kline(stock, recent_df, second_point, current_price, is_support=True)
         else:
@@ -550,9 +550,9 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
             support = cal_price_from_ma(stock, recent_df, support, current_price, is_support=True)
 
         first_point = turning_points.iloc[-1]
-        second_point = turning_points.iloc[-2]
+        second_point = turning_points.iloc[-2] if len(turning_points) > 1 else None
         print("Resistance point:")
-        if current_price < second_point['ma']:
+        if second_point is not None and current_price < second_point['ma']:
             print(second_point)
             resistance = cal_price_from_kline(stock, recent_df, second_point, current_price, is_support=False)
         else:
