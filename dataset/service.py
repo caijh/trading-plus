@@ -31,6 +31,15 @@ def create_dataframe(stock, prices):
     # 过滤掉close为0的数据
     df = df[(df['close'] > 0) & (df['volume'] > 0)]
 
+    # 计算移动平均线和指数移动平均线，并保留三位小数
+    df['EMA5'] = df['close'].ewm(span=5, adjust=False).mean().round(3)
+    df['SMA5'] = df['close'].rolling(window=5).mean().round(3)
+    df['SMA10'] = df['close'].rolling(window=10).mean().round(3)
+    df['SMA20'] = df['close'].rolling(window=20).mean().round(3)
+    df['SMA50'] = df['close'].rolling(window=50).mean().round(3)
+    df['SMA120'] = df['close'].rolling(window=120).mean().round(3)
+    df['SMA200'] = df['close'].rolling(window=200).mean().round(3)
+
     # 将日期格式从字符串转换为datetime对象
     df['date'] = pd.to_datetime(df['date'], format='%Y%m%d')
 

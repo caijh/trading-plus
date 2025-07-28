@@ -71,7 +71,7 @@ class VOL:
             is_volume_turning = any(idx >= len(df) - 4 for idx in turning_down)
             return is_volume_turning
         elif self.mode == 'any':
-            price_sma = ta.sma(df['close'], 5)
+            price_sma = df['SMA5']
             if self.signal == 1:
                 same_trend = price_sma.iloc[-1] > price_sma.iloc[-2] and vol_sma.iloc[-1] > vol_sma.iloc[-2]
             else:

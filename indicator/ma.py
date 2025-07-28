@@ -36,26 +36,32 @@ class SMA:
         price = df.iloc[-1]
 
         # 计算指定周期的简单移动平均线
-        df[f'{self.label}'] = ta.sma(df['close'], self.ma).round(3)
+        if f'{self.label}' not in df.columns:
+            df[f'{self.label}'] = ta.sma(df['close'], self.ma).round(3)
         ma = df[f'{self.label}']
         # 获取最新和前一均线价格，用于比较
         ma_price = ma.iloc[-1]
         pre_ma_price = ma.iloc[-2]
 
         # 计算收盘价的5日指数移动平均(EMA)
-        ema = ta.ema(df['close'], 5).round(3)
+        if 'EMA5' not in df.columns:
+            ema = ta.ema(df['close'], 5).round(3)
+        else:
+            ema = df['EMA5']
         latest_ema_price = ema.iloc[-1]
         pre_ema_price = ema.iloc[-2]
         close_price = price['close']
+        low_price = price['low']
+        high_price = price['high']
 
         if self.signal == 1:
             # EMA大于SMA，且向上拐，股价在EMA上方
-            return (close_price >= latest_ema_price) and (latest_ema_price > ma_price) and (
-                pre_ema_price <= pre_ma_price)
+            return ((close_price >= latest_ema_price) and (latest_ema_price > ma_price) and (
+                pre_ema_price <= pre_ma_price)) or (low_price <= ma_price < close_price)
         else:
             # EMA小于SMA，且向下拐，股价在EMA下方
-            return (close_price < latest_ema_price) and (latest_ema_price < ma_price) and (
-                pre_ema_price >= pre_ma_price)
+            return ((close_price < latest_ema_price) and (latest_ema_price < ma_price) and (
+                pre_ema_price >= pre_ma_price)) or (high_price >= ma_price > close_price)
 
     def get_volume_confirm_patterns(self):
         return volume_registry.get(self.name).get(self.signal)
