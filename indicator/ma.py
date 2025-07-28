@@ -6,6 +6,19 @@ from indicator.volume import OBV, CMF, VPT, \
 
 
 class SMA:
+    """
+    简单移动平均线（SMA）信号判断类。
+
+    该类用于判断股票价格与简单移动平均线（SMA）之间的金叉或死叉信号，
+    并结合指数移动平均线（EMA）进行确认。
+
+    属性:
+        ma (int): 移动平均线的计算周期。
+        label (str): 移动平均线的标签名称，格式为 'SMA{ma}'。
+        signal (int): 信号类型，1 表示金叉信号，-1 表示死叉信号。
+        weight (int): 信号权重，默认为 1。
+        name (str): 指标名称，固定为 'SMA'。
+    """
     ma = 5
     label = ''
     signal = 1
@@ -13,6 +26,13 @@ class SMA:
     name = 'SMA'
 
     def __init__(self, ma, signal):
+        """
+        初始化 SMA 类实例。
+
+        参数:
+            ma (int): 移动平均线的计算周期。
+            signal (int): 信号类型，1 表示金叉信号，-1 表示死叉信号。
+        """
         self.ma = ma
         self.signal = signal
         self.label = f'SMA{self.ma}'
@@ -54,16 +74,28 @@ class SMA:
         low_price = price['low']
         high_price = price['high']
 
+        # 当signal为1时，判断多头信号：
+        # 条件1：当前收盘价大于等于最新EMA价格，且最新EMA价格大于MA价格，且前一个EMA价格小于等于前一个MA价格
+        # 条件2：最低价小于等于MA价格且MA价格小于收盘价
+        # 满足任一条件即返回True，否则返回False
         if self.signal == 1:
-            # EMA大于SMA，且向上拐，股价在EMA上方
             return ((close_price >= latest_ema_price) and (latest_ema_price > ma_price) and (
                 pre_ema_price <= pre_ma_price)) or (low_price <= ma_price < close_price)
+        # 当signal不为1时，判断空头信号：
+        # 条件1：当前收盘价小于最新EMA价格，且最新EMA价格小于MA价格，且前一个EMA价格大于等于前一个MA价格
+        # 条件2：最高价大于等于MA价格且MA价格大于收盘价
+        # 满足任一条件即返回True，否则返回False
         else:
-            # EMA小于SMA，且向下拐，股价在EMA下方
             return ((close_price < latest_ema_price) and (latest_ema_price < ma_price) and (
                 pre_ema_price >= pre_ma_price)) or (high_price >= ma_price > close_price)
 
     def get_volume_confirm_patterns(self):
+        """
+        获取与当前 SMA 信号相关的成交量确认模式。
+
+        返回:
+            list: 与当前 SMA 信号类型对应的成交量确认模式列表。
+        """
         return volume_registry.get(self.name).get(self.signal)
 
 
