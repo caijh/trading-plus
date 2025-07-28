@@ -47,10 +47,12 @@ def save_analyzed_stock(stock):
 
 
 def get_recent_price(df, price_type, recent):
+    if len(df) < recent:
+        return None
     if price_type == 'high':
-        return df.iloc[-recent:]['high'].max()
+        return float(df.iloc[-recent:]['high'].max())
     elif price_type == 'low':
-        return df.iloc[-recent:]['low'].min()
+        return float(df.iloc[-recent:]['low'].min())
     return None
 
 
@@ -495,7 +497,7 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     # 只取最近 200 条记录，提升性能并聚焦近期行情
     recent_df = df.tail(200).copy()
     # 平滑价格（可改为 ta.ema(df['close'], ma_window)）
-    recent_df['ma'] = ta.ema(recent_df['close'], window)
+    recent_df['ma'] = ta.ema(recent_df['close'], window).round(3)
 
     # 找出均线的拐点位置
     turning_points_idxes, turning_up_idxes, turning_down_idxes = detect_turning_points(recent_df['ma'])

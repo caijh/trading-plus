@@ -36,14 +36,14 @@ class SMA:
         price = df.iloc[-1]
 
         # 计算指定周期的简单移动平均线
-        df[f'{self.label}'] = ta.sma(df['close'], self.ma)
+        df[f'{self.label}'] = ta.sma(df['close'], self.ma).round(3)
         ma = df[f'{self.label}']
         # 获取最新和前一均线价格，用于比较
         ma_price = ma.iloc[-1]
         pre_ma_price = ma.iloc[-2]
 
         # 计算收盘价的5日指数移动平均(EMA)
-        ema = ta.ema(df['close'], 5)
+        ema = ta.ema(df['close'], 5).round(3)
         latest_ema_price = ema.iloc[-1]
         pre_ema_price = ema.iloc[-2]
         close_price = price['close']
