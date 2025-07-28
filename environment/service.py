@@ -21,7 +21,7 @@ class EnvVars:
     REDIS_PASSWORD = os.getenv('REDIS_PASSWORD', None)
     REDIS_DB = os.getenv('REDIS_DB', 0)
     REDIS_SSL = os.getenv('REDIS_SSL', 'False').lower() == 'true'
-    MIN_PROFIT_RATE = os.getenv('MIN_PROFIT_RATE', 2.0)
+    MIN_PROFIT_RATE = os.getenv('MIN_PROFIT_RATE', 1.5)
     STOP_LOSS_RATE = os.getenv('STOP_LOSS_RATE', 0.98)
 
     def get_redis_url(self):
