@@ -10,7 +10,7 @@ from indicator.service import get_match_ma_patterns
 from indicator.volume import VOL, OBV, ADOSC, ADLine, CMF, MFI, VPT
 from stock.service import get_stock_prices, get_stock, KType
 from strategy.model import TradingStrategy
-from strategy.service import creat_strategy
+from strategy.service import create_strategy
 
 
 def build_pattern_objects(pattern_names, signal=1):
@@ -158,7 +158,7 @@ def alpha_run_backtest(stock_code):
         if strategy is None:
             analyze_stock(stock, k_type=KType.DAY, prices=prices[0: i], prices_df=df.iloc[:i])
             if len(stock['patterns']) > 0:
-                strategy = creat_strategy(stock)
+                strategy = create_strategy(stock)
                 if strategy is not None:
                     strategy.created_at = pd.to_datetime(df.index[i])
 
