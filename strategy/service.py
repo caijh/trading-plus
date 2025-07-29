@@ -9,53 +9,67 @@ from stock.service import get_stock, KType
 from strategy.model import TradingStrategy
 
 
-def creat_strategy(stock):
-    # 提取股票基本信息
+def create_strategy(stock):
+    """
+    根据输入股票信息生成交易策略，考虑趋势、止损空间、盈亏比率等。
+    """
+    # 股票基础信息提取
     stock_code = stock['code']
     stock_name = stock['name']
-    sell_price = stock['resistance']
     direction = stock['trending']
-    buy_price = stock['price']
-    stop_loss = stock['support']
     n_digits = 3 if stock['stock_type'] == 'Fund' else 2
 
-    # 根据股票方向调整买入价和止损价
-    if "UP" == direction:
-        stop_loss = stock['support'] * 0.995
-    elif "DOWN" == direction:
-        buy_price = stock['support']
-        stop_loss = round(buy_price * env_vars.STOP_LOSS_RATE, n_digits)
+    # 原始价格点
+    support = stock['support']
+    resistance = stock['resistance']
+    current_price = stock['price']
+    patterns = stock['patterns']
+    exchange = stock['exchange']
 
-    # 检查止损空间是否过小
-    if (buy_price - stop_loss) / buy_price < 0.01:
-        stop_loss = round(buy_price - buy_price * 0.01, n_digits)
-
-    # 检查止损空间是否过大
-    if (buy_price - stop_loss) / buy_price > 0.05:
-        print(f'{stock_code} {stock_name} 止损过大，不生成交易策略')
+    # 动态设置买入价、止损、目标价
+    if direction == 'UP':
+        buy_price = round(current_price * 1.005, n_digits)  # 稍微上突破
+        stop_loss = round(support * 0.995, n_digits)  # 支撑下穿一点
+        target_price = resistance  # 以阻力为目标
+    elif direction == 'DOWN':
+        buy_price = round(support * 1.002, n_digits)  # 趋势下跌时尝试抄底
+        stop_loss = round(buy_price * 0.95, n_digits)  # 宽松止损
+        target_price = resistance  # 预估反弹目标
+    else:
+        print(f"{stock_code} {stock_name} 趋势不明，跳过")
         return None
 
-    # 计算盈利比率并检查是否满足最小盈利比率要求
-    profit_rate = round((sell_price - buy_price) / (buy_price - stop_loss), 3)
-    if profit_rate < float(env_vars.MIN_PROFIT_RATE):
-        print(f'{stock_code} {stock_name} 盈亏比例为{profit_rate}不满足要求，不生成交易策略')
+    # 止损空间过滤
+    loss_ratio = (buy_price - stop_loss) / buy_price
+    if loss_ratio < 0.008:  # 小于0.8%止损空间太窄
+        stop_loss = round(buy_price * 0.99, n_digits)  # 最少预留1%
+        loss_ratio = (buy_price - stop_loss) / buy_price
+    if loss_ratio > 0.06:
+        print(f"{stock_code} {stock_name} 止损空间过大 ({loss_ratio:.2%})，跳过")
         return None
 
-    if profit_rate > 3:
-        sell_price = round(4 * buy_price - 3 * stop_loss, n_digits)
+    # 盈亏比判断
+    profit_ratio = (target_price - buy_price) / (buy_price - stop_loss)
+    if profit_ratio < float(env_vars.MIN_PROFIT_RATE):
+        print(f"{stock_code} {stock_name} 盈亏比 {profit_ratio:.2f} 不满足最小要求，跳过")
+        return None
 
-    trading_strategy = TradingStrategy(
+    # 超高盈亏比，动态调整目标价：以 3.5 盈亏比为上限
+    if profit_ratio > 3.5:
+        target_price = round(buy_price + 3.5 * (buy_price - stop_loss), n_digits)
+
+    # 创建策略对象
+    return TradingStrategy(
         stock_code=stock_code,
         stock_name=stock_name,
-        exchange=stock['exchange'],
-        patterns=stock['patterns'],
+        exchange=exchange,
+        patterns=patterns,
         buy_price=buy_price,
-        sell_price=sell_price,
+        sell_price=target_price,
         sell_patterns=[],
         stop_loss=stop_loss,
         signal=1
     )
-    return trading_strategy
 
 
 def generate_strategy(stock):
