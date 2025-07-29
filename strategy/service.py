@@ -88,7 +88,7 @@ def generate_strategy(stock):
     with db.session.begin():
         stock_code = stock['code']
         stock_name = stock['name']
-        strategy = creat_strategy(stock)
+        strategy = create_strategy(stock)
 
         if strategy is None:
             return None
