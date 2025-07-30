@@ -289,7 +289,6 @@ def select_nearest_point(stock, df, points, current_price, field, is_support=Tru
     recent_points = points.iloc[-recent_num:]
     recent_points['dist'] = (recent_points[f'{field}'] - current_price).abs()
     point = recent_points.sort_values('dist').iloc[0]
-    print(point)
     return cal_price_from_kline(stock, df, point, current_price, field, is_support)
 
 
@@ -545,17 +544,17 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     if upping:
         first_point = turning_points.iloc[-1]
         second_point = turning_points.iloc[-2] if len(turning_points) > 1 else None
-        print("Support point:")
         if second_point is not None and current_price > second_point[f'{field}']:
-            print(second_point)
             support = cal_price_from_kline(stock, recent_df, second_point, current_price, field, is_support=True)
         else:
             print(first_point)
             support = cal_price_from_kline(stock, recent_df, first_point, current_price, field, is_support=True)
 
         if not resistances.empty and resistance is None:
-            print("Resistance point:")
-            resistance = select_nearest_point(stock, recent_df, resistances, current_price, field, is_support=False)
+            resistance_latest = select_nearest_point(stock, recent_df, resistances, current_price, field,
+                                                     is_support=False)
+            resistance_score = select_score_point(stock, recent_df, resistances, current_price, field, is_support=False)
+            resistance = resistance_score if resistance_score < resistance_latest else resistance_latest
         else:
             resistance = cal_price_from_ma(stock, recent_df, resistance, current_price, is_support=False)
     else:
