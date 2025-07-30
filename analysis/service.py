@@ -65,7 +65,7 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1,
     name = stock['name']
     stock['patterns'] = []
     prices = get_stock_prices(code, k_type) if prices is None else prices
-    if not prices:
+    if prices is None or len(prices) == 0:
         print(f'No prices get for  stock {code}')
         return stock
     else:
