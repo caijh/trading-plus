@@ -314,7 +314,7 @@ def cal_price_from_kline(stock, df, point, current_price, field, is_support):
     return price
 
 
-def cal_price_from_ma(stock, df, point, current_price, is_support):
+def cal_price_from_ma(stock, df, current_price, is_support):
     """
     根据移动平均线计算目标价格。
 
@@ -526,8 +526,8 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     resistances = turning_up_points[turning_up_points[f'{field}'] > current_price]
 
     # 找最靠近当前价格的支撑和阻力（按时间最近，取所在K线的低 / 高点）
-    support = None
-    resistance = None
+    support = cal_price_from_ma(stock, recent_df, current_price, is_support=True)
+    resistance = cal_price_from_ma(stock, recent_df, current_price, is_support=False)
 
     # if not supports.empty and support is None:
     #     print("Support point:")
@@ -545,36 +545,37 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
         first_point = turning_points.iloc[-1]
         second_point = turning_points.iloc[-2] if len(turning_points) > 1 else None
         if second_point is not None and current_price > second_point[f'{field}']:
-            support = cal_price_from_kline(stock, recent_df, second_point, current_price, field, is_support=True)
+            support_price = cal_price_from_kline(stock, recent_df, second_point, current_price, field, is_support=True)
         else:
-            print(first_point)
-            support = cal_price_from_kline(stock, recent_df, first_point, current_price, field, is_support=True)
+            support_price = cal_price_from_kline(stock, recent_df, first_point, current_price, field, is_support=True)
+        if support is None or support > support_price:
+            support = support_price
 
         if not resistances.empty and resistance is None:
             resistance_latest = select_nearest_point(stock, recent_df, resistances, current_price, field,
                                                      is_support=False)
             resistance_score = select_score_point(stock, recent_df, resistances, current_price, field, is_support=False)
-            resistance = resistance_score if resistance_score < resistance_latest else resistance_latest
-        else:
-            resistance = cal_price_from_ma(stock, recent_df, resistance, current_price, is_support=False)
+            resistance_price = resistance_score if resistance_score < resistance_latest else resistance_latest
+
+            if resistance is None or resistance > resistance_price:
+                resistance = resistance_price
     else:
         if not supports.empty and support is None:
-            print("Support point:")
-            support = select_nearest_point(stock, recent_df, supports, current_price, field,
-                                           is_support=True)  # 时间上最靠近当前的支撑点
-        else:
-            support = cal_price_from_ma(stock, recent_df, support, current_price, is_support=True)
+            support_price = select_nearest_point(stock, recent_df, supports, current_price, field,
+                                                 is_support=True)
+            if support is None or support > support_price:
+                support = support_price
 
         first_point = turning_points.iloc[-1]
         second_point = turning_points.iloc[-2] if len(turning_points) > 1 else None
-        print("Resistance point:")
         if second_point is not None and current_price < second_point[f'{field}']:
-            print(second_point)
-            resistance = cal_price_from_kline(stock, recent_df, second_point, current_price, field, is_support=False)
+            resistance_price = cal_price_from_kline(stock, recent_df, second_point, current_price, field,
+                                                    is_support=False)
         else:
-            print(first_point)
-            resistance = cal_price_from_kline(stock, recent_df, first_point, current_price, field, is_support=False)
-
+            resistance_price = cal_price_from_kline(stock, recent_df, first_point, current_price, field,
+                                                    is_support=False)
+        if resistance is None or resistance > resistance_price:
+            resistance = resistance_price
     # 根据基金或股票类型决定小数点保留位数
     n_digits = 3 if stock.get('stock_type') == 'Fund' else 2
     s = round(float(support), n_digits) if support else None
