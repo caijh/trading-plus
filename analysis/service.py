@@ -46,13 +46,21 @@ def save_analyzed_stock(stock):
     print(f"Add {analyzed_stock} to AnalyzedStock")
 
 
-def get_recent_price(df, price_type, recent):
+def get_recent_price(stock, df, price_type, recent):
     if len(df) < recent:
         return None
+
+    recent_df = df.iloc[-recent:]
+
     if price_type == 'high':
-        return float(df.iloc[-recent:]['high'].max())
+        max_idx = recent_df['high'].idxmax()
+        stock['resistance_date'] = max_idx.strftime('%Y-%m-%d %H:%M:%S')
+        return float(recent_df.loc[max_idx]['high'])
     elif price_type == 'low':
-        return float(df.iloc[-recent:]['low'].min())
+        min_idx = recent_df['low'].idxmin()
+        stock['support_date'] = min_idx.strftime('%Y-%m-%d %H:%M:%S')
+        return float(recent_df.loc[min_idx]['low'])
+
     return None
 
 
@@ -107,12 +115,12 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1,
         if support_n is not None:
             support = support_n
         elif signal == 1 and len(stock['patterns']) > 0:
-            support = get_recent_price(df, 'low', 5)
+            support = get_recent_price(stock, df, 'low', 5)
 
         if resistance_n is not None:
             resistance = resistance_n
         elif signal == -1 and len(stock['patterns']) > 0:
-            resistance = get_recent_price(df, 'high', 5)
+            resistance = get_recent_price(stock, df, 'high', 5)
 
         # latest_volume = df.iloc[-1]['volume']
         # if latest_volume > 0:
