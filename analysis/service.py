@@ -544,11 +544,12 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     if upping:
         first_point = turning_points.iloc[-1]
         second_point = turning_points.iloc[-2] if len(turning_points) > 1 else None
+        support_price = None
         if second_point is not None and current_price > second_point[f'{field}']:
             support_price = cal_price_from_kline(stock, recent_df, second_point, current_price, field, is_support=True)
-        else:
+        elif first_point is not None and current_price > first_point[f'{field}']:
             support_price = cal_price_from_kline(stock, recent_df, first_point, current_price, field, is_support=True)
-        if support is None or support > support_price:
+        if support_price is not None and (support is None or current_price > support > support_price):
             support = support_price
 
         if not resistances.empty and resistance is None:
@@ -557,24 +558,25 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
             resistance_score = select_score_point(stock, recent_df, resistances, current_price, field, is_support=False)
             resistance_price = resistance_score if resistance_score < resistance_latest else resistance_latest
 
-            if resistance is None or resistance > resistance_price:
+            if resistance is None or resistance > resistance_price > current_price:
                 resistance = resistance_price
     else:
         if not supports.empty and support is None:
             support_price = select_nearest_point(stock, recent_df, supports, current_price, field,
                                                  is_support=True)
-            if support is None or support > support_price:
+            if support is None or current_price > support > support_price:
                 support = support_price
 
         first_point = turning_points.iloc[-1]
         second_point = turning_points.iloc[-2] if len(turning_points) > 1 else None
+        resistance_price = None
         if second_point is not None and current_price < second_point[f'{field}']:
             resistance_price = cal_price_from_kline(stock, recent_df, second_point, current_price, field,
                                                     is_support=False)
-        else:
+        elif first_point is not None and current_price < first_point[f'{field}']:
             resistance_price = cal_price_from_kline(stock, recent_df, first_point, current_price, field,
                                                     is_support=False)
-        if resistance is None or resistance > resistance_price:
+        if resistance_price is not None and (resistance is None or resistance > resistance_price > current_price):
             resistance = resistance_price
     # 根据基金或股票类型决定小数点保留位数
     n_digits = 3 if stock.get('stock_type') == 'Fund' else 2
