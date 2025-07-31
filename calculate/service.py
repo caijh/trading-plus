@@ -57,6 +57,12 @@ def detect_turning_points(series):
                 turning_down_points.append(i)
                 turning_points.append(i)
 
-
     # Return all turning points and the respective upward and downward turning points
     return turning_points, turning_up_points, turning_down_points
+
+
+def get_round_price(stock, price):
+    if price is None:
+        return None
+    n_digits = 3 if stock.get('stock_type') == 'Fund' else 2
+    return round(float(price), n_digits)

@@ -2,7 +2,7 @@ import numpy as np
 import pandas_ta as ta
 
 from analysis.model import AnalyzedStock
-from calculate.service import detect_turning_points
+from calculate.service import detect_turning_points, get_round_price
 from dataset.service import create_dataframe
 from extensions import db
 from indicator.service import get_patterns, get_match_patterns, get_match_ma_patterns
@@ -587,9 +587,8 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
         if resistance_price is not None and (resistance is None or resistance > resistance_price > current_price):
             resistance = resistance_price
     # 根据基金或股票类型决定小数点保留位数
-    n_digits = 3 if stock.get('stock_type') == 'Fund' else 2
-    s = round(float(support), n_digits) if support else None
-    r = round(float(resistance), n_digits) if resistance else None
+    s = get_round_price(stock, support)
+    r = get_round_price(stock, resistance)
 
     # 打印计算结果
     print(
