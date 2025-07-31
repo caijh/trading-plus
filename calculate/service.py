@@ -23,7 +23,8 @@ def detect_turning_points(series):
     # Iterate through the series, excluding the first and last elements
     start = 1
     step = 1
-    for i in range(start, len(series) - step):
+    series_len = len(series)
+    for i in range(start, series_len - step):
         # Get the previous, current, and next values
         idx_prev, idx_cur, idx_next = i - step, i, i + step
         prev, curr, next_ = series.iloc[idx_prev], series.iloc[idx_cur], series.iloc[
@@ -36,13 +37,26 @@ def detect_turning_points(series):
 
         # Determine if the current point is an upward turning point
         if prev > curr and curr < next_:
-            turning_up_points.append(i)
-            turning_points.append(i)
+            idx_next_next = idx_next + 1
+            if idx_next_next < series_len:
+                if series.iloc[idx_next_next] > next_:
+                    turning_up_points.append(i)
+                    turning_points.append(i)
+            else:
+                turning_up_points.append(i)
+                turning_points.append(i)
 
         # Determine if the current point is a downward turning point
         if prev < curr and curr > next_:
-            turning_down_points.append(i)
-            turning_points.append(i)
+            idx_prev_prev = idx_prev - 1
+            if idx_prev_prev >= 0:
+                if series.iloc[idx_prev_prev] < prev:
+                    turning_down_points.append(i)
+                    turning_points.append(i)
+            else:
+                turning_down_points.append(i)
+                turning_points.append(i)
+
 
     # Return all turning points and the respective upward and downward turning points
     return turning_points, turning_up_points, turning_down_points
