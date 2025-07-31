@@ -1,8 +1,7 @@
 import pandas as pd
 import pandas_ta as ta
 
-from indicator.volume import OBV, CMF, VPT, \
-    ADOSC, ADLine, MFI, VOL
+from indicator.volume import OBV, CMF, VPT, ADOSC, ADLine, MFI, VOL
 
 
 class SMA:
@@ -60,7 +59,7 @@ class SMA:
             df[f'{self.label}'] = ta.sma(df['close'], self.ma).round(3)
         ma = df[f'{self.label}']
         # 获取最新和前一均线价格，用于比较
-        ma_price = ma.iloc[-1]
+        latest_ma_price = ma.iloc[-1]
         pre_ma_price = ma.iloc[-2]
 
         # 计算收盘价的5日指数移动平均(EMA)
@@ -79,15 +78,15 @@ class SMA:
         # 条件2：最低价小于等于MA价格且MA价格小于收盘价
         # 满足任一条件即返回True，否则返回False
         if self.signal == 1:
-            return ((close_price >= latest_ema_price) and (latest_ema_price > ma_price) and (
-                pre_ema_price <= pre_ma_price)) or (low_price <= ma_price < close_price)
+            return ((close_price >= latest_ema_price) and (latest_ema_price > latest_ma_price) and (
+                pre_ema_price <= pre_ma_price)) or (low_price <= latest_ma_price < close_price)
         # 当signal不为1时，判断空头信号：
         # 条件1：当前收盘价小于最新EMA价格，且最新EMA价格小于MA价格，且前一个EMA价格大于等于前一个MA价格
         # 条件2：最高价大于等于MA价格且MA价格大于收盘价
         # 满足任一条件即返回True，否则返回False
         else:
-            return ((close_price < latest_ema_price) and (latest_ema_price < ma_price) and (
-                pre_ema_price >= pre_ma_price)) or (high_price >= ma_price > close_price)
+            return ((close_price < latest_ema_price) and (latest_ema_price < latest_ma_price) and (
+                pre_ema_price >= pre_ma_price)) or (high_price >= latest_ma_price > close_price)
 
     def get_volume_confirm_patterns(self):
         """
