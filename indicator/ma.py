@@ -99,6 +99,16 @@ class SMA:
 
 
 class MACD:
+    """
+    MACD指标信号匹配类
+
+    属性:
+    - label: 指标标签名称
+    - signal: 信号类型，1表示金叉信号，-1表示死叉信号
+    - weight: 权重值
+    - recent: 近期时间段长度
+    - name: 指标名称
+    """
     label = ''
     signal = 1
     weight = 1
@@ -106,6 +116,13 @@ class MACD:
     name = 'MACD'
 
     def __init__(self, signal, recent=3):
+        """
+        初始化MACD指标参数
+
+        参数:
+        - signal: 信号类型，1表示金叉信号，-1表示死叉信号
+        - recent: 近期时间段长度，默认为3
+        """
         self.label = 'MACD'
         self.signal = signal
         self.recent = recent
