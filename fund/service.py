@@ -46,6 +46,14 @@ def analyze_funds(exchange):
     for item in data:
         # 将数据项初始化为股票对象，这里假设股票对象可以直接从数据项转换而来
         stock = item
+        code = stock['code']
+        # 排除封闭式基金（如 500xxx、184xxx）和 REITs（如 508xxx、180xxx）
+        if code.startswith(('500', '184', '508', '180')):
+            continue
+        name = stock['name']
+        if name.contains('債') or name.contains('币'):
+            continue
+
         stock['stock_type'] = 'Fund'
 
         # 调用函数分析股票，专注于日K线图中的模式
