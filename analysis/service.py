@@ -530,6 +530,8 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
 
     if len(turning_up_points) > 1:
         stock['trending'] = 'UP' if turning_up_points.iloc[-1]['low'] > turning_up_points.iloc[-2]['low'] else 'DOWN'
+    else:
+        stock['trending'] = 'DOWN'
 
     # 支撑点：拐点价格 < 当前价格
     supports = turning_down_points[turning_down_points[f'{ma_name}'] < current_price]
