@@ -1,67 +1,67 @@
 import pandas_ta as ta
 
 ALL_PATTERNS = [
-    "2crows",  # 两只乌鸦
-    "3blackcrows",  # 三只乌鸦
-    "3inside",  # 三内升/三内降
-    "3linestrike",  # 三线打击
-    "3outside",  # 三外升/三外降
-    "3starsinsouth",  # 南方三星
-    "3whitesoldiers",  # 三白兵
-    "abandonedbaby",  # 弃婴形态
-    "advanceblock",  # 上升受阻
-    "belthold",  # 腰带线
-    "breakaway",  # 脱离形态
-    "closingmarubozu",  # 收盘光头光脚阳线/阴线
-    "concealbabyswall",  # 隐藏吞没婴儿
-    "counterattack",  # 反击线
-    "darkcloudcover",  # 乌云盖顶
-    "dojistar",  # 十字星
-    "dragonflydoji",  # 蜻蜓十字/T字线
-    "engulfing",  # 吞没形态
-    "eveningdojistar",  # 黄昏十字星
-    "eveningstar",  # 黄昏星
-    "gapsidesidewhite",  # 向上/向下并列阳线
-    "gravestonedoji",  # 墓碑十字
-    "hammer",  # 锤头线
-    "hangingman",  # 上吊线
-    "harami",  # 母子线
-    "haramicross",  # 十字孕线
-    "highwave",  # 高浪线
-    "hikkake",  # 陷阱形态
-    "hikkakemod",  # 修正陷阱形态
-    "homingpigeon",  # 归巢鸽
-    "identical3crows",  # 等长三鸦
-    "inneck",  # 颈内线
-    "inside",  # 内包线
-    "invertedhammer",  # 倒锤头线
-    "kicking",  # 反冲形态
-    "kickingbylength",  # 按长度判断的反冲形态
-    "ladderbottom",  # 梯底形态
-    "longleggeddoji",  # 长脚十字
-    "longline",  # 长蜡烛线
-    "marubozu",  # 光头光脚阳线/阴线
-    "matchinglow",  # 等低线
-    "mathold",  # 保持形态
-    "morningdojistar",  # 晨星十字星
-    "morningstar",  # 晨星
-    "onneck",  # 颈上线
-    "piercing",  # 刺透线
-    "rickshawman",  # 黄包车夫线（长脚十字）
-    "risefall3methods",  # 三方法（上升/下降）
-    "separatinglines",  # 分离线
-    "shootingstar",  # 流星线
-    "shortline",  # 短蜡烛线
-    "spinningtop",  # 纺锤线
-    "stalledpattern",  # 停顿形态
-    "sticksandwich",  # 条形三明治
-    "takuri",  # 探水线
-    "tasukigap",  # 切入缺口
-    "thrusting",  # 插入线
-    "tristar",  # 三星形态
-    "unique3river",  # 奇特三河床
-    "upsidegap2crows",  # 上升缺口两鸦
-    "xsidegap3methods"  # 横向缺口三方法
+    {"name": "2crows", "description": "两只乌鸦"},
+    {"name": "3blackcrows", "description": "三只乌鸦"},
+    {"name": "3inside", "description": "三内升/三内降"},
+    {"name": "3linestrike", "description": "三线打击"},
+    {"name": "3outside", "description": "三外升/三外降"},
+    {"name": "3starsinsouth", "description": "南方三星"},
+    {"name": "3whitesoldiers", "description": "三白兵"},
+    {"name": "abandonedbaby", "description": "弃婴形态"},
+    {"name": "advanceblock", "description": "上升受阻"},
+    {"name": "belthold", "description": "腰带线"},
+    {"name": "breakaway", "description": "脱离形态"},
+    {"name": "closingmarubozu", "description": "收盘光头光脚阳线/阴线"},
+    {"name": "concealbabyswall", "description": "隐藏吞没婴儿"},
+    {"name": "counterattack", "description": "反击线"},
+    {"name": "darkcloudcover", "description": "乌云盖顶"},
+    {"name": "dojistar", "description": "十字星"},
+    {"name": "dragonflydoji", "description": "蜻蜓十字/T字线"},
+    {"name": "engulfing", "description": "吞没形态"},
+    {"name": "eveningdojistar", "description": "黄昏十字星"},
+    {"name": "eveningstar", "description": "黄昏星"},
+    {"name": "gapsidesidewhite", "description": "向上/向下并列阳线"},
+    {"name": "gravestonedoji", "description": "墓碑十字"},
+    {"name": "hammer", "description": "锤头线"},
+    {"name": "hangingman", "description": "上吊线"},
+    {"name": "harami", "description": "母子线"},
+    {"name": "haramicross", "description": "十字孕线"},
+    {"name": "highwave", "description": "高浪线"},
+    {"name": "hikkake", "description": "陷阱形态"},
+    {"name": "hikkakemod", "description": "修正陷阱形态"},
+    {"name": "homingpigeon", "description": "归巢鸽"},
+    {"name": "identical3crows", "description": "等长三鸦"},
+    {"name": "inneck", "description": "颈内线"},
+    {"name": "inside", "description": "内包线"},
+    {"name": "invertedhammer", "description": "倒锤头线"},
+    {"name": "kicking", "description": "反冲形态"},
+    {"name": "kickingbylength", "description": "按长度判断的反冲形态"},
+    {"name": "ladderbottom", "description": "梯底形态"},
+    {"name": "longleggeddoji", "description": "长脚十字"},
+    {"name": "longline", "description": "长蜡烛线"},
+    {"name": "marubozu", "description": "光头光脚阳线/阴线"},
+    {"name": "matchinglow", "description": "等低线"},
+    {"name": "mathold", "description": "保持形态"},
+    {"name": "morningdojistar", "description": "晨星十字星"},
+    {"name": "morningstar", "description": "晨星"},
+    {"name": "onneck", "description": "颈上线"},
+    {"name": "piercing", "description": "刺透线"},
+    {"name": "rickshawman", "description": "黄包车夫线（长脚十字）"},
+    {"name": "risefall3methods", "description": "三方法（上升/下降）"},
+    {"name": "separatinglines", "description": "分离线"},
+    {"name": "shootingstar", "description": "流星线"},
+    {"name": "shortline", "description": "短蜡烛线"},
+    {"name": "spinningtop", "description": "纺锤线"},
+    {"name": "stalledpattern", "description": "停顿形态"},
+    {"name": "sticksandwich", "description": "条形三明治"},
+    {"name": "takuri", "description": "探水线"},
+    {"name": "tasukigap", "description": "切入缺口"},
+    {"name": "thrusting", "description": "插入线"},
+    {"name": "tristar", "description": "三星形态"},
+    {"name": "unique3river", "description": "奇特三河床"},
+    {"name": "upsidegap2crows", "description": "上升缺口两鸦"},
+    {"name": "xsidegap3methods", "description": "横向缺口三方法"}
 ]
 
 
@@ -73,11 +73,12 @@ class Candlestick:
     weight = 1
     recent = 5
 
-    def __init__(self, name, label_, column, signal):
+    def __init__(self, pattern, signal):
         self.signal = signal
-        self.name = name
-        self.label = label_
-        self.column = column
+        self.name = pattern['name']
+        self.label = pattern['name']
+        self.column = f'CDL_{self.name.upper()}'
+        self.description = pattern['description']
 
     def match(self, stock, prices, df):
         """
@@ -108,6 +109,7 @@ class Candlestick:
         if not matched.empty:
             candlestick_patterns = {
                 'name': self.name,
+                'description': self.description,
                 'dates': matched.index.strftime('%Y-%m-%d').tolist()
             }
             stock['patterns_candlestick'].append(candlestick_patterns)
@@ -125,7 +127,7 @@ def get_bullish_candlestick_patterns():
     """
     patterns = []
     for PATTERN in ALL_PATTERNS:
-        patterns.append(Candlestick(PATTERN, PATTERN, f'CDL_{PATTERN.upper()}', 1))
+        patterns.append(Candlestick(PATTERN, 1))
 
     return patterns
 
@@ -138,6 +140,6 @@ def get_bearish_candlestick_patterns():
     """
     patterns = []
     for PATTERN in ALL_PATTERNS:
-        patterns.append(Candlestick(PATTERN, PATTERN, f'CDL_{PATTERN.upper()}', -1))
+        patterns.append(Candlestick(PATTERN, -1))
 
     return patterns
