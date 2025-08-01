@@ -71,7 +71,7 @@ class Candlestick:
     label = ''
     signal = 1
     weight = 1
-    recent = 5
+    recent = 3
 
     def __init__(self, pattern, signal):
         self.signal = signal
