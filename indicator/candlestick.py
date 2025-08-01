@@ -1,18 +1,67 @@
 import pandas_ta as ta
 
 ALL_PATTERNS = [
-    "2crows", "3blackcrows", "3inside", "3linestrike", "3outside", "3starsinsouth",
-    "3whitesoldiers", "abandonedbaby", "advanceblock", "belthold", "breakaway",
-    "closingmarubozu", "concealbabyswall", "counterattack", "darkcloudcover",
-    "dojistar", "dragonflydoji", "engulfing", "eveningdojistar", "eveningstar",
-    "gapsidesidewhite", "gravestonedoji", "hammer", "hangingman", "harami",
-    "haramicross", "highwave", "hikkake", "hikkakemod", "homingpigeon",
-    "identical3crows", "inneck", "inside", "invertedhammer", "kicking", "kickingbylength",
-    "ladderbottom", "longleggeddoji", "longline", "marubozu", "matchinglow", "mathold",
-    "morningdojistar", "morningstar", "onneck", "piercing", "rickshawman",
-    "risefall3methods", "separatinglines", "shootingstar", "shortline", "spinningtop",
-    "stalledpattern", "sticksandwich", "takuri", "tasukigap", "thrusting", "tristar",
-    "unique3river", "upsidegap2crows", "xsidegap3methods"
+    "2crows",  # 两只乌鸦
+    "3blackcrows",  # 三只乌鸦
+    "3inside",  # 三内升/三内降
+    "3linestrike",  # 三线打击
+    "3outside",  # 三外升/三外降
+    "3starsinsouth",  # 南方三星
+    "3whitesoldiers",  # 三白兵
+    "abandonedbaby",  # 弃婴形态
+    "advanceblock",  # 上升受阻
+    "belthold",  # 腰带线
+    "breakaway",  # 脱离形态
+    "closingmarubozu",  # 收盘光头光脚阳线/阴线
+    "concealbabyswall",  # 隐藏吞没婴儿
+    "counterattack",  # 反击线
+    "darkcloudcover",  # 乌云盖顶
+    "dojistar",  # 十字星
+    "dragonflydoji",  # 蜻蜓十字/T字线
+    "engulfing",  # 吞没形态
+    "eveningdojistar",  # 黄昏十字星
+    "eveningstar",  # 黄昏星
+    "gapsidesidewhite",  # 向上/向下并列阳线
+    "gravestonedoji",  # 墓碑十字
+    "hammer",  # 锤头线
+    "hangingman",  # 上吊线
+    "harami",  # 母子线
+    "haramicross",  # 十字孕线
+    "highwave",  # 高浪线
+    "hikkake",  # 陷阱形态
+    "hikkakemod",  # 修正陷阱形态
+    "homingpigeon",  # 归巢鸽
+    "identical3crows",  # 等长三鸦
+    "inneck",  # 颈内线
+    "inside",  # 内包线
+    "invertedhammer",  # 倒锤头线
+    "kicking",  # 反冲形态
+    "kickingbylength",  # 按长度判断的反冲形态
+    "ladderbottom",  # 梯底形态
+    "longleggeddoji",  # 长脚十字
+    "longline",  # 长蜡烛线
+    "marubozu",  # 光头光脚阳线/阴线
+    "matchinglow",  # 等低线
+    "mathold",  # 保持形态
+    "morningdojistar",  # 晨星十字星
+    "morningstar",  # 晨星
+    "onneck",  # 颈上线
+    "piercing",  # 刺透线
+    "rickshawman",  # 黄包车夫线（长脚十字）
+    "risefall3methods",  # 三方法（上升/下降）
+    "separatinglines",  # 分离线
+    "shootingstar",  # 流星线
+    "shortline",  # 短蜡烛线
+    "spinningtop",  # 纺锤线
+    "stalledpattern",  # 停顿形态
+    "sticksandwich",  # 条形三明治
+    "takuri",  # 探水线
+    "tasukigap",  # 切入缺口
+    "thrusting",  # 插入线
+    "tristar",  # 三星形态
+    "unique3river",  # 奇特三河床
+    "upsidegap2crows",  # 上升缺口两鸦
+    "xsidegap3methods"  # 横向缺口三方法
 ]
 
 
