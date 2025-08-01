@@ -72,6 +72,7 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1,
     code = stock['code']
     name = stock['name']
     stock['patterns'] = []
+    stock['patterns_candlestick'] = []
     prices = get_stock_prices(code, k_type) if prices is None else prices
     if prices is None or len(prices) == 0:
         print(f'No prices get for  stock {code}')
@@ -199,8 +200,8 @@ def calculate_support_resistance(stock, df, window=20, num_std=2):
     s = round(float(s + latest_data['Lower']) / 2, n_digits)
     r = round(float(r + latest_data['Upper']) / 2, n_digits)
 
-    # 打印计算结果
-    print(f'{stock["code"]} calculate_support_resistance Support = {s}, Resistance = {r}')
+    # # 打印计算结果
+    # print(f'{stock["code"]} calculate_support_resistance Support = {s}, Resistance = {r}')
 
     return s, r
 
@@ -591,6 +592,6 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     r = get_round_price(stock, resistance)
 
     # 打印计算结果
-    print(
-        f'{stock["code"]} calculate_support_resistance_by_turning_points Support = {s}, Resistance = {r}, Price = {current_price}')
+    # print(
+    #     f'{stock["code"]} calculate_support_resistance_by_turning_points Support = {s}, Resistance = {r}, Price = {current_price}')
     return s, r

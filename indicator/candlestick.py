@@ -32,28 +32,39 @@ class Candlestick:
 
     def match(self, stock, prices, df):
         """
-        判断给定股票的最近几个交易日中是否出现了特定的K线形态。
+        判断给定股票的最近几个交易日中是否出现了特定的K线形态，并记录出现的日期。
 
-        :param stock: 股票代码，用于标识特定的股票。
-        :param prices: 股票价格数据，通常包括开、高、低、收等价格信息。
-        :param df: 包含股票历史数据的DataFrame，至少包括['open', 'high', 'low', 'close']四个列。
+        :param stock: 股票字典，将在其中记录形态出现的日期。
+        :param prices: 股票价格数据（未使用，但保留参数结构）。
+        :param df: 包含股票历史数据的DataFrame，至少包括['open', 'high', 'low', 'close']列。
         :return: 布尔值，表示是否匹配到了指定的K线形态。
         """
-        # 获取最近几个交易日的数据，以便进行K线形态识别
-        recent_df = df.tail(self.recent)
+        # 用最近20根K线计算形态
+        pattern_df = df.tail(20).copy()
 
-        # 使用技术分析库ta，计算指定K线形态
-        recent_df = ta.cdl_pattern(recent_df['open'], recent_df['high'], recent_df['low'], recent_df['close'],
-                                   name=self.name)
+        # 计算K线形态，结果列为 self.column
+        pattern_df[self.column] = ta.cdl_pattern(
+            pattern_df['open'], pattern_df['high'], pattern_df['low'], pattern_df['close'], name=self.name
+        )
 
-        # 筛选出符合特定K线形态的行，即该列的值大于0
+        # 检查最近 self.recent 根K线是否匹配信号
+        recent_pattern = pattern_df.tail(self.recent)
+
         if self.signal == 1:
-            pattern = recent_df[recent_df[self.column] > 0]
+            matched = recent_pattern[recent_pattern[self.column] > 0]
         else:
-            pattern = recent_df[recent_df[self.column] < 0]
-        # 如果存在匹配的K线形态，则返回True，否则返回False
-        result = not pattern.empty
-        return result
+            matched = recent_pattern[recent_pattern[self.column] < 0]
+
+        # 提取匹配日期，并写入 stock 中
+        if not matched.empty:
+            candlestick_patterns = {
+                'name': self.name,
+                'dates': matched.index.strftime('%Y-%m-%d').tolist()
+            }
+            stock['patterns_candlestick'].append(candlestick_patterns)
+            return True
+        else:
+            return False
 
 
 def get_bullish_candlestick_patterns():
