@@ -433,7 +433,7 @@ def score_turning_point(
         if idx < window or idx + window >= data_len:
             return {"score": 0}
         # 获取移动平均价系列
-        ma_series = df['ma']
+        ma_series = df['EMA5']
         # 获取转势点的价格
         price_at_turn = ma_series.iloc[idx]
         # 计算最大距离
