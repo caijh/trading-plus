@@ -275,7 +275,6 @@ def select_score_point(stock, df, points, current_price, ma_name, is_support=Tru
     recent_points['score'] = recent_points.index.map(
         lambda idx: score_turning_point(df, idx, current_price, ma_name)['score'])
     point = recent_points.sort_values('score', ascending=False).iloc[0]
-    print(point)
     return cal_price_from_kline(stock, df, point, current_price, ma_name, is_support)
 
 
