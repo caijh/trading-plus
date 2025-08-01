@@ -254,7 +254,7 @@ def calculate_vwap_support_resistance(stock, df, window=14, multiplier=2):
     return s, r
 
 
-def select_score_point(stock, df, points, current_price, field, is_support=True):
+def select_score_point(stock, df, points, current_price, ma_name, is_support=True):
     """
     从最近的候选拐点中，选择价格最接近当前价的点，并返回其所在K线的高/低点。
 
@@ -272,10 +272,11 @@ def select_score_point(stock, df, points, current_price, field, is_support=True)
 
     # 按 ma 离当前价格的距离升序排序
     recent_points = points
-    recent_points['score'] = recent_points.index.map(lambda idx: score_turning_point(df, idx, current_price)['score'])
+    recent_points['score'] = recent_points.index.map(
+        lambda idx: score_turning_point(df, idx, current_price, ma_name)['score'])
     point = recent_points.sort_values('score', ascending=False).iloc[0]
     print(point)
-    return cal_price_from_kline(stock, df, point, current_price, field, is_support)
+    return cal_price_from_kline(stock, df, point, current_price, ma_name, is_support)
 
 
 def select_nearest_point(stock, df, points, current_price, field, is_support=True, recent_num=2):
@@ -393,6 +394,7 @@ def score_turning_point(
     df,
     point_index,
     current_price,
+    field,
     window=None,
     slope_window=None,
     price_tolerance=0.005,
@@ -433,7 +435,7 @@ def score_turning_point(
         if idx < window or idx + window >= data_len:
             return {"score": 0}
         # 获取移动平均价系列
-        ma_series = df['EMA5']
+        ma_series = df[f'{field}']
         # 获取转势点的价格
         price_at_turn = ma_series.iloc[idx]
         # 计算最大距离
@@ -507,22 +509,22 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     # 只取最近 200 条记录，提升性能并聚焦近期行情
     recent_df = df.tail(200).copy()
     # 平滑价格（可改为 ta.ema(df['close'], ma_window)）
-    field = f'EMA{window}'
-    if field not in df.columns:
-        df[f'{field}'] = ta.ema(recent_df['close'], window).round(3)
+    ma_name = f'EMA{window}'
+    if ma_name not in df.columns:
+        df[f'{ma_name}'] = ta.ema(recent_df['close'], window).round(3)
 
     # 找出均线的拐点位置
-    turning_points_idxes, turning_up_idxes, turning_down_idxes = detect_turning_points(recent_df[f'{field}'])
+    turning_points_idxes, turning_up_idxes, turning_down_idxes = detect_turning_points(recent_df[f'{ma_name}'])
 
     # 提取拐点价格及索引
-    turning_points = recent_df.iloc[turning_points_idxes][[f'{field}', 'close', 'low', 'high', 'open']]
-    turning_up_points = recent_df.iloc[turning_up_idxes][[f'{field}', 'close', 'low', 'high', 'open']]
-    turning_down_points = recent_df.iloc[turning_down_idxes][[f'{field}', 'close', 'low', 'high', 'open']]
+    turning_points = recent_df.iloc[turning_points_idxes][[f'{ma_name}', 'close', 'low', 'high', 'open']]
+    turning_up_points = recent_df.iloc[turning_up_idxes][[f'{ma_name}', 'close', 'low', 'high', 'open']]
+    turning_down_points = recent_df.iloc[turning_down_idxes][[f'{ma_name}', 'close', 'low', 'high', 'open']]
 
     # 获取当前价格、最近的向上拐点和向下拐点
     current_price = recent_df['close'].iloc[-1]
-    current_ma_price = recent_df[f'{field}'].iloc[-1]
-    pre_ma_price = recent_df[f'{field}'].iloc[-2]
+    current_ma_price = recent_df[f'{ma_name}'].iloc[-1]
+    pre_ma_price = recent_df[f'{ma_name}'].iloc[-2]
     # 判断当前趋势
     upping = True if current_ma_price > pre_ma_price else False
     stock['direction'] = 'UP' if upping else 'DOWN'
@@ -531,8 +533,8 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
         stock['trending'] = 'UP' if turning_up_points.iloc[-1]['low'] > turning_up_points.iloc[-2]['low'] else 'DOWN'
 
     # 支撑点：拐点价格 < 当前价格
-    supports = turning_down_points[turning_down_points[f'{field}'] < current_price]
-    resistances = turning_up_points[turning_up_points[f'{field}'] > current_price]
+    supports = turning_down_points[turning_down_points[f'{ma_name}'] < current_price]
+    resistances = turning_up_points[turning_up_points[f'{ma_name}'] > current_price]
 
     # 找最靠近当前价格的支撑和阻力（按时间最近，取所在K线的低 / 高点）
     support = cal_price_from_ma(stock, recent_df, current_price, is_support=True)
@@ -554,24 +556,26 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
         first_point = turning_points.iloc[-1]
         second_point = turning_points.iloc[-2] if len(turning_points) > 1 else None
         support_price = None
-        if second_point is not None and current_price > second_point[f'{field}']:
-            support_price = cal_price_from_kline(stock, recent_df, second_point, current_price, field, is_support=True)
-        elif first_point is not None and current_price > first_point[f'{field}']:
-            support_price = cal_price_from_kline(stock, recent_df, first_point, current_price, field, is_support=True)
+        if second_point is not None and current_price > second_point[f'{ma_name}']:
+            support_price = cal_price_from_kline(stock, recent_df, second_point, current_price, ma_name,
+                                                 is_support=True)
+        elif first_point is not None and current_price > first_point[f'{ma_name}']:
+            support_price = cal_price_from_kline(stock, recent_df, first_point, current_price, ma_name, is_support=True)
         if support_price is not None and (support is None or current_price > support > support_price):
             support = support_price
 
         if not resistances.empty and resistance is None:
-            resistance_latest = select_nearest_point(stock, recent_df, resistances, current_price, field,
+            resistance_latest = select_nearest_point(stock, recent_df, resistances, current_price, ma_name,
                                                      is_support=False)
-            resistance_score = select_score_point(stock, recent_df, resistances, current_price, field, is_support=False)
+            resistance_score = select_score_point(stock, recent_df, resistances, current_price, ma_name,
+                                                  is_support=False)
             resistance_price = resistance_score if resistance_score < resistance_latest else resistance_latest
 
             if resistance is None or resistance > resistance_price > current_price:
                 resistance = resistance_price
     else:
         if not supports.empty and support is None:
-            support_price = select_nearest_point(stock, recent_df, supports, current_price, field,
+            support_price = select_nearest_point(stock, recent_df, supports, current_price, ma_name,
                                                  is_support=True)
             if support is None or current_price > support > support_price:
                 support = support_price
@@ -579,11 +583,11 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
         first_point = turning_points.iloc[-1]
         second_point = turning_points.iloc[-2] if len(turning_points) > 1 else None
         resistance_price = None
-        if second_point is not None and current_price < second_point[f'{field}']:
-            resistance_price = cal_price_from_kline(stock, recent_df, second_point, current_price, field,
+        if second_point is not None and current_price < second_point[f'{ma_name}']:
+            resistance_price = cal_price_from_kline(stock, recent_df, second_point, current_price, ma_name,
                                                     is_support=False)
-        elif first_point is not None and current_price < first_point[f'{field}']:
-            resistance_price = cal_price_from_kline(stock, recent_df, first_point, current_price, field,
+        elif first_point is not None and current_price < first_point[f'{ma_name}']:
+            resistance_price = cal_price_from_kline(stock, recent_df, first_point, current_price, ma_name,
                                                     is_support=False)
         if resistance_price is not None and (resistance is None or resistance > resistance_price > current_price):
             resistance = resistance_price
