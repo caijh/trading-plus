@@ -33,7 +33,7 @@ ALL_PATTERNS = [
     {"name": "homingpigeon", "description": "归巢鸽"},
     {"name": "identical3crows", "description": "等长三鸦"},
     {"name": "inneck", "description": "颈内线"},
-    {"name": "inside", "description": "内包线"},
+    # {"name": "inside", "description": "内包线"},
     {"name": "invertedhammer", "description": "倒锤头线"},
     {"name": "kicking", "description": "反冲形态"},
     {"name": "kickingbylength", "description": "按长度判断的反冲形态"},
