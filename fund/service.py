@@ -51,7 +51,7 @@ def analyze_funds(exchange):
         if code.startswith(('500', '184', '508', '180')):
             continue
         name = stock['name']
-        if '債' in name or '币' in name:
+        if '債' in name or '债' in name or '幣' in name or '币' in name:
             continue
         stock['stock_type'] = 'Fund'
 
