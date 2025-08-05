@@ -63,7 +63,7 @@ def create_strategy(stock):
         stock_code=stock_code,
         stock_name=stock_name,
         exchange=exchange,
-        patterns=patterns,
+        buy_patterns=patterns,
         buy_price=buy_price,
         tak_profit=target_price,
         stop_loss=stop_loss,
@@ -100,7 +100,7 @@ def generate_strategy(stock):
             holdings = get_holdings(stock_code)
             if holdings is None:
                 # 没有持仓, 更新已有策略
-                existing_strategy.patterns = strategy.patterns
+                existing_strategy.buy_patterns = strategy.buy_patterns
                 existing_strategy.sell_patterns = []
                 existing_strategy.buy_price = strategy.buy_price
                 existing_strategy.tak_profit = strategy.tak_profit

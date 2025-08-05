@@ -9,7 +9,7 @@ class TradingStrategy(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)  # 主键
     stock_code = db.Column(db.String(10), nullable=False, index=True)  # 股票代码
     stock_name = db.Column(db.String(255), nullable=False)
-    patterns = db.Column(db.JSON, nullable=True)  # 存储 JSON 格式的技术指标
+    buy_patterns = db.Column(db.JSON, nullable=True)  # 存储 JSON 格式的技术指标
     exchange = db.Column(db.String(10), nullable=False)
     buy_price = db.Column(Numeric(38, 3), nullable=False)  # 买入价格
     tak_profit = db.Column(Numeric(38, 3), nullable=True)  # 卖出价格（目标价）
@@ -27,7 +27,7 @@ class TradingStrategy(db.Model):
             'id': self.id,
             'stock_code': self.stock_code,
             'stock_name': self.stock_name,
-            'patterns': self.patterns,
+            'buy_patterns': self.buy_patterns,
             'exchange': self.exchange,
             'buy_price': self.buy_price,
             'tak_profit': self.tak_profit,

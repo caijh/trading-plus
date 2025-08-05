@@ -73,7 +73,7 @@ def run_backtest(strategy: TradingStrategy):
     if df is None or df.empty:
         return []
 
-    patterns = build_pattern_objects(strategy.patterns)
+    patterns = build_pattern_objects(strategy.buy_patterns)
     records = []
     holding = False
     entry_price, entry_time = None, None
