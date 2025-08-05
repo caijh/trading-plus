@@ -65,7 +65,7 @@ def create_strategy(stock):
         exchange=exchange,
         buy_patterns=patterns,
         buy_price=buy_price,
-        tak_profit=target_price,
+        take_profit=target_price,
         stop_loss=stop_loss,
         sell_patterns=[],
         signal=1
@@ -103,12 +103,12 @@ def generate_strategy(stock):
                 existing_strategy.buy_patterns = strategy.buy_patterns
                 existing_strategy.sell_patterns = []
                 existing_strategy.buy_price = strategy.buy_price
-                existing_strategy.tak_profit = strategy.tak_profit
+                existing_strategy.take_profit = strategy.take_profit
                 existing_strategy.stop_loss = strategy.stop_loss
             else:
                 # 如果有持仓信息，则更新卖出信息
-                if strategy.tak_profit < float(existing_strategy.tak_profit):
-                    existing_strategy.tak_profit = strategy.tak_profit
+                if strategy.take_profit < float(existing_strategy.take_profit):
+                    existing_strategy.take_profit = strategy.take_profit
             existing_strategy.signal = 1
             existing_strategy.updated_at = datetime.now()
             print(f"🔄 更新交易策略：{stock_code} - {stock_name}")
@@ -227,12 +227,12 @@ def check_strategy_reverse_task():
                 else:
                     # 如果有持仓信息，仅更新卖出价
                     new_take_profit = float(stock['resistance'])
-                    take_profit = float(strategy.tak_profit)
+                    take_profit = float(strategy.take_profit)
                     buy_price = float(strategy.buy_price)
                     stop_loss = float(strategy.stop_loss)
                     if (take_profit > new_take_profit > buy_price) and (
                         (new_take_profit - buy_price) / (buy_price - stop_loss) > 0):
-                        strategy.tak_profit = new_take_profit
+                        strategy.take_profit = new_take_profit
 
             # 打印更新策略的日志信息
             print(f"🔄 更新交易策略：{code}")
