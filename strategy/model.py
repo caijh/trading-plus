@@ -12,7 +12,7 @@ class TradingStrategy(db.Model):
     patterns = db.Column(db.JSON, nullable=True)  # 存储 JSON 格式的技术指标
     exchange = db.Column(db.String(10), nullable=False)
     buy_price = db.Column(Numeric(38, 3), nullable=False)  # 买入价格
-    sell_price = db.Column(Numeric(38, 3), nullable=True)  # 卖出价格（目标价）
+    tak_profit = db.Column(Numeric(38, 3), nullable=True)  # 卖出价格（目标价）
     stop_loss = db.Column(Numeric(38, 3), nullable=True)  # 止损价
     signal = db.Column(db.INTEGER, nullable=False)  # 信号，执行买还是卖出
     sell_patterns = db.Column(db.JSON, nullable=True)  # 存储 JSON 格式的技术指标
@@ -20,7 +20,7 @@ class TradingStrategy(db.Model):
     updated_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now(), onupdate=db.func.now())  # 更新时间
 
     def __repr__(self):
-        return f"<TradingStrategy {self.stock_code} Buy:{self.buy_price} Sell:{self.sell_price} StopLoss:{self.stop_loss}>"
+        return f"<TradingStrategy {self.stock_code} Buy:{self.buy_price} Sell:{self.tak_profit} StopLoss:{self.stop_loss}>"
 
     def to_dict(self):
         return {
@@ -30,7 +30,7 @@ class TradingStrategy(db.Model):
             'patterns': self.patterns,
             'exchange': self.exchange,
             'buy_price': self.buy_price,
-            'sell_price': self.sell_price,
+            'tak_profit': self.tak_profit,
             'stop_loss': self.stop_loss,
             'signal': self.signal,
             'sell_patterns': self.sell_patterns,

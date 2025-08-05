@@ -193,7 +193,7 @@ def alpha_run_backtest(stock_code):
                 records.append((entry_time, time, entry_price, price, 'stop_loss'))
                 holding = False
                 strategy = None
-            elif float(strategy.sell_price or 0) > 0 and low_price <= float(strategy.sell_price) <= high_price:
+            elif float(strategy.take_profit or 0) > 0 and low_price <= float(strategy.take_profit) <= high_price:
                 records.append((entry_time, time, entry_price, price, 'take_profit'))
                 holding = False
                 strategy = None
