@@ -30,14 +30,14 @@ def detect_turning_points(series):
         prev, curr, next_ = series.iloc[idx_prev], series.iloc[idx_cur], series.iloc[
             idx_next]
 
-        if curr != 0:
-            diff = min(abs(prev - curr), abs(next_ - curr)) / curr
-            if diff < 0.0002:
-                continue
+        # if curr != 0:
+        #     diff = min(abs(prev - curr), abs(next_ - curr)) / curr
+        #     if diff < 0.0002:
+        #         continue
 
         # Determine if the current point is an upward turning point
         if prev > curr and curr < next_:
-            idx_next_next = idx_next + 1
+            idx_next_next = idx_next + 2
             if idx_next_next < series_len:
                 if series.iloc[idx_next_next] > next_:
                     turning_up_points.append(i)
@@ -48,7 +48,7 @@ def detect_turning_points(series):
 
         # Determine if the current point is a downward turning point
         if prev < curr and curr > next_:
-            idx_prev_prev = idx_prev - 1
+            idx_prev_prev = idx_prev - 2
             if idx_prev_prev >= 0:
                 if series.iloc[idx_prev_prev] < prev:
                     turning_down_points.append(i)
