@@ -137,7 +137,7 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1,
         stock['price'] = float(prices[-1]['close'])
 
     print(
-        f'Analyzing Complete code = {code}, name = {name}, patterns = {stock["patterns"]}, support = {stock["support"]}, resistance = {stock["resistance"]} price = {stock["price"]}')
+        f'Analyzing Complete code = {code}, name = {name}, patterns = {stock["patterns"]}, support = {stock["support"]} resistance = {stock["resistance"]} price = {stock["price"]}')
 
     return stock
 
