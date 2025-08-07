@@ -198,32 +198,10 @@ def check_strategy_reverse_task():
                 holdings = get_holdings(code)
                 # 如果没有持仓信息
                 if holdings is None:
-                    # 获取最新价格
-                    # price = get_stock_price(code)
-                    # if price is None:
-                    #     print(f'无法获取{code}-{strategy.stock_name}股价')
-                    #     continue
-
-                    # 更新策略的买入价、卖出价和止损价
-                    # 根据股票类型确定保留的小数位数
-                    # n_digits = 3 if stock['stock_type'] == 'Fund' else 2
-                    # direction = stock['direction']
-                    # if "UP" == direction:
-                    #     strategy.buy_price = round(float(price['close']), n_digits)
-                    #     strategy.stop_loss = stock['support']
-                    # elif "DOWN" == direction:
-                    #     strategy.buy_price = stock['support']
-                    #     strategy.stop_loss = round(strategy.buy_price * env_vars.STOP_LOSS_RATE, n_digits)
-                    # strategy.take_profit = stock['resistance']
-                    # 更新时间戳
-                    strategy.updated_at = datetime.now()
                     # 更新太旧策略signal = -1
-                    if datetime.now() - strategy.created_at > timedelta(days=7):
+                    if datetime.now() - strategy.created_at > timedelta(days=5):
+                        strategy.updated_at = datetime.now()
                         strategy.signal = -1
-                    # 盈亏比不够，更新signal = -1
-                    # if (strategy.take_profit - strategy.buy_price) / (
-                    #     strategy.buy_price - strategy.stop_loss) < float(env_vars.MIN_PROFIT_RATE):
-                    #     strategy.signal = -1
                 else:
                     # 如果有持仓信息，仅更新卖出价
                     new_take_profit = float(stock['resistance'])
@@ -233,7 +211,7 @@ def check_strategy_reverse_task():
                     if (take_profit > new_take_profit > buy_price) and (
                         (new_take_profit - buy_price) / (buy_price - stop_loss) > 0):
                         strategy.take_profit = new_take_profit
-
+                        strategy.updated_at = datetime.now()
             # 打印更新策略的日志信息
             print(f"🔄 更新交易策略：{code}")
 
