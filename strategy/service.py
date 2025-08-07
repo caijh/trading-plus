@@ -33,7 +33,7 @@ def create_strategy(stock):
         target_price = resistance  # 以阻力为目标
     elif direction == 'DOWN':
         buy_price = round(support * 1.002, n_digits)  # 趋势下跌时尝试抄底
-        stop_loss = round(buy_price * 0.95, n_digits)  # 宽松止损
+        stop_loss = round(buy_price * 0.98, n_digits)  # 宽松止损
         target_price = resistance  # 预估反弹目标
     else:
         print(f"{stock_code} {stock_name} 趋势不明，跳过")
