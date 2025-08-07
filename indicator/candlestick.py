@@ -1,67 +1,67 @@
 import pandas_ta as ta
 
 ALL_PATTERNS = [
-    {"name": "2crows", "description": "两只乌鸦"},
-    {"name": "3blackcrows", "description": "三只乌鸦"},
-    {"name": "3inside", "description": "三内升/三内降"},
-    {"name": "3linestrike", "description": "三线打击"},
-    {"name": "3outside", "description": "三外升/三外降"},
-    {"name": "3starsinsouth", "description": "南方三星"},
-    {"name": "3whitesoldiers", "description": "三白兵"},
-    {"name": "abandonedbaby", "description": "弃婴形态"},
-    {"name": "advanceblock", "description": "上升受阻"},
-    {"name": "belthold", "description": "腰带线"},
-    {"name": "breakaway", "description": "脱离形态"},
-    {"name": "closingmarubozu", "description": "收盘光头光脚阳线/阴线"},
-    {"name": "concealbabyswall", "description": "隐藏吞没婴儿"},
-    {"name": "counterattack", "description": "反击线"},
-    {"name": "darkcloudcover", "description": "乌云盖顶"},
-    {"name": "dojistar", "description": "十字星"},
-    {"name": "dragonflydoji", "description": "蜻蜓十字/T字线"},
-    {"name": "engulfing", "description": "吞没形态"},
-    {"name": "eveningdojistar", "description": "黄昏十字星"},
-    {"name": "eveningstar", "description": "黄昏星"},
-    {"name": "gapsidesidewhite", "description": "向上/向下并列阳线"},
-    {"name": "gravestonedoji", "description": "墓碑十字"},
-    {"name": "hammer", "description": "锤头线"},
-    {"name": "hangingman", "description": "上吊线"},
-    {"name": "harami", "description": "母子线"},
-    {"name": "haramicross", "description": "十字孕线"},
-    {"name": "highwave", "description": "高浪线"},
-    {"name": "hikkake", "description": "陷阱形态"},
-    {"name": "hikkakemod", "description": "修正陷阱形态"},
-    {"name": "homingpigeon", "description": "归巢鸽"},
-    {"name": "identical3crows", "description": "等长三鸦"},
-    {"name": "inneck", "description": "颈内线"},
-    {"name": "inside", "description": "内包线"},
-    {"name": "invertedhammer", "description": "倒锤头线"},
-    {"name": "kicking", "description": "反冲形态"},
-    {"name": "kickingbylength", "description": "按长度判断的反冲形态"},
-    {"name": "ladderbottom", "description": "梯底形态"},
-    {"name": "longleggeddoji", "description": "长脚十字"},
-    {"name": "longline", "description": "长蜡烛线"},
-    {"name": "marubozu", "description": "光头光脚阳线/阴线"},
-    {"name": "matchinglow", "description": "等低线"},
-    {"name": "mathold", "description": "保持形态"},
-    {"name": "morningdojistar", "description": "晨星十字星"},
-    {"name": "morningstar", "description": "晨星"},
-    {"name": "onneck", "description": "颈上线"},
-    {"name": "piercing", "description": "刺透线"},
-    {"name": "rickshawman", "description": "黄包车夫线（长脚十字）"},
-    {"name": "risefall3methods", "description": "三方法（上升/下降）"},
-    {"name": "separatinglines", "description": "分离线"},
-    {"name": "shootingstar", "description": "流星线"},
-    {"name": "shortline", "description": "短蜡烛线"},
-    {"name": "spinningtop", "description": "纺锤线"},
-    {"name": "stalledpattern", "description": "停顿形态"},
-    {"name": "sticksandwich", "description": "条形三明治"},
-    {"name": "takuri", "description": "探水线"},
-    {"name": "tasukigap", "description": "切入缺口"},
-    {"name": "thrusting", "description": "插入线"},
-    {"name": "tristar", "description": "三星形态"},
-    {"name": "unique3river", "description": "奇特三河床"},
-    {"name": "upsidegap2crows", "description": "上升缺口两鸦"},
-    {"name": "xsidegap3methods", "description": "横向缺口三方法"}
+    {"name": "2crows", "description": "两只乌鸦", "signal": -1},
+    {"name": "3blackcrows", "description": "三只乌鸦", "signal": -1},
+    {"name": "3inside", "description": "三内升/三内降", "signal": 1},
+    {"name": "3linestrike", "description": "三线打击", "signal": 1},
+    {"name": "3outside", "description": "三外升/三外降", "signal": 1},
+    {"name": "3starsinsouth", "description": "南方三星", "signal": 1},
+    {"name": "3whitesoldiers", "description": "三白兵", "signal": 1},
+    {"name": "abandonedbaby", "description": "弃婴形态", "signal": 1},
+    {"name": "advanceblock", "description": "上升受阻", "signal": -1},
+    {"name": "belthold", "description": "腰带线", "signal": 0},  # 有上下两种，略偏多
+    {"name": "breakaway", "description": "脱离形态", "signal": 0},  # 上升/下降皆可，视方向
+    {"name": "closingmarubozu", "description": "收盘光头光脚阳线/阴线", "signal": 0},
+    {"name": "concealbabyswall", "description": "隐藏吞没婴儿", "signal": 1},
+    {"name": "counterattack", "description": "反击线", "signal": 0},
+    {"name": "darkcloudcover", "description": "乌云盖顶", "signal": -1},
+    {"name": "dojistar", "description": "十字星", "signal": 0},
+    {"name": "dragonflydoji", "description": "蜻蜓十字/T字线", "signal": 1},
+    {"name": "engulfing", "description": "吞没形态", "signal": 0},  # 包含多空两种类型
+    {"name": "eveningdojistar", "description": "黄昏十字星", "signal": -1},
+    {"name": "eveningstar", "description": "黄昏星", "signal": -1},
+    {"name": "gapsidesidewhite", "description": "向上/向下并列阳线", "signal": 1},
+    {"name": "gravestonedoji", "description": "墓碑十字", "signal": -1},
+    {"name": "hammer", "description": "锤头线", "signal": 1},
+    {"name": "hangingman", "description": "上吊线", "signal": -1},
+    {"name": "harami", "description": "母子线", "signal": 0},  # 多空两类
+    {"name": "haramicross", "description": "十字孕线", "signal": 0},
+    {"name": "highwave", "description": "高浪线", "signal": 0},
+    {"name": "hikkake", "description": "陷阱形态", "signal": 1},
+    {"name": "hikkakemod", "description": "修正陷阱形态", "signal": 1},
+    {"name": "homingpigeon", "description": "归巢鸽", "signal": 1},
+    {"name": "identical3crows", "description": "等长三鸦", "signal": -1},
+    {"name": "inneck", "description": "颈内线", "signal": -1},
+    {"name": "inside", "description": "内包线", "signal": 0},  # 方向依赖上下文
+    {"name": "invertedhammer", "description": "倒锤头线", "signal": 1},
+    {"name": "kicking", "description": "反冲形态", "signal": 0},  # 分多空两类
+    {"name": "kickingbylength", "description": "按长度判断的反冲形态", "signal": 0},
+    {"name": "ladderbottom", "description": "梯底形态", "signal": 1},
+    {"name": "longleggeddoji", "description": "长脚十字", "signal": 0},
+    {"name": "longline", "description": "长蜡烛线", "signal": 0},
+    {"name": "marubozu", "description": "光头光脚阳线/阴线", "signal": 0},
+    {"name": "matchinglow", "description": "等低线", "signal": 1},
+    {"name": "mathold", "description": "保持形态", "signal": 1},
+    {"name": "morningdojistar", "description": "晨星十字星", "signal": 1},
+    {"name": "morningstar", "description": "晨星", "signal": 1},
+    {"name": "onneck", "description": "颈上线", "signal": -1},
+    {"name": "piercing", "description": "刺透线", "signal": 1},
+    {"name": "rickshawman", "description": "黄包车夫线（长脚十字）", "signal": 0},
+    {"name": "risefall3methods", "description": "三方法（上升/下降）", "signal": 0},
+    {"name": "separatinglines", "description": "分离线", "signal": 1},
+    {"name": "shootingstar", "description": "流星线", "signal": -1},
+    {"name": "shortline", "description": "短蜡烛线", "signal": 0},
+    {"name": "spinningtop", "description": "纺锤线", "signal": 0},
+    {"name": "stalledpattern", "description": "停顿形态", "signal": -1},
+    {"name": "sticksandwich", "description": "条形三明治", "signal": 1},
+    {"name": "takuri", "description": "探水线", "signal": 1},
+    {"name": "tasukigap", "description": "切入缺口", "signal": 1},
+    {"name": "thrusting", "description": "插入线", "signal": -1},
+    {"name": "tristar", "description": "三星形态", "signal": 0},
+    {"name": "unique3river", "description": "奇特三河床", "signal": 1},
+    {"name": "upsidegap2crows", "description": "上升缺口两鸦", "signal": -1},
+    {"name": "xsidegap3methods", "description": "横向缺口三方法", "signal": 0}
 ]
 
 
@@ -127,7 +127,8 @@ def get_bullish_candlestick_patterns():
     """
     patterns = []
     for PATTERN in ALL_PATTERNS:
-        patterns.append(Candlestick(PATTERN, 1))
+        if PATTERN['signal'] == 1 or PATTERN['signal'] == 0:
+            patterns.append(Candlestick(PATTERN, 1))
 
     return patterns
 
@@ -140,6 +141,7 @@ def get_bearish_candlestick_patterns():
     """
     patterns = []
     for PATTERN in ALL_PATTERNS:
-        patterns.append(Candlestick(PATTERN, -1))
+        if PATTERN['signal'] == -1 or PATTERN['signal'] == 0:
+            patterns.append(Candlestick(PATTERN, -1))
 
     return patterns
