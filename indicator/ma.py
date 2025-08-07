@@ -78,6 +78,12 @@ class SMA:
         # 条件2：最低价小于等于MA价格且MA价格小于收盘价
         # 满足任一条件即返回True，否则返回False
         if self.signal == 1:
+            if len(df) >= 202:
+                sma_200 = df['SMA200']
+                latest_sma200_price = sma_200.iloc[-1]
+                prev_sma200_price = sma_200.iloc[-2]
+                if latest_sma200_price < prev_sma200_price:
+                    return False
             return ((close_price >= latest_ema_price) and (latest_ema_price > latest_ma_price) and (
                 pre_ema_price <= pre_ma_price)) or (low_price <= latest_ma_price < close_price)
         # 当signal不为1时，判断空头信号：
