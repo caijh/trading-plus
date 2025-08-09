@@ -179,7 +179,7 @@ def alpha_run_backtest(stock_code):
 
             if not holding and strategy is not None:
                 strategy.updated_at = pd.to_datetime(time)
-                if strategy.updated_at - strategy.created_at > timedelta(days=5):
+                if strategy.updated_at - strategy.created_at > timedelta(days=7):
                     strategy = None
         else:
             if strategy.signal == -1:
