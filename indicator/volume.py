@@ -71,7 +71,7 @@ class VOL:
             is_volume_turning = any(idx >= len(df) - 4 for idx in turning_down)
             return is_volume_turning
         elif self.mode == 'any':
-            price_sma = df['SMA5']
+            price_sma = df['close']
             if self.signal == 1:
                 same_trend = price_sma.iloc[-1] > price_sma.iloc[-2] and vol_sma.iloc[-1] > vol_sma.iloc[-2]
             else:
@@ -269,12 +269,12 @@ class CMF:
         # 买入信号：CMF 上升且为正
         if self.signal == 1:
             # 连续上升 + 当前为正 + 高于中性带
-            return (latest > prev and latest > dead_zone) or latest < -0.2
+            return latest > prev and latest > dead_zone
 
         # 卖出信号：CMF 下降且为负
         elif self.signal == -1:
             # 连续下降 + 当前为负 + 低于中性带
-            return (latest < prev and latest < -dead_zone) or latest > 0.2
+            return latest < prev and latest < -dead_zone
 
         else:
             raise False
