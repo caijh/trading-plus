@@ -54,7 +54,7 @@ class VOL:
         is_heavy_volume = latest_vol > (avg_vol + self.stddev_mult * std_vol)
         is_light_volume = latest_vol < (avg_vol - self.stddev_mult * std_vol)
 
-        vol_sma = ta.sma(df['volume'], 5)
+        vol_sma = df['volume']
 
         # 检测成交量转折点
         turning_point_indexes, turning_up, turning_down = detect_turning_points(vol_sma)
