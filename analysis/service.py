@@ -533,8 +533,8 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     if len(turning_up_points) > 1:
         stock['trending'] = 'UP' if current_price > turning_up_points.iloc[-1]['low'] > turning_up_points.iloc[-2][
             'low'] else 'DOWN'
-        # stock['turning_up_point_1'] = turning_up_points.iloc[-1].name.strftime('%Y-%m-%d')
-        # stock['turning_up_point_2'] = turning_up_points.iloc[-2].name.strftime('%Y-%m-%d')
+        stock['turning_up_point_1'] = turning_up_points.iloc[-1].name.strftime('%Y-%m-%d')
+        stock['turning_up_point_2'] = turning_up_points.iloc[-2].name.strftime('%Y-%m-%d')
     else:
         stock['trending'] = 'DOWN'
 
