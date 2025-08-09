@@ -83,6 +83,26 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1,
 
         df = create_dataframe(stock, prices) if prices_df is None else prices_df
 
+        # 计算给定股票的支持位和阻力位
+        # 参数:
+        #   stock: 包含股票数据的字典或数据框，应包括历史价格等信息
+        #   df: 用于计算支持位和阻力位的数据框，通常包含历史价格数据
+        # 返回值:
+        #   support: 计算得到的支持位价格
+        #   resistance: 计算得到的阻力位价格
+        (support, resistance) = calculate_support_resistance(stock, df)
+        (support_n, resistance_n) = calculate_support_resistance_by_turning_points(stock, df)
+        if support_n is not None:
+            support = support_n
+        # elif signal == 1 and len(stock['patterns']) > 0:
+        #     support = get_recent_price(stock, df, 'low', 5)
+
+        if resistance_n is not None:
+            resistance = resistance_n
+        # elif signal == -1 and len(stock['patterns']) > 0:
+        #     resistance = get_recent_price(stock, df, 'high', 5)
+
+
         matched_candlestick_patterns, candlestick_weight = get_match_patterns(candlestick_patterns, stock, prices,
                                                                               df, 'candlestick')
         if signal == 1:
@@ -104,24 +124,6 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1,
                 append_matched_pattern_label(matched_ma_patterns, stock)
                 append_matched_pattern_label(matched_volume_patterns, stock)
 
-        # 计算给定股票的支持位和阻力位
-        # 参数:
-        #   stock: 包含股票数据的字典或数据框，应包括历史价格等信息
-        #   df: 用于计算支持位和阻力位的数据框，通常包含历史价格数据
-        # 返回值:
-        #   support: 计算得到的支持位价格
-        #   resistance: 计算得到的阻力位价格
-        (support, resistance) = calculate_support_resistance(stock, df)
-        (support_n, resistance_n) = calculate_support_resistance_by_turning_points(stock, df)
-        if support_n is not None:
-            support = support_n
-        elif signal == 1 and len(stock['patterns']) > 0:
-            support = get_recent_price(stock, df, 'low', 5)
-
-        if resistance_n is not None:
-            resistance = resistance_n
-        elif signal == -1 and len(stock['patterns']) > 0:
-            resistance = get_recent_price(stock, df, 'high', 5)
 
         # latest_volume = df.iloc[-1]['volume']
         # if latest_volume > 0:
@@ -541,8 +543,8 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     resistances = turning_up_points[turning_up_points[f'{ma_name}'] > current_price]
 
     # 找最靠近当前价格的支撑和阻力（按时间最近，取所在K线的低 / 高点）
-    support = cal_price_from_ma(stock, recent_df, current_price, is_support=True)
-    resistance = cal_price_from_ma(stock, recent_df, current_price, is_support=False)
+    support = None
+    resistance = None
 
     # if not supports.empty and support is None:
     #     print("Support point:")
@@ -563,9 +565,9 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
         if second_point is not None and current_price > second_point[f'{ma_name}']:
             support_price = cal_price_from_kline(stock, recent_df, second_point, current_price, ma_name,
                                                  is_support=True)
-        elif first_point is not None and current_price > first_point[f'{ma_name}']:
+        elif current_price > first_point[f'{ma_name}']:
             support_price = cal_price_from_kline(stock, recent_df, first_point, current_price, ma_name, is_support=True)
-        if support_price is not None and (support is None or current_price > support > support_price):
+        if support_price is not None:
             support = support_price
 
         if not resistances.empty and resistance is None:
@@ -575,13 +577,13 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
                                                   is_support=False)
             resistance_price = resistance_score if resistance_score < resistance_latest else resistance_latest
 
-            if resistance is None or resistance > resistance_price > current_price:
+            if resistance_price is not None:
                 resistance = resistance_price
     else:
         if not supports.empty and support is None:
             support_price = select_nearest_point(stock, recent_df, supports, current_price, ma_name,
                                                  is_support=True)
-            if support is None or current_price > support > support_price:
+            if support_price is not None:
                 support = support_price
 
         first_point = turning_points.iloc[-1]
@@ -590,10 +592,10 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
         if second_point is not None and current_price < second_point[f'{ma_name}']:
             resistance_price = cal_price_from_kline(stock, recent_df, second_point, current_price, ma_name,
                                                     is_support=False)
-        elif first_point is not None and current_price < first_point[f'{ma_name}']:
+        elif current_price < first_point[f'{ma_name}']:
             resistance_price = cal_price_from_kline(stock, recent_df, first_point, current_price, ma_name,
                                                     is_support=False)
-        if resistance_price is not None and (resistance is None or resistance > resistance_price > current_price):
+        if resistance_price is not None:
             resistance = resistance_price
     # 根据基金或股票类型决定小数点保留位数
     s = get_round_price(stock, support)

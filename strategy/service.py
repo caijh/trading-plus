@@ -16,7 +16,8 @@ def create_strategy(stock):
     # 股票基础信息提取
     stock_code = stock['code']
     stock_name = stock['name']
-    direction = stock['trending']
+    trending = stock['trending']
+    direction = stock['direction']
     n_digits = 3 if stock['stock_type'] == 'Fund' else 2
 
     # 原始价格点
@@ -27,17 +28,24 @@ def create_strategy(stock):
     exchange = stock['exchange']
 
     # 动态设置买入价、止损、目标价
-    if direction == 'UP':
-        buy_price = round(current_price * 1.005, n_digits)  # 稍微上突破
-        stop_loss = round(support * 0.995, n_digits)  # 支撑下穿一点
-        target_price = resistance  # 以阻力为目标
-    elif direction == 'DOWN':
-        buy_price = round(support * 1.002, n_digits)  # 趋势下跌时尝试抄底
-        stop_loss = round(buy_price * 0.98, n_digits)  # 宽松止损
-        target_price = resistance  # 预估反弹目标
+    if trending == 'UP':
+        if direction == 'UP':
+            buy_price = round(current_price * 1.005, n_digits)  # 稍微上突破
+            stop_loss = round(support * 0.995, n_digits)  # 支撑下穿一点
+            target_price = resistance  # 以阻力为目标
+        else:
+            buy_price = round(support * 1.002, n_digits)  # 趋势下跌时尝试抄底
+            stop_loss = round(buy_price * 0.98, n_digits)  # 宽松止损
+            target_price = resistance  # 预估反弹目标
     else:
-        print(f"{stock_code} {stock_name} 趋势不明，跳过")
-        return None
+        if direction == 'UP':
+            buy_price = round(current_price * 0.98, n_digits)  # 稍微上突破
+            stop_loss = round(support, n_digits)  # 支撑下穿一点
+            target_price = resistance  # 以阻力为目标
+        else:
+            buy_price = round(support * 0.98, n_digits)  # 趋势下跌时尝试抄底
+            stop_loss = round(buy_price * 0.98, n_digits)  # 宽松止损
+            target_price = resistance  # 预估反弹目标
 
     # 止损空间过滤
     loss_ratio = (buy_price - stop_loss) / buy_price
