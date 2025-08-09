@@ -30,21 +30,21 @@ def create_strategy(stock):
     # 动态设置买入价、止损、目标价
     if trending == 'UP':
         if direction == 'UP':
-            buy_price = round(current_price * 1.005, n_digits)  # 稍微上突破
-            stop_loss = round(support * 0.995, n_digits)  # 支撑下穿一点
-            target_price = resistance  # 以阻力为目标
+            buy_price = round(current_price, n_digits)
+            stop_loss = round(support, n_digits)
+            target_price = resistance
         else:
-            buy_price = round(support * 1.002, n_digits)  # 趋势下跌时尝试抄底
-            stop_loss = round(buy_price * 0.98, n_digits)  # 宽松止损
+            buy_price = round(support, n_digits)
+            stop_loss = round(buy_price * 0.98, n_digits)
             target_price = resistance  # 预估反弹目标
     else:
         if direction == 'UP':
-            buy_price = round(current_price * 0.98, n_digits)  # 稍微上突破
-            stop_loss = round(support, n_digits)  # 支撑下穿一点
-            target_price = resistance  # 以阻力为目标
+            buy_price = round(current_price * 0.98, n_digits)
+            stop_loss = round(support, n_digits)
+            target_price = resistance
         else:
-            buy_price = round(support * 0.98, n_digits)  # 趋势下跌时尝试抄底
-            stop_loss = round(buy_price * 0.98, n_digits)  # 宽松止损
+            buy_price = round(support * 0.96, n_digits)
+            stop_loss = round(buy_price * 0.98, n_digits)
             target_price = resistance  # 预估反弹目标
 
     # 止损空间过滤
