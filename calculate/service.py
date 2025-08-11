@@ -1,4 +1,4 @@
-def detect_turning_points(series):
+def detect_turning_point_indexes(series):
     """
     Detect turning points in a given series with improved accuracy.
 
@@ -66,3 +66,30 @@ def get_round_price(stock, price):
         return None
     n_digits = 3 if stock.get('stock_type') == 'Fund' else 2
     return round(float(price), n_digits)
+
+
+def detect_turning_points(series):
+    turning_points, turning_up_points, turning_down_points = detect_turning_point_indexes(series)
+    turning_points = series.iloc[turning_points]
+    turning_up_points = series.iloc[turning_up_points]
+    turning_down_points = series.iloc[turning_down_points]
+    return turning_points, turning_up_points, turning_down_points
+
+
+def upping_trending(series):
+    turning_points, turning_up_points, turning_down_points = detect_turning_points(series)
+    # 获取最新的 ADOSC 值和前一个 ADOSC 值
+    latest = series.iloc[-1]
+    prev = series.iloc[-2]
+    if len(turning_up_points) < 2:
+        return False
+    return latest > prev and latest > turning_up_points.iloc[-1] > turning_up_points.iloc[-2]
+
+
+def downing_trending(series):
+    turning_points, turning_up_points, turning_down_points = detect_turning_points(series)
+    latest = series.iloc[-1]
+    prev = series.iloc[-2]
+    if len(turning_down_points) < 2:
+        return False
+    return latest < prev and latest < turning_down_points.iloc[-1] < turning_down_points.iloc[-2]

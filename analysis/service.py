@@ -2,7 +2,7 @@ import numpy as np
 import pandas_ta as ta
 
 from analysis.model import AnalyzedStock
-from calculate.service import detect_turning_points, get_round_price
+from calculate.service import detect_turning_point_indexes, get_round_price
 from dataset.service import create_dataframe
 from extensions import db
 from indicator.service import get_patterns, get_match_patterns, get_match_ma_patterns
@@ -515,7 +515,7 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
         df[f'{ma_name}'] = ta.ema(recent_df['close'], window).round(3)
 
     # 找出均线的拐点位置
-    turning_points_idxes, turning_up_idxes, turning_down_idxes = detect_turning_points(recent_df[f'{ma_name}'])
+    turning_points_idxes, turning_up_idxes, turning_down_idxes = detect_turning_point_indexes(recent_df[f'{ma_name}'])
 
     # 提取拐点价格及索引
     turning_points = recent_df.iloc[turning_points_idxes][[f'{ma_name}', 'close', 'low', 'high', 'open']]

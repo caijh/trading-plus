@@ -1,7 +1,7 @@
 import pandas as pd
 import pandas_ta as ta
 
-from calculate.service import detect_turning_points
+from calculate.service import detect_turning_point_indexes, upping_trending, downing_trending
 
 
 class VOL:
@@ -57,7 +57,7 @@ class VOL:
         vol_sma = df['volume']
 
         # 检测成交量转折点
-        turning_point_indexes, turning_up, turning_down = detect_turning_points(vol_sma)
+        turning_point_indexes, turning_up, turning_down = detect_turning_point_indexes(vol_sma)
 
         # 根据模式返回匹配结果
         if self.mode == 'heavy':
@@ -118,15 +118,11 @@ class OBV:
 
         # 计算 OBV 指标
         obv = ta.obv(df['close'], df['volume'])
-        # 获取最新OBV值和最近的拐点值
-        latest_obv = obv.iloc[-1]
-        prev_obv = obv.iloc[-2]
         # 判断买入信号
         if self.signal == 1:
-            return latest_obv > prev_obv
+            return upping_trending(obv)
         elif self.signal == -1:
-            # OBV 下降，确认卖出信号
-            return latest_obv < prev_obv
+            return downing_trending(obv)
         return False
 
 
@@ -165,14 +161,11 @@ class ADOSC:
 
         # 计算 ADOSC 指标
         adosc = ta.adosc(df['high'], df['low'], df['close'], df['volume'])
-        # 获取最新的 ADOSC 值和前一个 ADOSC 值
-        latest = adosc.iloc[-1]
-        prev = adosc.iloc[-2]
 
         if self.signal == 1:
-            return latest > prev and latest > self.threshold
+            return upping_trending(adosc)
         elif self.signal == -1:
-            return latest < prev
+            return downing_trending(adosc)
         return False
 
 
@@ -227,9 +220,9 @@ class ADLine:
         ad_line = ta.ad(df['high'], df['low'], df['close'], df['volume'])
 
         if self.signal == 1:
-            return ad_line.iloc[-1] > ad_line.iloc[-2]
+            return upping_trending(ad_line)
         elif self.signal == -1:
-            return ad_line.iloc[-1] < ad_line.iloc[-2]
+            return downing_trending(ad_line)
         return False
 
 
