@@ -43,7 +43,7 @@ def create_strategy(stock):
             stop_loss = round(support, n_digits)
             target_price = resistance
         else:
-            buy_price = round(support, n_digits)
+            buy_price = round(support * 0.98, n_digits)
             stop_loss = round(buy_price * 0.98, n_digits)
             target_price = resistance  # 预估反弹目标
 
