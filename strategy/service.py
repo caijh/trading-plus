@@ -39,11 +39,11 @@ def create_strategy(stock):
             target_price = resistance  # 预估反弹目标
     else:
         if direction == 'UP':
-            buy_price = round(current_price * 0.98, n_digits)
+            buy_price = round(stock['EMA5'], n_digits)
             stop_loss = round(support, n_digits)
             target_price = resistance
         else:
-            buy_price = round(support * 0.96, n_digits)
+            buy_price = round(support, n_digits)
             stop_loss = round(buy_price * 0.98, n_digits)
             target_price = resistance  # 预估反弹目标
 
