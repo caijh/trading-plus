@@ -10,7 +10,7 @@ ALL_PATTERNS = [
     {"name": "3whitesoldiers", "description": "三白兵", "signal": 1, "weight": 1},
     {"name": "abandonedbaby", "description": "弃婴形态", "signal": 1, "weight": 1},
     {"name": "advanceblock", "description": "上升受阻", "signal": -1, "weight": 0},
-    {"name": "belthold", "description": "腰带线", "signal": 0, "weight": 1},
+    {"name": "belthold", "description": "腰带线", "signal": 0, "weight": 0},
     {"name": "breakaway", "description": "脱离形态", "signal": 0, "weight": 0},
     {"name": "closingmarubozu", "description": "收盘光头光脚阳线/阴线", "signal": 0, "weight": 0},
     {"name": "concealbabyswall", "description": "隐藏吞没婴儿", "signal": 1, "weight": 0},
