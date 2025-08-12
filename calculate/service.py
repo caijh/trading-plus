@@ -24,6 +24,8 @@ def detect_turning_point_indexes(series):
     start = 1
     step = 1
     series_len = len(series)
+    latest_up_point_idx = None
+    latest_down_point_idx = None
     for i in range(start, series_len - step):
         # Get the previous, current, and next values
         idx_prev, idx_cur, idx_next = i - step, i, i + step
@@ -39,10 +41,13 @@ def detect_turning_point_indexes(series):
         if prev > curr and curr < next_:
             idx_next_next = idx_next + 2
             if idx_next_next < series_len:
-                if series.iloc[idx_next_next] > next_:
+                if (latest_up_point_idx is None or (i - latest_up_point_idx) > 2) and series.iloc[
+                    idx_next_next] > next_:
+                    latest_up_point_idx = i
                     turning_up_points.append(i)
                     turning_points.append(i)
             else:
+                latest_up_point_idx = i
                 turning_up_points.append(i)
                 turning_points.append(i)
 
@@ -50,10 +55,13 @@ def detect_turning_point_indexes(series):
         if prev < curr and curr > next_:
             idx_prev_prev = idx_prev - 2
             if idx_prev_prev >= 0:
-                if series.iloc[idx_prev_prev] < prev:
+                if (latest_down_point_idx is None or (i - latest_down_point_idx) > 2) and series.iloc[
+                    idx_prev_prev] < prev:
+                    latest_down_point_idx = i
                     turning_down_points.append(i)
                     turning_points.append(i)
             else:
+                latest_down_point_idx = i
                 turning_down_points.append(i)
                 turning_points.append(i)
 
