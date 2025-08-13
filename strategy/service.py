@@ -51,7 +51,7 @@ def create_strategy(stock):
     # 超高盈亏比，动态调整目标价：以 3 盈亏比为上限
     profit_ratio = (target_price - buy_price) / (buy_price - stop_loss)
     if profit_ratio > 3:
-        target_price = round(buy_price + 3 * (buy_price - stop_loss), n_digits)
+        target_price = round(4 * buy_price - 3 * stop_loss, n_digits)
     # 创建策略对象
     return TradingStrategy(
         stock_code=stock_code,
