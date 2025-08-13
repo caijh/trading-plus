@@ -110,7 +110,7 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1,
                 matched_ma_patterns, ma_weight, matched_volume_patterns = get_match_ma_patterns(ma_patterns, stock,
                                                                                                 prices, df,
                                                                                                 buy_volume_weight)
-                if ma_weight >= buy_ma_weight and len(matched_volume_patterns) > buy_volume_weight:
+                if ma_weight >= buy_ma_weight and len(matched_volume_patterns) >= buy_volume_weight:
                     # 将所有匹配的K线形态、均线和量能模式的标签添加到股票的模式列表中
                     append_matched_pattern_label(matched_candlestick_patterns, stock)
                     append_matched_pattern_label(matched_ma_patterns, stock)
