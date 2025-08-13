@@ -94,13 +94,9 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1,
         (support_n, resistance_n) = calculate_support_resistance_by_turning_points(stock, df)
         if support_n is not None:
             support = support_n
-        # elif signal == 1 and len(stock['patterns']) > 0:
-        #     support = get_recent_price(stock, df, 'low', 5)
 
         if resistance_n is not None:
             resistance = resistance_n
-        # elif signal == -1 and len(stock['patterns']) > 0:
-        #     resistance = get_recent_price(stock, df, 'high', 5)
 
 
         matched_candlestick_patterns, candlestick_weight = get_match_patterns(candlestick_patterns, stock, prices,
@@ -123,15 +119,6 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1,
                 append_matched_pattern_label(matched_candlestick_patterns, stock)
                 append_matched_pattern_label(matched_ma_patterns, stock)
                 append_matched_pattern_label(matched_volume_patterns, stock)
-
-
-        # latest_volume = df.iloc[-1]['volume']
-        # if latest_volume > 0:
-        #     (support_vwap, resistance_vwap) = calculate_vwap_support_resistance(stock, df, window=5)
-        #     if support_vwap < support:
-        #         support = support_vwap
-        #     if resistance_vwap < resistance:
-        #         resistance = resistance_vwap
 
         # 将计算得到的支持位和阻力位添加到股票数据中
         stock['support'] = support
