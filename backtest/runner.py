@@ -6,9 +6,11 @@ import pandas as pd
 from analysis.service import analyze_stock
 from dataset.service import create_dataframe
 from environment.service import env_vars
-from indicator.ma import SMA, MACD, SAR, DMI, BIAS, KDJ, RSI, WR
+from indicator.adl import ADL
+from indicator.adx import ADX
+from indicator.ma import SMA, MACD, SAR, BIAS, KDJ, RSI, WR
 from indicator.service import get_match_ma_patterns
-from indicator.volume import VOL, OBV, ADOSC, ADLine, CMF, MFI, VPT
+from indicator.volume import VOL, OBV, ADOSC, CMF, MFI, VPT
 from stock.service import get_stock_prices, get_stock, KType
 from strategy.model import TradingStrategy
 from strategy.service import create_strategy, check_strategy
@@ -35,7 +37,7 @@ def build_pattern_objects(pattern_names, signal=1):
         elif key == "SAR":
             pattern_objects.append(SAR(signal=signal))
         elif key == 'DMI':
-            pattern_objects.append(DMI(signal=signal))
+            pattern_objects.append(ADX(signal=signal))
         elif key == "BIAS":
             pattern_objects.append(BIAS(ma=param, bias=-0.09, signal=signal))
         elif key == 'KDJ':
@@ -54,7 +56,7 @@ def build_pattern_objects(pattern_names, signal=1):
         elif key == 'ADOSC':
             pattern_objects.append(ADOSC(signal=signal))
         elif key == "ADLINE":
-            pattern_objects.append(ADLine(signal=signal))
+            pattern_objects.append(ADL(signal=signal))
         elif key == 'CMF':
             pattern_objects.append(CMF(signal=signal))
         elif key == 'MFI':

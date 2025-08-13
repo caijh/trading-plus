@@ -1,8 +1,12 @@
 import pandas as pd
 import pandas_ta as ta
 
+from indicator.adl import ADL
+from indicator.adx import ADX
+from indicator.ar import AR
 from indicator.aroon import AROON
-from indicator.volume import OBV, CMF, VPT, ADOSC, ADLine, MFI, VOL
+from indicator.chaikin import Chaikin
+from indicator.volume import OBV, CMF, MFI
 
 
 class SMA:
@@ -219,58 +223,6 @@ class SAR:
             return close_prev > psar_prev and close_last < psar_last
 
         return False
-
-    def get_volume_confirm_patterns(self):
-        return volume_registry.get(self.name).get(self.signal)
-
-
-class DMI:
-    name = 'DMI'
-
-    def __init__(self, signal=1, period=14, adx_threshold=20):
-        """
-        DMI 策略（+DI/-DI 交叉，趋势方向判断）
-
-        参数:
-        - signal: 1 表示买入信号（+DI 上穿 -DI），-1 表示卖出信号（-DI 上穿 +DI）
-        - period: 计算周期
-        - adx_threshold: 趋势强度过滤阈值
-        """
-        self.signal = signal
-        self.period = period
-        self.adx_threshold = adx_threshold
-        self.label = f'DMI{period}'
-        self.weight = 1
-
-    def match(self, stock, prices, df):
-        if df is None or len(df) < self.period + 2:
-            print(f'{stock["code"]} 数据不足，无法计算 DMI')
-            return False
-
-        # 使用 ta.adx 计算 +DI, -DI 和 ADX
-        dmi = ta.adx(df['high'], df['low'], df['close'], length=self.period)
-        if dmi is None or dmi.isnull().values.any():
-            return False
-
-        plus_di = dmi[f'DMP_{self.period}']
-        minus_di = dmi[f'DMN_{self.period}']
-        adx = dmi[f'ADX_{self.period}']
-
-        # 最近两个周期的 DI 值
-        p1, p2 = plus_di.iloc[-2], plus_di.iloc[-1]
-        m1, m2 = minus_di.iloc[-2], minus_di.iloc[-1]
-        adx_now = adx.iloc[-1]
-
-        # 趋势强度判断
-        if adx_now < self.adx_threshold:
-            return False
-
-        if self.signal == 1:
-            return p2 > m2 and p2 > p1 and m2 < m1  # +DI 上穿 -DI 且趋势增强
-        elif self.signal == -1:
-            return m2 > p2 and m2 > m1 and p2 < p1  # -DI 上穿 +DI 且趋势增强
-        else:
-            raise ValueError("signal 必须为 1 或 -1")
 
     def get_volume_confirm_patterns(self):
         return volume_registry.get(self.name).get(self.signal)
@@ -511,7 +463,7 @@ def get_up_ma_patterns():
     """
     # 初始化均线和偏差率模式列表
     ma_patterns = [SMA(10, 1), SMA(20, 1), SMA(50, 1),
-                   MACD(1), SAR(1), DMI(1),
+                   MACD(1), SAR(1),
                    BIAS(20, -0.09, 1), KDJ(1), RSI(1), WR(1)]
     return ma_patterns
 
@@ -525,42 +477,38 @@ def get_down_ma_patterns():
     """
     # 初始化均线和偏差率
     ma_patterns = [SMA(10, -1), SMA(20, -1), SMA(50, -1),
-                   MACD(-1), SAR(-1), DMI(-1),
+                   MACD(-1), SAR(-1),
                    BIAS(20, 0.09, -1), KDJ(-1), RSI(-1), WR(-1)]
     return ma_patterns
 
 
 volume_registry = {
     'SMA': {
-        1: [OBV(1), CMF(1), VPT(1), AROON(1)],
-        -1: [OBV(-1), CMF(-1), VPT(-1), AROON(-1)]
+        1: [ADX(1), OBV(1), CMF(1)],
+        -1: [ADX(-1), OBV(-1), CMF(-1), AROON(-1)]
     },
     'MACD': {
-        1: [OBV(1), ADOSC(1), CMF(1), AROON(1)],
-        -1: [OBV(-1), ADOSC(-1), CMF(-1), AROON(-1)]
+        1: [OBV(1), ADL(1), Chaikin(1)],
+        -1: [OBV(-1), ADL(-1), Chaikin(-1)]
     },
     'SAR': {
-        1: [OBV(1), ADLine(1), VPT(1), AROON(1)],
-        -1: [OBV(-1), ADLine(-1), VPT(-1), AROON(-1)]
-    },
-    'DMI': {
-        1: [ADOSC(1), CMF(1), VPT(1), AROON(1)],
-        -1: [ADOSC(-1), CMF(-1), VPT(-1), AROON(-1)]
+        1: [ADX(1), MFI(1), OBV(1)],
+        -1: [ADX(-1), MFI(-1), OBV(1)]
     },
     'BIAS': {
-        1: [CMF(1), MFI(1), VOL(1, mode='any'), AROON(1)],
-        -1: [CMF(-1), MFI(-1), VOL(-1, mode='any'), AROON(-1)]
+        1: [ADX(1), CMF(1), MFI(1)],
+        -1: [ADX(-1), CMF(1), MFI(-1)]
     },
     'KDJ': {
-        1: [OBV(1), MFI(1), VOL(1, mode='any')],  # 不加Aroon，保持震荡信号纯净
-        -1: [OBV(-1), MFI(-1), VOL(-1, mode='any')]
+        1: [ADX(1), MFI(1), AR(1)],
+        -1: [ADX(-1), MFI(-1), AR(-1)]
     },
     'RSI': {
-        1: [OBV(1), MFI(1), AROON(1)],  # RSI趋势跟随时可用Aroon做方向确认
-        -1: [OBV(-1), MFI(-1), AROON(-1)]
+        1: [ADX(1), MFI(1), OBV(1)],
+        -1: [ADX(-1), MFI(-1), OBV(-1)]
     },
     'WR': {
-        1: [OBV(1), CMF(1), VPT(1), AROON(1)],
-        -1: [OBV(-1), CMF(-1), VPT(-1), AROON(-1)]
+        1: [ADX(1), CMF(1), OBV(1)],
+        -1: [ADX(-1), CMF(-1), OBV(-1), ]
     },
 }
