@@ -1,6 +1,7 @@
 import pandas as pd
 import pandas_ta as ta
 
+from indicator.aroon import AROON
 from indicator.volume import OBV, CMF, VPT, ADOSC, ADLine, MFI, VOL
 
 
@@ -530,13 +531,36 @@ def get_down_ma_patterns():
 
 
 volume_registry = {
-    'SMA': {1: [OBV(1), CMF(1), VPT(1)], -1: [OBV(-1), CMF(-1), VPT(-1)]},
-    'MACD': {1: [OBV(1), ADOSC(1), CMF(1)], -1: [OBV(-1), ADOSC(-1), CMF(-1)]},
-    'SAR': {1: [OBV(1), ADLine(1), VPT(1)], -1: [OBV(-1), ADLine(-1), VPT(-1)]},
-    'DMI': {1: [ADOSC(1), CMF(1), VPT(1)], -1: [ADOSC(-1), CMF(-1), VPT(-1)]},
-    'BIAS': {1: [CMF(1), MFI(1), VOL(1, mode='any')], -1: [CMF(-1), MFI(-1), VOL(-1, mode='any')]},
-    'KDJ': {1: [OBV(1), MFI(1), VOL(1, mode='any')], -1: [OBV(-1), MFI(-1), VOL(-1, mode='any')]},
-    'RSI': {1: [OBV(1), MFI(1)], -1: [OBV(-1), MFI(-1)]},
-    'WR': {1: [OBV(1), CMF(1), VPT(1)], -1: [OBV(-1), CMF(-1), VPT(-1)]},
-    'CCI': {1: [OBV(1), CMF(1), ADOSC(1)], -1: [OBV(-1), CMF(-1), ADOSC(-1)]},
+    'SMA': {
+        1: [OBV(1), CMF(1), VPT(1), AROON(1)],
+        -1: [OBV(-1), CMF(-1), VPT(-1), AROON(-1)]
+    },
+    'MACD': {
+        1: [OBV(1), ADOSC(1), CMF(1), AROON(1)],
+        -1: [OBV(-1), ADOSC(-1), CMF(-1), AROON(-1)]
+    },
+    'SAR': {
+        1: [OBV(1), ADLine(1), VPT(1), AROON(1)],
+        -1: [OBV(-1), ADLine(-1), VPT(-1), AROON(-1)]
+    },
+    'DMI': {
+        1: [ADOSC(1), CMF(1), VPT(1), AROON(1)],
+        -1: [ADOSC(-1), CMF(-1), VPT(-1), AROON(-1)]
+    },
+    'BIAS': {
+        1: [CMF(1), MFI(1), VOL(1, mode='any'), AROON(1)],
+        -1: [CMF(-1), MFI(-1), VOL(-1, mode='any'), AROON(-1)]
+    },
+    'KDJ': {
+        1: [OBV(1), MFI(1), VOL(1, mode='any')],  # 不加Aroon，保持震荡信号纯净
+        -1: [OBV(-1), MFI(-1), VOL(-1, mode='any')]
+    },
+    'RSI': {
+        1: [OBV(1), MFI(1), AROON(1)],  # RSI趋势跟随时可用Aroon做方向确认
+        -1: [OBV(-1), MFI(-1), AROON(-1)]
+    },
+    'WR': {
+        1: [OBV(1), CMF(1), VPT(1), AROON(1)],
+        -1: [OBV(-1), CMF(-1), VPT(-1), AROON(-1)]
+    },
 }
