@@ -5,6 +5,7 @@ import pandas as pd
 
 from analysis.service import analyze_stock
 from dataset.service import create_dataframe
+from environment.service import env_vars
 from indicator.ma import SMA, MACD, SAR, DMI, BIAS, KDJ, RSI, WR
 from indicator.service import get_match_ma_patterns
 from indicator.volume import VOL, OBV, ADOSC, ADLine, CMF, MFI, VPT
@@ -180,7 +181,7 @@ def alpha_run_backtest(stock_code):
 
             if not holding and strategy is not None:
                 strategy.updated_at = pd.to_datetime(time)
-                if strategy.updated_at - strategy.created_at > timedelta(days=7):
+                if strategy.updated_at - strategy.created_at > timedelta(days=env_vars.STRATEGY_RETENTION_DAY):
                     strategy = None
         else:
             if strategy.signal == -1:
