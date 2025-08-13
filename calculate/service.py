@@ -91,7 +91,7 @@ def upping_trending(series):
     prev = series.iloc[-2]
     if len(turning_up_points) < 2:
         return False
-    return latest > prev and latest > turning_up_points.iloc[-1] > turning_up_points.iloc[-2]
+    return latest > prev and latest > turning_up_points.iloc[-1] >= turning_up_points.iloc[-2]
 
 
 def downing_trending(series):
@@ -100,4 +100,4 @@ def downing_trending(series):
     prev = series.iloc[-2]
     if len(turning_down_points) < 2:
         return False
-    return latest < prev and latest < turning_down_points.iloc[-1] < turning_down_points.iloc[-2]
+    return latest < prev and latest < turning_down_points.iloc[-1] <= turning_down_points.iloc[-2]
