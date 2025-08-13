@@ -304,10 +304,10 @@ class MFI:
         prev = mfi.iloc[-2]
 
         if self.signal == 1:
-            return prev < latest <= oversold
+            return prev < latest < oversold
 
         elif self.signal == -1:
-            return prev > latest or latest >= overbought
+            return prev > latest or latest > overbought
 
         return False
 
