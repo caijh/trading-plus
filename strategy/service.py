@@ -41,13 +41,18 @@ def create_strategy(stock):
     else:
         if direction == 'UP':
             buy_price = price if float(stock['EMA5']) > price else float(stock['EMA5'])
-            buy_price = round(buy_price * 0.995, n_digits)
+            buy_price = round(buy_price, n_digits)
             stop_loss = round(support, n_digits)
             target_price = resistance
         else:
             buy_price = round(support, n_digits)
             stop_loss = round(buy_price * 0.98, n_digits)
             target_price = resistance  # 预估反弹目标
+
+    loss_ratio = (buy_price - stop_loss) / buy_price
+    if loss_ratio < 0.008:  # 小于0.8%止损空间太窄
+        stop_loss = round(buy_price * 0.99, n_digits)  # 最少预留1%
+
     # 超高盈亏比，动态调整目标价：以 3 盈亏比为上限
     profit_ratio = (target_price - buy_price) / (buy_price - stop_loss)
     if profit_ratio > 3:
