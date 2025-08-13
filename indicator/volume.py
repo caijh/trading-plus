@@ -3,6 +3,9 @@ import pandas_ta as ta
 
 from calculate.service import detect_turning_point_indexes, upping_trending, downing_trending
 from indicator.adl import ADL
+from indicator.cmf import CMF
+from indicator.mfi import MFI
+from indicator.obv import OBV
 
 
 class VOL:
@@ -81,52 +84,6 @@ class VOL:
         return False
 
 
-class OBV:
-    # 类变量定义
-    label = ''
-    signal = 1
-    weight = 1
-
-    def __init__(self, signal):
-        """
-        初始化OBV对象。
-
-        参数:
-        - signal: 指示信号类型，1代表买入信号，其他值代表卖出信号。
-        """
-        self.signal = signal
-        self.label = 'OBV'
-
-    def match(self, stock, prices, df):
-        """
-        根据给定的数据判断是否满足OBV买入或卖出信号。
-
-        参数:
-        - stock: 股票信息，未在本函数中使用。
-        - prices: 价格信息，未在本函数中使用。
-        - df: 包含股票数据的DataFrame，包括['close'（收盘价）和 'volume'（成交量）]列。
-
-        返回:
-        - 如果满足买入或卖出信号则返回True，否则返回False。
-        """
-        # 获取最新价格信息
-        price = df.iloc[-1]
-        # 提取最新成交量并检查是否为正值
-        latest_volume = float(price['volume'])
-        if not latest_volume > 0:
-            # 如果成交量为负，则不进行后续判断，返回False
-            return False
-
-        # 计算 OBV 指标
-        obv = ta.obv(df['close'], df['volume'])
-        # 判断买入信号
-        if self.signal == 1:
-            return upping_trending(obv)
-        elif self.signal == -1:
-            return downing_trending(obv)
-        return False
-
-
 class ADOSC:
     label = ''
     signal = 1
@@ -167,91 +124,6 @@ class ADOSC:
             return upping_trending(adosc)
         elif self.signal == -1:
             return downing_trending(adosc)
-        return False
-
-
-class CMF:
-    def __init__(self, signal=1, period=20):
-        """
-        初始化 Chaikin Money Flow（CMF）策略
-
-        参数:
-        - signal: 1 表示买入信号（CMF 上升或为正），-1 表示卖出信号（CMF 下降或为负）
-        - period: CMF 计算周期，默认为 20
-        """
-        self.signal = signal
-        self.period = period
-        self.label = f'CMF{period}'
-        self.weight = 1
-
-    def match(self, stock, prices, df):
-        if df is None or len(df) < self.period + 2:
-            print(f'{stock["code"]} 数据不足，无法计算 CMF 指标')
-            return False
-
-        # 获取最新价格信息
-        price = df.iloc[-1]
-        # 将最新成交量转换为浮点数
-        latest_volume = float(price['volume'])
-        # 如果最新成交量不大于0，则不进行后续判断
-        if not latest_volume > 0:
-            return False
-
-        # 计算 CMF
-        cmf = ta.cmf(df['high'], df['low'], df['close'], df['volume'], length=self.period)
-        latest = cmf.iloc[-1]
-        prev = cmf.iloc[-3]
-
-        # 买入信号：CMF 上升且为正
-        if self.signal == 1:
-            # 连续上升 + 当前为正 + 高于中性带
-            return latest > prev and latest > 0
-
-        # 卖出信号：CMF 下降且为负
-        elif self.signal == -1:
-            # 连续下降 + 当前为负 + 低于中性带
-            return latest < prev and latest < 0
-
-        else:
-            raise False
-
-
-class MFI:
-    def __init__(self, signal=1, period=14):
-        """
-        初始化 Money Flow Index（MFI）策略
-
-        参数:
-        - signal: 1 表示买入信号（MFI 上升并脱离超卖区），-1 表示卖出信号（MFI 下降并脱离超买区）
-        - period: MFI 计算周期，默认为 14
-        """
-        self.signal = signal
-        self.period = period
-        self.label = f'MFI{period}'
-        self.weight = 1
-
-    def match(self, stock, prices, df, overbought=80, oversold=20):
-        if df is None or len(df) < self.period + 3:
-            print(f'{stock["code"]} 数据不足，无法计算 MFI 指标')
-            return False
-
-        # 获取最新价格信息
-        price = df.iloc[-1]
-        latest_volume = float(price['volume'])
-        if not latest_volume > 0:
-            return False
-
-        # 计算 MFI 指标
-        mfi = ta.mfi(df['high'], df['low'], df['close'], df['volume'], length=self.period)
-        latest = mfi.iloc[-1]
-        prev = mfi.iloc[-2]
-
-        if self.signal == 1:
-            return prev < latest < oversold
-
-        elif self.signal == -1:
-            return prev > latest or latest > overbought
-
         return False
 
 

@@ -8,9 +8,12 @@ from dataset.service import create_dataframe
 from environment.service import env_vars
 from indicator.adl import ADL
 from indicator.adx import ADX
+from indicator.cmf import CMF
 from indicator.ma import SMA, MACD, SAR, BIAS, KDJ, RSI, WR
+from indicator.mfi import MFI
+from indicator.obv import OBV
 from indicator.service import get_match_ma_patterns
-from indicator.volume import VOL, OBV, ADOSC, CMF, MFI, VPT
+from indicator.volume import VOL, ADOSC, VPT
 from stock.service import get_stock_prices, get_stock, KType
 from strategy.model import TradingStrategy
 from strategy.service import create_strategy, check_strategy

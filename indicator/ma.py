@@ -6,7 +6,9 @@ from indicator.adx import ADX
 from indicator.ar import AR
 from indicator.aroon import AROON
 from indicator.chaikin import Chaikin
-from indicator.volume import OBV, CMF, MFI
+from indicator.cmf import CMF
+from indicator.mfi import MFI
+from indicator.obv import OBV
 
 
 class SMA:
