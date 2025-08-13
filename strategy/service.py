@@ -23,13 +23,15 @@ def create_strategy(stock):
     # 原始价格点
     support = stock['support']
     resistance = stock['resistance']
+    price = stock['price']
     patterns = stock['patterns']
     exchange = stock['exchange']
 
     # 动态设置买入价、止损、目标价
     if trending == 'UP':
         if direction == 'UP':
-            buy_price = round(float(stock['EMA5']) * 1.005, n_digits)
+            buy_price = price if float(stock['EMA5']) > price else float(stock['EMA5'])
+            buy_price = round(buy_price * 1.005, n_digits)
             stop_loss = round(support * 0.995, n_digits)
             target_price = resistance
         else:
@@ -38,7 +40,8 @@ def create_strategy(stock):
             target_price = resistance  # 预估反弹目标
     else:
         if direction == 'UP':
-            buy_price = round(float(stock['EMA5'] * 0.995), n_digits)
+            buy_price = price if float(stock['EMA5']) > price else float(stock['EMA5'])
+            buy_price = round(buy_price * 0.995, n_digits)
             stop_loss = round(support, n_digits)
             target_price = resistance
         else:
