@@ -14,7 +14,7 @@ class Chaikin:
         self.signal = signal
         self.fast = fast
         self.slow = slow
-        self.label = f'Chaikin_{fast}_{slow}'
+        self.label = 'Chaikin'
         self.weight = 1
 
     def match(self, stock, prices, df):

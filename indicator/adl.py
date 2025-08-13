@@ -21,7 +21,7 @@ class ADL:
         - signal (int): 默认为 1，表示默认信号为买入信号。
         """
         self.signal = signal
-        self.label = 'ADLine'
+        self.label = 'ADL'
         self.weight = 1
         self.window = window
 
