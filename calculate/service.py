@@ -549,3 +549,21 @@ def calculate_vwap_support_resistance(stock, df, window=14, multiplier=2):
     print(f'{stock["code"]} calculate_vwap_support_resistance Support = {s}, Resistance = {r}')
 
     return s, r
+
+
+def get_recent_price(stock, df, price_type, recent):
+    if len(df) < recent:
+        return None
+
+    recent_df = df.iloc[-recent:]
+
+    if price_type == 'high':
+        max_idx = recent_df['high'].idxmax()
+        stock['resistance_date'] = max_idx.strftime('%Y-%m-%d %H:%M:%S')
+        return float(recent_df.loc[max_idx]['high'])
+    elif price_type == 'low':
+        min_idx = recent_df['low'].idxmin()
+        stock['support_date'] = min_idx.strftime('%Y-%m-%d %H:%M:%S')
+        return float(recent_df.loc[min_idx]['low'])
+
+    return None

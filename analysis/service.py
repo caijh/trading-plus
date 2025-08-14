@@ -19,41 +19,19 @@ def save_analyzed_stocks(stocks):
     with db.session.begin():
         for stock in stocks:
             try:
-                save_analyzed_stock(stock)
+                analyzed_stock = AnalyzedStock(
+                    code=stock["code"],
+                    name=stock["name"],
+                    exchange=stock["exchange"],
+                    patterns=stock.get("patterns", []),
+                    support=stock.get("support"),
+                    resistance=stock.get("resistance"),
+                    price=stock.get("price", None)
+                )
+                db.session.add(analyzed_stock)
+                print(f"Add {analyzed_stock} to AnalyzedStock")
             except Exception as e:
                 print(f"处理 stock 出错: {stock['code']}, 错误信息: {e}")
         db.session.commit()
-
-
-def save_analyzed_stock(stock):
-    analyzed_stock = AnalyzedStock(
-        code=stock["code"],
-        name=stock["name"],
-        exchange=stock["exchange"],
-        patterns=stock.get("patterns", []),
-        support=stock.get("support"),
-        resistance=stock.get("resistance"),
-        price=stock.get("price", None)
-    )
-    db.session.add(analyzed_stock)
-    print(f"Add {analyzed_stock} to AnalyzedStock")
-
-
-def get_recent_price(stock, df, price_type, recent):
-    if len(df) < recent:
-        return None
-
-    recent_df = df.iloc[-recent:]
-
-    if price_type == 'high':
-        max_idx = recent_df['high'].idxmax()
-        stock['resistance_date'] = max_idx.strftime('%Y-%m-%d %H:%M:%S')
-        return float(recent_df.loc[max_idx]['high'])
-    elif price_type == 'low':
-        min_idx = recent_df['low'].idxmin()
-        stock['support_date'] = min_idx.strftime('%Y-%m-%d %H:%M:%S')
-        return float(recent_df.loc[min_idx]['low'])
-
-    return None
 
 
