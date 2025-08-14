@@ -62,6 +62,7 @@ class MultiIndicatorTradingModel(TradingModel):
         stock['price'] = float(df.iloc[-1]['close'])
 
         trading_signal = self.get_trading_signal(stock, df, signal)
+        stock['signal'] = trading_signal
         if trading_signal == 1:
             strategy = create_strategy(stock)
             if check_strategy(stock, strategy):
