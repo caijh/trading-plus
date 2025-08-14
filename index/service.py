@@ -58,7 +58,7 @@ def analyze_index(signal):
         else:
             signal = 1
         index['stock_type'] = 'Index'
-        stock = analyze_stock(index, k_type=KType.DAY, signal=signal)
+        analyze_stock(index, k_type=KType.DAY, signal=signal)
         if index['code'] == 'NDX.NS':
             qqq = {
                 "code": "QQQ.NS",
@@ -68,8 +68,8 @@ def analyze_index(signal):
                 "stock_code": "QQQ"
             }
             analyze_stock(qqq, k_type=KType.DAY, signal=signal)
-            stock['patterns'] = qqq['patterns']
-        indexes.append(stock)
+            index['patterns'] = qqq['patterns']
+        indexes.append(index)
 
     return indexes
 
