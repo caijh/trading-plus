@@ -67,7 +67,7 @@ def analyze_index(signal):
                 "stock_type": "Fund",
                 "stock_code": "QQQ"
             }
-            qqq = analyze_stock(qqq, k_type=KType.DAY, signal=signal)
+            analyze_stock(qqq, k_type=KType.DAY, signal=signal)
             stock['patterns'] = qqq['patterns']
         indexes.append(stock)
 
