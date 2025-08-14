@@ -52,7 +52,7 @@ class R2:
             r2 = float(r * r)
         return r2, float(slope)
 
-    def match(self, stock, prices, df):
+    def match(self, stock, df):
         """
         作为“确认指标（OR逻辑的一员）”：
         - 多头确认：R² >= 阈值 且 斜率 > 0

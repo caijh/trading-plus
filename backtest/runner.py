@@ -3,7 +3,6 @@ from datetime import timedelta
 
 import pandas as pd
 
-from analysis.service import analyze_stock
 from dataset.service import create_dataframe
 from environment.service import env_vars
 from indicator.adl import ADL
@@ -12,11 +11,10 @@ from indicator.cmf import CMF
 from indicator.ma import SMA, MACD, SAR, BIAS, KDJ, RSI, WR
 from indicator.mfi import MFI
 from indicator.obv import OBV
-from indicator.service import get_match_ma_patterns
 from indicator.volume import VOL, ADOSC, VPT
 from stock.service import get_stock_prices, get_stock, KType
 from strategy.model import TradingStrategy
-from strategy.service import create_strategy, check_strategy
+from strategy.multi_indicator_model import get_match_ma_patterns, analyze_stock
 
 
 def build_pattern_objects(pattern_names, signal=1):
@@ -162,12 +160,10 @@ def alpha_run_backtest(stock_code):
     start = 20
     for i in range(start, len(df)):
         if strategy is None:
-            analyze_stock(stock, k_type=KType.DAY, prices=prices[0: i], prices_df=df.iloc[:i])
-            if len(stock['patterns']) > 0:
-                _strategy = create_strategy(stock)
-                if check_strategy(stock, _strategy):
-                    strategy = _strategy
-                    strategy.created_at = pd.to_datetime(df.index[i])
+            _strategy = analyze_stock(stock, k_type=KType.DAY, prices=prices[0: i], prices_df=df.iloc[:i])
+            if _strategy is not None:
+                strategy = _strategy
+                strategy.created_at = pd.to_datetime(df.index[i])
 
         if strategy is None:
             continue

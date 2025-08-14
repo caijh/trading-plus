@@ -15,7 +15,7 @@ class MFI:
         self.label = f'MFI{period}'
         self.weight = 1
 
-    def match(self, stock, prices, df, overbought=80, oversold=20):
+    def match(self, stock, df, overbought=80, oversold=20):
         if df is None or len(df) < self.period + 3:
             print(f'{stock["code"]} 数据不足，无法计算 MFI 指标')
             return False

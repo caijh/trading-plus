@@ -19,7 +19,7 @@ class ADX:
         self.label = f'ADX{period}'
         self.weight = 1
 
-    def match(self, stock, prices, df):
+    def match(self, stock, df):
         if df is None or len(df) < self.period + 2:
             print(f'{stock["code"]} 数据不足，无法计算 DMI')
             return False

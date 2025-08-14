@@ -31,7 +31,7 @@ class VOL:
         self.label = f'VOL'
         self.weight = 1
 
-    def match(self, stock, prices, df):
+    def match(self, stock, df):
         """
         根据成交量模式匹配股票。
 
@@ -94,7 +94,7 @@ class ADOSC:
         self.label = 'ADOSC'
         self.threshold = threshold
 
-    def match(self, stock, prices, df):
+    def match(self, stock, df):
         """
         判断给定股票是否满足特定的交易条件。
 
@@ -148,13 +148,12 @@ class VPT:
         self.label = f'VPT'
         self.weight = 1
 
-    def match(self, stock, prices, df):
+    def match(self, stock, df):
         """
         判断当前数据是否满足 VPT 信号条件。
 
         Args:
             stock (dict): 股票信息字典。
-            prices (list): 价格列表，未使用。
             df (pd.DataFrame): 包含股票数据的 DataFrame，包括 'close' 和 'volume' 列。
 
         Returns:

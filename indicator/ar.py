@@ -24,7 +24,7 @@ class AR:
         ar = high_open.rolling(self.period).sum() / open_low.rolling(self.period).sum() * 100
         return ar
 
-    def match(self, stock, prices, df):
+    def match(self, stock, df):
         """
         确认主指标有效性
         返回 True 表示主指标有效，False 表示无效

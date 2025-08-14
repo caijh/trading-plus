@@ -80,7 +80,7 @@ class Candlestick:
         self.column = f'CDL_{self.name.upper()}'
         self.description = pattern['description']
 
-    def match(self, stock, prices, df):
+    def match(self, stock, df):
         """
         判断给定股票的最近几个交易日中是否出现了特定的K线形态，并记录出现的日期。
 

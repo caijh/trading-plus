@@ -25,7 +25,7 @@ class ADL:
         self.weight = 1
         self.window = window
 
-    def match(self, stock, prices, df):
+    def match(self, stock, df):
         """
         匹配给定股票的 ADLine 信号。
 

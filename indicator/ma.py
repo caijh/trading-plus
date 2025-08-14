@@ -43,7 +43,7 @@ class SMA:
         self.signal = signal
         self.label = f'SMA{self.ma}'
 
-    def match(self, stock, prices, df):
+    def match(self, stock, df):
         """
         判断股票价格MA是否发生金叉或死叉。
 
@@ -55,7 +55,7 @@ class SMA:
         返回:
         布尔值，如果发生金叉或死叉，则返回True，否则返回False。
         """
-        if len(prices) < self.ma:
+        if len(df) < self.ma:
             return False
 
         # 获取最新价格数据
@@ -140,7 +140,7 @@ class MACD:
         self.signal = signal
         self.recent = recent
 
-    def match(self, stock, prices, df):
+    def match(self, stock, df):
         """
         根据MACD指标匹配买卖信号。
 
@@ -197,7 +197,7 @@ class SAR:
         self.label = 'SAR'
         self.weight = 1
 
-    def match(self, stock, prices, df):
+    def match(self, stock, df):
         if df is None or len(df) < 3:
             print(f'{stock["code"]} 数据不足，无法计算 PSAR')
             return False
@@ -244,7 +244,7 @@ class BIAS:
         self.bias = bias
         self.label = f'Bias{self.ma}'
 
-    def match(self, stock, prices, df):
+    def match(self, stock, df):
         """
         判断给定股票是否满足特定的买入条件。
 
@@ -288,7 +288,7 @@ class KDJ:
         self.label = 'KDJ'
         self.recent = recent
 
-    def match(self, stock, prices, df):
+    def match(self, stock, df):
         if df is None or len(df) < 15:
             return False
 
@@ -333,7 +333,7 @@ class RSI:
         self.label = 'RSI'
         self.recent = recent
 
-    def match(self, stock, prices, df):
+    def match(self, stock, df):
         # 计算 RSI 指标
         rsi_df = ta.rsi(df['close'], length=14, signal_indicators=True)  # type: ignore
         # 重命名列
@@ -374,7 +374,7 @@ class WR:
         self.label = 'WR'
         self.recent = recent
 
-    def match(self, stock, prices, df):
+    def match(self, stock, df):
         """
         判断是否满足 WR 指标的买入或卖出信号。
         :param stock: 股票信息字典
@@ -417,7 +417,7 @@ class CCI:
         self.period = period
         self.recent = recent
 
-    def match(self, stock, prices, df):
+    def match(self, stock, df):
         """
         判断CCI指标的买卖信号。
 

@@ -19,7 +19,7 @@ class OBV:
         self.signal = signal
         self.label = 'OBV'
 
-    def match(self, stock, prices, df):
+    def match(self, stock, df):
         """
         根据给定的数据判断是否满足OBV买入或卖出信号。
 

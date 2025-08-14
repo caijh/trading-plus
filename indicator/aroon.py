@@ -16,7 +16,7 @@ class AROON:
         self.label = f'AROON{period}'
         self.weight = 1
 
-    def match(self, stock, prices, df, up_threshold=70, down_threshold=70):
+    def match(self, stock, df, up_threshold=70, down_threshold=70):
         """
         判断是否符合趋势确认条件
         - 多头确认: Aroon Up >= up_threshold 且 Aroon Down <= (100 - up_threshold)

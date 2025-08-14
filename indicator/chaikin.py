@@ -17,7 +17,7 @@ class Chaikin:
         self.label = 'Chaikin'
         self.weight = 1
 
-    def match(self, stock, prices, df):
+    def match(self, stock, df):
         """
         确认主指标有效性
         返回 True 代表主指标有效，False 代表无效
