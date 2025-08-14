@@ -7,6 +7,7 @@ class TradingStrategy(db.Model):
     __tablename__ = "trading_strategy"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)  # 主键
+    strategy_name = db.Column(db.String(255), nullable=False)
     stock_code = db.Column(db.String(10), nullable=False, index=True)  # 股票代码
     stock_name = db.Column(db.String(255), nullable=False)
     buy_patterns = db.Column(db.JSON, nullable=True)  # 存储 JSON 格式的技术指标
@@ -25,6 +26,7 @@ class TradingStrategy(db.Model):
     def to_dict(self):
         return {
             'id': self.id,
+            'strategy_name': self.strategy_name,
             'stock_code': self.stock_code,
             'stock_name': self.stock_name,
             'buy_patterns': self.buy_patterns,

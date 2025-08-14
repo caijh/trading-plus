@@ -3,7 +3,6 @@ from dataset.service import create_dataframe
 from indicator.candlestick import get_bullish_candlestick_patterns, get_bearish_candlestick_patterns
 from indicator.ma import get_up_ma_patterns, get_down_ma_patterns
 from stock.service import KType, get_stock_prices
-from strategy.service import create_strategy, check_strategy
 from strategy.trading_model import TradingModel
 
 
@@ -19,6 +18,16 @@ class MultiIndicatorTradingModel(TradingModel):
         self.sell_candlestick_weight = sell_candlestick_weight
         self.sell_ma_weight = sell_ma_weight
         self.sell_volume_weight = sell_volume_weight
+
+    def get_support_resistance(self, stock, df):
+        (support, resistance) = calculate_support_resistance(stock, df)
+        (support_n, resistance_n) = calculate_support_resistance_by_turning_points(stock, df)
+        if support_n is not None:
+            support = support_n
+
+        if resistance_n is not None:
+            resistance = resistance_n
+        return support, resistance
 
     def get_trading_signal(self, stock, df, signal):
         candlestick_patterns, ma_patterns = get_patterns(signal)
@@ -47,15 +56,7 @@ class MultiIndicatorTradingModel(TradingModel):
         return 0
 
     def get_trading_strategy(self, stock, df, signal):
-        (support, resistance) = calculate_support_resistance(stock, df)
-        (support_n, resistance_n) = calculate_support_resistance_by_turning_points(stock, df)
-        if support_n is not None:
-            support = support_n
-
-        if resistance_n is not None:
-            resistance = resistance_n
-
-        # 将计算得到的支持位和阻力位添加到股票数据中
+        support, resistance = self.get_support_resistance(stock, df)
         stock['support'] = support
         stock['resistance'] = resistance
         stock['price'] = float(df.iloc[-1]['close'])
@@ -63,8 +64,8 @@ class MultiIndicatorTradingModel(TradingModel):
         trading_signal = self.get_trading_signal(stock, df, signal)
         stock['signal'] = trading_signal
         if trading_signal == 1:
-            strategy = create_strategy(stock)
-            if check_strategy(stock, strategy):
+            strategy = super().create_trading_strategy(stock, df)
+            if super().check_trading_strategy(stock, strategy):
                 return strategy
 
         return None
