@@ -32,7 +32,7 @@ class KDJ:
             df[f'{self.label}_Signal'] = (kdj_df['K'].shift(1) > kdj_df['D'].shift(1)) & (kdj_df['K'] < kdj_df['D']) & (
                 kdj_df['D'] > 80) & (kdj_df['J'] > 80)
         else:
-            raise ValueError("signal 参数只能是 1（金叉）或 -1（死叉）")
+            raise False
 
         # 取最近几天数据
         recent_signals = df.tail(self.recent)
