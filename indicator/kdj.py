@@ -32,16 +32,14 @@ class KDJ:
             df[f'{self.label}_Signal'] = (
                 (kdj_df['K'].shift(1) < kdj_df['D'].shift(1)) &
                 (kdj_df['K'] > kdj_df['D']) &
-                (kdj_df['D'] < 20) &
-                (kdj_df['J'] < 20)
+                (kdj_df['D'] < 20)
             ).fillna(False)
         # 死叉信号
         elif self.signal == -1:
             df[f'{self.label}_Signal'] = (
                 (kdj_df['K'].shift(1) > kdj_df['D'].shift(1)) &
                 (kdj_df['K'] < kdj_df['D']) &
-                (kdj_df['D'] > 80) &
-                (df['J'] > 80)
+                (kdj_df['D'] > 80)
             ).fillna(False)
         else:
             return False
