@@ -30,6 +30,19 @@ def add_update_strategy(stock):
         if strategy is None:
             return None
 
+        strategy = TradingStrategy(
+            strategy_name=strategy['strategy_name'],
+            stock_code=stock_code,
+            stock_name=stock_name,
+            exchange=strategy['exchange'],
+            buy_patterns=strategy['buy_patterns'],
+            buy_price=strategy['buy_price'],
+            take_profit=strategy['take_profit'],
+            stop_loss=strategy['stop_loss'],
+            sell_patterns=strategy['sell_patterns'],
+            signal=strategy['signal']
+        )
+
         # 查询是否已存在该股票的交易策略
         existing_strategy = get_strategy_by_stock_code(stock_code)
 
@@ -63,7 +76,10 @@ def get_strategy_by_stock_code(stock_code):
 
 
 def generate_strategies(stocks):
-    analyzed_stocks = stocks
+    analyzed_stocks = []
+    for stock in stocks:
+        if stock['strategy'] is not None:
+            analyzed_stocks.append(stock)
 
     if len(analyzed_stocks) == 0:
         print("🚀 没有已经分析的股票")
@@ -183,4 +199,3 @@ def run_generate_strategy():
         check_strategy_reverse_task()
     except Exception as e:
         print(f"Error: {e}")
-
