@@ -27,7 +27,7 @@ class RSI:
             # 识别 RSI 高于 70 且下跌（卖出信号）
             df[f'{self.label}_Signal'] = (rsi_df['RSI'].shift(1) > 70) & (rsi_df['RSI'] < rsi_df['RSI'].shift(1))
         else:
-            raise ValueError("signal 参数只能是 1（买入）或 -1（卖出）")
+            return False
 
         recent_signals = df.tail(self.recent)
 
