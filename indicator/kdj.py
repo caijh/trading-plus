@@ -16,31 +16,39 @@ class KDJ:
         if df is None or len(df) < 15:
             return False
 
-        # 计算 KDJ 指标
-        kdj_df = df.ta.stoch(high='high', low='low', close='close', k=9, d=3, smooth_d=3)
-
-        # 重命名列
-        kdj_df.rename(columns={'STOCHk_9_3_3': 'K', 'STOCHd_9_3_3': 'D'}, inplace=True)
+        # 计算 KDJ
+        kdj_df = df.ta.stoch(
+            high='high', low='low', close='close',
+            k=9, d=3, smooth_d=3
+        )
+        kdj_df.rename(
+            columns={'STOCHk_9_3_3': 'K', 'STOCHd_9_3_3': 'D'},
+            inplace=True
+        )
         kdj_df['J'] = 3 * kdj_df['K'] - 2 * kdj_df['D']
 
+        # 金叉信号
         if self.signal == 1:
-            # 识别 KDJ 金叉（K 上穿 D，且 D < 20）
-            df[f'{self.label}_Signal'] = (kdj_df['K'].shift(1) < kdj_df['D'].shift(1)) & (kdj_df['K'] > kdj_df['D']) & (
-                kdj_df['D'] < 20) & (kdj_df['J'] < 20)
+            df[f'{self.label}_Signal'] = (
+                (kdj_df['K'].shift(1) < kdj_df['D'].shift(1)) &
+                (kdj_df['K'] > kdj_df['D']) &
+                (kdj_df['D'] < 20) &
+                (kdj_df['J'] < 20)
+            ).fillna(False)
+        # 死叉信号
         elif self.signal == -1:
-            # 识别 KDJ 死叉（K 下穿 D，且 D > 80）
-            df[f'{self.label}_Signal'] = (kdj_df['K'].shift(1) > kdj_df['D'].shift(1)) & (kdj_df['K'] < kdj_df['D']) & (
-                kdj_df['D'] > 80) & (kdj_df['J'] > 80)
+            df[f'{self.label}_Signal'] = (
+                (kdj_df['K'].shift(1) > kdj_df['D'].shift(1)) &
+                (kdj_df['K'] < kdj_df['D']) &
+                (kdj_df['D'] > 80) &
+                (df['J'] > 80)
+            ).fillna(False)
         else:
-            raise False
+            return False
 
-        # 取最近几天数据
-        recent_signals = df.tail(self.recent)
+        # 最近 N 天是否有信号
+        return df[f'{self.label}_Signal'].tail(self.recent).any()
 
-        # 判断是否有交易信号
-        kdj_signal = recent_signals[f'{self.label}_Signal'].any()
-
-        return kdj_signal
 
     def get_volume_confirm_patterns(self):
         return volume_registry.get(self.name).get(self.signal)
