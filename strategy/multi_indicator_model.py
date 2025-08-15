@@ -9,7 +9,7 @@ from strategy.trading_model import TradingModel
 class MultiIndicatorTradingModel(TradingModel):
     def __init__(self,
                  buy_candlestick_weight=1, buy_ma_weight=2, buy_volume_weight=1,
-                 sell_candlestick_weight=0, sell_ma_weight=1, sell_volume_weight=1,
+                 sell_candlestick_weight=1, sell_ma_weight=1, sell_volume_weight=1,
                  ):
         super().__init__('MultiIndicatorTradingModel')
         self.buy_candlestick_weight = buy_candlestick_weight
@@ -46,7 +46,7 @@ class MultiIndicatorTradingModel(TradingModel):
         elif signal == -1:
             matched_ma_patterns, ma_weight, matched_volume_patterns = get_match_ma_patterns(ma_patterns, stock,
                                                                                             df, self.sell_volume_weight)
-            if candlestick_weight >= self.sell_candlestick_weight and ma_weight >= self.sell_ma_weight:
+            if candlestick_weight >= self.sell_candlestick_weight or ma_weight >= self.sell_ma_weight:
                 # 同样将所有匹配的模式标签添加到股票的模式列表中
                 append_matched_pattern_label(matched_candlestick_patterns, stock)
                 append_matched_pattern_label(matched_ma_patterns, stock)
