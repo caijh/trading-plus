@@ -22,7 +22,6 @@ class WR:
         """
         判断是否满足 WR 指标的买入或卖出信号。
         :param stock: 股票信息字典
-        :param prices: 未使用，预留参数
         :param df: DataFrame，必须包含 high、low、close
         :return: True / False
         """
@@ -37,7 +36,7 @@ class WR:
             # 卖出信号：WR 下穿 -20（从超买区域回落）
             df[f'{self.label}_Signal'] = (wr_df.shift(1) > -20) & (wr_df < wr_df.shift(1))
         else:
-            raise ValueError("signal 参数只能是 1（买入）或 -1（卖出）")
+            return False
 
         # 最近 N 天是否出现信号
         recent_signals = df.tail(self.recent)
