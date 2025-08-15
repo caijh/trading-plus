@@ -22,7 +22,7 @@ from indicator.vpt import VPT
 from indicator.wr import WR
 from stock.service import get_stock_prices, get_stock, KType
 from strategy.model import TradingStrategy
-from strategy.multi_indicator_model import get_match_ma_patterns, analyze_stock
+from strategy.trading_model_multi_indicator import get_match_ma_patterns, analyze_stock
 
 
 def build_pattern_objects(pattern_names, signal=1):

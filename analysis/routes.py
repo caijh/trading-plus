@@ -6,8 +6,8 @@ from extensions import executor
 from fund.service import analyze_funds
 from index.service import analyze_index, analyze_index_stocks
 from stock.service import get_stock, KType
-from strategy.multi_indicator_model import analyze_stock
 from strategy.service import generate_strategies
+from strategy.trading_model_multi_indicator import analyze_stock
 
 analysis = Blueprint('analysis', __name__, url_prefix='/analysis')
 

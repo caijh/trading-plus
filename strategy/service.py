@@ -6,7 +6,7 @@ from extensions import db
 from holdings.service import get_holdings
 from stock.service import get_stock, KType
 from strategy.model import TradingStrategy
-from strategy.multi_indicator_model import analyze_stock
+from strategy.trading_model_multi_indicator import analyze_stock
 
 
 def add_update_strategy(stock):

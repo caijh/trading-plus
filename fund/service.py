@@ -2,7 +2,7 @@ import requests
 
 from environment.service import env_vars
 from stock.service import KType
-from strategy.multi_indicator_model import analyze_stock
+from strategy.trading_model_multi_indicator import analyze_stock
 
 
 def get_funds(exchange):
