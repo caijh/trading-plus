@@ -33,7 +33,7 @@ class TradingModel:
         if trending == 'UP':
             if direction == 'UP':
                 buy_price = price if float(stock['EMA5']) > price else float(stock['EMA5'])
-                buy_price = round(buy_price * 1.005, n_digits)
+                buy_price = round(buy_price, n_digits)
                 stop_loss = round(support * 0.995, n_digits)
                 target_price = resistance
             else:
