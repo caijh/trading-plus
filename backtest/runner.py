@@ -6,14 +6,20 @@ import pandas as pd
 from dataset.service import create_dataframe
 from environment.service import env_vars
 from indicator.adl import ADL
+from indicator.adoc import ADOSC
 from indicator.adx import ADX
+from indicator.bias import BIAS
 from indicator.cmf import CMF
-from indicator.ma import SAR, BIAS, KDJ, RSI, WR
+from indicator.kdj import KDJ
 from indicator.macd import MACD
 from indicator.mfi import MFI
 from indicator.obv import OBV
+from indicator.rsi import RSI
+from indicator.sar import SAR
 from indicator.sma import SMA
-from indicator.volume import VOL, ADOSC, VPT
+from indicator.vol import VOL
+from indicator.vpt import VPT
+from indicator.wr import WR
 from stock.service import get_stock_prices, get_stock, KType
 from strategy.model import TradingStrategy
 from strategy.multi_indicator_model import get_match_ma_patterns, analyze_stock

@@ -86,10 +86,10 @@ class TradingModel:
             return False
 
         # 盈亏比判断
-        profit_ratio = (take_profit - buy_price) / (buy_price - stop_loss)
-        if profit_ratio < float(min_profit_ratio):
-            print(f"{stock_code} {stock_name} 盈亏比 {profit_ratio:.2f} 不满足最小要求，跳过")
-            return False
+        # profit_ratio = (take_profit - buy_price) / (buy_price - stop_loss)
+        # if profit_ratio < float(min_profit_ratio):
+        #     print(f"{stock_code} {stock_name} 盈亏比 {profit_ratio:.2f} 不满足最小要求，跳过")
+        #     return False
 
         return True
 

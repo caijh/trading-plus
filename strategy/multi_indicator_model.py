@@ -1,7 +1,13 @@
 from calculate.service import calculate_support_resistance, calculate_support_resistance_by_turning_points
 from dataset.service import create_dataframe
+from indicator.bias import BIAS
 from indicator.candlestick import get_bullish_candlestick_patterns, get_bearish_candlestick_patterns
-from indicator.ma import get_up_ma_patterns, get_down_ma_patterns
+from indicator.kdj import KDJ
+from indicator.macd import MACD
+from indicator.rsi import RSI
+from indicator.sar import SAR
+from indicator.sma import SMA
+from indicator.wr import WR
 from stock.service import KType, get_stock_prices
 from strategy.trading_model import TradingModel
 
@@ -251,5 +257,33 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1,
         strategy = trading_model.get_trading_strategy(stock, df, signal)
         stock['strategy'] = strategy.to_dict() if strategy is not None else None
         print(
-            f'Analyzing Complete code = {code}, name = {name}, patterns = {stock["patterns"]}, support = {stock["support"]} resistance = {stock["resistance"]} price = {stock["price"]}')
+            f'Analyzing Complete code = {code}, name = {name}, trending = {stock["trending"]}, direction = {stock["direction"]}, patterns = {stock["patterns"]}, support = {stock["support"]} resistance = {stock["resistance"]} price = {stock["price"]}')
         return strategy
+
+
+def get_up_ma_patterns():
+    """
+    创建并返回一个包含常用均线和偏差率模式的列表。
+
+    这个函数初始化了一个列表，包含了不同周期的均线（如5日、10日、20日、60日、200日均线），
+    以及一个特定参数的偏差率模式。这些模式用于在金融数据分析中计算和应用各种移动平均线和偏差率指标。
+    """
+    # 初始化均线和偏差率模式列表
+    ma_patterns = [SMA(10, 1), SMA(20, 1), SMA(50, 1),
+                   MACD(1), SAR(1),
+                   BIAS(20, -0.09, 1), KDJ(1), RSI(1), WR(1)]
+    return ma_patterns
+
+
+def get_down_ma_patterns():
+    """
+    创建并返回一个包含常用均线和偏差率模式的列表。
+
+    这个函数初始化了一个列表，包含了不同周期的均线（如5日、10日、20日、60日、200日均线），
+    以及一个特定参数的偏差率模式。这些模式用于在金融数据分析中计算和应用各种移动平均线和偏差率指标。
+    """
+    # 初始化均线和偏差率
+    ma_patterns = [SMA(10, -1), SMA(20, -1), SMA(50, -1),
+                   MACD(-1), SAR(-1),
+                   BIAS(20, 0.09, -1), KDJ(-1), RSI(-1), WR(-1)]
+    return ma_patterns
