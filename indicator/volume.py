@@ -3,7 +3,12 @@ import pandas_ta as ta
 
 from calculate.service import detect_turning_point_indexes, upping_trending, downing_trending
 from indicator.adl import ADL
+from indicator.adx import ADX
+from indicator.ar import AR
+from indicator.aroon import AROON
+from indicator.chaikin import Chaikin
 from indicator.cmf import CMF
+from indicator.kvo import KVO
 from indicator.mfi import MFI
 from indicator.obv import OBV
 
@@ -193,3 +198,35 @@ def get_oversold_volume_patterns():
 
 def get_overbought_volume_patterns():
     return [VOL(1), OBV(-1), ADL(-1), ADOSC(-1), CMF(-1), MFI(-1), VPT(-1)]
+
+
+volume_registry = {
+    'SMA': {
+        1: [ADX(1), OBV(1), CMF(1), AROON(1)],
+        -1: [ADX(-1), OBV(-1), CMF(-1), AROON(-1)]
+    },
+    'MACD': {
+        1: [OBV(1), ADL(1), Chaikin(1), KVO(1)],
+        -1: [OBV(-1), ADL(-1), Chaikin(-1), KVO(-1)]
+    },
+    'SAR': {
+        1: [ADX(1), MFI(1), OBV(1), AROON(1)],
+        -1: [ADX(-1), MFI(-1), OBV(1), AROON(-1)]
+    },
+    'BIAS': {
+        1: [ADX(1), CMF(1), MFI(1)],
+        -1: [ADX(-1), CMF(1), MFI(-1)]
+    },
+    'KDJ': {
+        1: [ADX(1), MFI(1), AR(1)],
+        -1: [ADX(-1), MFI(-1), AR(-1)]
+    },
+    'RSI': {
+        1: [ADX(1), MFI(1), OBV(1)],
+        -1: [ADX(-1), MFI(-1), OBV(-1)]
+    },
+    'WR': {
+        1: [ADX(1), CMF(1), OBV(1), KVO(1)],
+        -1: [ADX(-1), CMF(-1), OBV(-1), KVO(-1)]
+    },
+}

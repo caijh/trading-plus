@@ -8,9 +8,11 @@ from environment.service import env_vars
 from indicator.adl import ADL
 from indicator.adx import ADX
 from indicator.cmf import CMF
-from indicator.ma import SMA, MACD, SAR, BIAS, KDJ, RSI, WR
+from indicator.ma import SAR, BIAS, KDJ, RSI, WR
+from indicator.macd import MACD
 from indicator.mfi import MFI
 from indicator.obv import OBV
+from indicator.sma import SMA
 from indicator.volume import VOL, ADOSC, VPT
 from stock.service import get_stock_prices, get_stock, KType
 from strategy.model import TradingStrategy
@@ -127,13 +129,13 @@ def run_backtest_patterns(stock_code, buy_patterns, sell_patterns):
         time = sub_df.index[-1]
 
         if not holding:
-            _, ma_weight, _ = get_match_ma_patterns(buy_patterns, stock, prices[0: i + 1], sub_df,
+            _, ma_weight, _ = get_match_ma_patterns(buy_patterns, stock, sub_df,
                                                     volume_weight_limit=2)
             if ma_weight >= 2:
                 entry_price, entry_time = price, time
                 holding = True
         else:
-            _, ma_weight, _ = get_match_ma_patterns(sell_patterns, stock, prices[0: i + 1], sub_df,
+            _, ma_weight, _ = get_match_ma_patterns(sell_patterns, stock, sub_df,
                                                     volume_weight_limit=1)
             if ma_weight >= 1:
                 if price > entry_price:
