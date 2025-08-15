@@ -4,7 +4,7 @@ import pandas_ta as ta
 class ADX:
     name = 'ADX'
 
-    def __init__(self, signal=1, period=14, adx_threshold=20):
+    def __init__(self, signal=1, period=14, adx_threshold=25):
         """
         DMI 策略（+DI/-DI 交叉，趋势方向判断）
 
@@ -34,8 +34,8 @@ class ADX:
         adx = dmi[f'ADX_{self.period}']
 
         # 最近两个周期的 DI 值
-        p1 = plus_di.iloc[-1]
-        m1 = minus_di.iloc[-1]
+        latest_plus_di = plus_di.iloc[-1]
+        latest_minus_di = minus_di.iloc[-1]
         adx_now = adx.iloc[-1]
 
         # 趋势强度判断
@@ -43,7 +43,7 @@ class ADX:
             return False
 
         if self.signal == 1:
-            return p1 > m1
+            return latest_plus_di > latest_minus_di
         elif self.signal == -1:
-            return p1 < m1
+            return latest_plus_di < latest_minus_di
         return False
