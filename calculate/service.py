@@ -93,18 +93,27 @@ def upping_trending(series):
     # 获取最新的 ADOSC 值和前一个 ADOSC 值
     latest = series.iloc[-1]
     prev = series.iloc[-2]
-    if len(turning_up_points) < 2:
+
+    if len(turning_up_points) < 1:
         return False
-    return latest > prev and latest > turning_up_points.iloc[-1] >= turning_up_points.iloc[-2]
+    else:
+        if len(turning_up_points) >= 2:
+            return latest > prev and latest > turning_up_points.iloc[-1] >= turning_up_points.iloc[-2]
+        else:
+            return latest > prev and latest > turning_up_points.iloc[-1]
 
 
 def downing_trending(series):
     turning_points, turning_up_points, turning_down_points = detect_turning_points(series)
     latest = series.iloc[-1]
     prev = series.iloc[-2]
-    if len(turning_down_points) < 2:
+    if len(turning_down_points) < 1:
         return False
-    return latest < prev and latest < turning_down_points.iloc[-1] <= turning_down_points.iloc[-2]
+    else:
+        if len(turning_down_points) >= 2:
+            return latest < prev and latest < turning_down_points.iloc[-1] <= turning_down_points.iloc[-2]
+        else:
+            return latest < prev and latest < turning_down_points.iloc[-1]
 
 
 def calculate_support_resistance(stock, df, window=20, num_std=2):
