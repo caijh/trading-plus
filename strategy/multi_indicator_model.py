@@ -37,7 +37,7 @@ class MultiIndicatorTradingModel(TradingModel):
             if candlestick_weight >= self.buy_candlestick_weight:
                 matched_ma_patterns, ma_weight, matched_volume_patterns = get_match_ma_patterns(ma_patterns, stock, df,
                                                                                                 self.buy_volume_weight)
-                if ma_weight >= self.buy_ma_weight and len(matched_volume_patterns) >= self.buy_volume_weight:
+                if ma_weight >= self.buy_ma_weight and len(matched_volume_patterns) >= 2:
                     # 将所有匹配的K线形态、均线和量能模式的标签添加到股票的模式列表中
                     append_matched_pattern_label(matched_candlestick_patterns, stock)
                     append_matched_pattern_label(matched_ma_patterns, stock)
@@ -46,7 +46,7 @@ class MultiIndicatorTradingModel(TradingModel):
         elif signal == -1:
             matched_ma_patterns, ma_weight, matched_volume_patterns = get_match_ma_patterns(ma_patterns, stock,
                                                                                             df, self.sell_volume_weight)
-            if candlestick_weight >= self.sell_candlestick_weight or ma_weight >= self.sell_ma_weight:
+            if candlestick_weight >= self.sell_candlestick_weight and ma_weight >= self.sell_ma_weight:
                 # 同样将所有匹配的模式标签添加到股票的模式列表中
                 append_matched_pattern_label(matched_candlestick_patterns, stock)
                 append_matched_pattern_label(matched_ma_patterns, stock)
