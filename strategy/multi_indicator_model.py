@@ -249,7 +249,7 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1,
         trading_model = MultiIndicatorTradingModel(buy_candlestick_weight, buy_ma_weight, buy_volume_weight,
                                                    sell_candlestick_weight, sell_ma_weight, sell_volume_weight)
         strategy = trading_model.get_trading_strategy(stock, df, signal)
-        stock['strategy'] = strategy
+        stock['strategy'] = strategy.to_dict() if strategy is not None else None
         print(
             f'Analyzing Complete code = {code}, name = {name}, patterns = {stock["patterns"]}, support = {stock["support"]} resistance = {stock["resistance"]} price = {stock["price"]}')
         return strategy
