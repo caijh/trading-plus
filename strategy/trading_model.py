@@ -53,12 +53,12 @@ class TradingModel:
 
         loss_ratio = (buy_price - stop_loss) / buy_price
         if loss_ratio < 0.008:  # 小于0.8%止损空间太窄
-            stop_loss = round(buy_price * 0.99, n_digits)  # 最少预留1%
+            stop_loss = round(buy_price * 0.98, n_digits)  # 最少预留2%
 
-        # 超高盈亏比，动态调整目标价：以 3 盈亏比为上限
+        # 超高盈亏比，动态调整目标价：以 4 盈亏比为上限
         profit_ratio = (target_price - buy_price) / (buy_price - stop_loss)
-        if profit_ratio > 3:
-            target_price = round(4 * buy_price - 3 * stop_loss, n_digits)
+        if profit_ratio > 4:
+            target_price = round(5 * buy_price - 4 * stop_loss, n_digits)
         # 创建策略对象
         return TradingStrategy(
             strategy_name=self.name,
