@@ -35,6 +35,6 @@ class MFI:
             return prev < latest < oversold
 
         elif self.signal == -1:
-            return prev > latest or latest > overbought
+            return prev > latest > latest > overbought
 
         return False
