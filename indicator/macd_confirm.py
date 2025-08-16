@@ -19,7 +19,7 @@ class MACD(Indicator):
         self.fast = fast
         self.slow = slow
         self.signal_period = signal_period
-        self.label = "T_MACD"
+        self.label = "MACD_D"
         self.weight = 1
 
     def match(self, stock, df: pd.DataFrame, trending, direction):

@@ -17,7 +17,7 @@ class RSI(Indicator):
         self.signal = signal
         self.length = length
         self.confirm_period = confirm_period
-        self.label = "RSI"
+        self.label = "RSI_D"
         self.weight = 1
 
     def match(self, stock, df: pd.DataFrame, trending, direction):
