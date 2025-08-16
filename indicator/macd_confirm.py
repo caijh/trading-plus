@@ -27,10 +27,6 @@ class MACD(Indicator):
         确认主指标有效性
         返回 True 代表主指标有效，False 代表无效
         """
-        # 数据列检查
-        if "close" not in df.columns:
-            return False
-
         # 计算 MACD
         macd_df = ta.macd(
             close=df["close"],
