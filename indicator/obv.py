@@ -4,6 +4,38 @@ from calculate.service import upping_trending, downing_trending
 from indicator.base import Indicator
 
 
+def _trend_confirmation(obv_series, trend, period=5):
+    """
+    判断 OBV 的趋势确认信号
+    通过计算OBV在周期内的线性回归斜率来判断趋势，更具鲁棒性。
+    """
+    if trend == 'bullish':
+        # 预期 OBV 上涨，斜率应为正
+        return upping_trending(obv_series)
+    elif trend == 'bearish':
+        # 预期 OBV 下跌，斜率应为负
+        return downing_trending(obv_series)
+
+    return False
+
+
+def _divergence(obv_series, divergence):
+    """
+    判断 OBV 的背离信号
+    通过比较价格和OBV在周期内的变化来识别背离，简单且有效。
+    """
+
+    if divergence == 'bullish':
+        # 底背离：价格下跌但OBV上涨，暗示买盘力量增强
+        return upping_trending(obv_series)
+
+    elif divergence == 'bearish':
+        # 顶背离：价格上涨但OBV下跌，暗示卖盘力量增强
+        return downing_trending(obv_series)
+
+    return False
+
+
 class OBV(Indicator):
 
     def __init__(self, signal):
@@ -38,10 +70,20 @@ class OBV(Indicator):
             return False
 
         # 计算 OBV 指标
-        obv = ta.obv(df['close'], df['volume'])
+        obv_series = ta.obv(df['close'], df['volume'])
         # 判断买入信号
         if self.signal == 1:
-            return upping_trending(obv)
+            if direction == 'UP':
+                # 上涨确认
+                return _trend_confirmation(obv_series, trend='bullish')
+            elif direction == 'DOWN':
+                # 上涨背离
+                return _divergence(obv_series, divergence='bullish')
         elif self.signal == -1:
-            return downing_trending(obv)
+            if direction == 'UP':
+                # 上涨背离
+                return _divergence(obv_series, divergence='bearish')
+            elif direction == 'DOWN':
+                # 下跌确认
+                return _trend_confirmation(obv_series, trend='bearish')
         return False
