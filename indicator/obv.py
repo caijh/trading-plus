@@ -77,7 +77,7 @@ class OBV(Indicator):
                 # 上涨确认
                 return _trend_confirmation(obv_series, trend='bullish')
             elif direction == 'DOWN':
-                # 上涨背离
+                # 下跌背离
                 return _divergence(obv_series, divergence='bullish')
         elif self.signal == -1:
             if direction == 'UP':
