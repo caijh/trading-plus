@@ -1,9 +1,10 @@
 import pandas_ta as ta
 
+from indicator.base import Indicator
 from indicator.service import volume_registry
 
 
-class RSI:
+class RSI(Indicator):
     weight = 1
     signal = 1
     recent = 1
@@ -14,7 +15,7 @@ class RSI:
         self.label = 'RSI'
         self.recent = recent
 
-    def match(self, stock, df):
+    def match(self, stock, df, trending, direction):
         # 计算 RSI 指标
         rsi_df = ta.rsi(df['close'], length=14, signal_indicators=True)  # type: ignore
         # 重命名列

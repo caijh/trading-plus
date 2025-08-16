@@ -1,4 +1,7 @@
-class AR:
+from indicator.base import Indicator
+
+
+class AR(Indicator):
     name = 'AR'
 
     def __init__(self, signal, period=26, buy_threshold=50, sell_threshold=150):
@@ -40,7 +43,7 @@ class AR:
         df[self.label] = ar
         return df
 
-    def match(self, stock, df):
+    def match(self, stock, df, trending, direction):
         """
         根据 AR 指标判断交易信号
 

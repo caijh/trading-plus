@@ -135,14 +135,12 @@ def run_backtest_patterns(stock_code, buy_patterns, sell_patterns):
         time = sub_df.index[-1]
 
         if not holding:
-            _, ma_weight, _ = get_match_ma_patterns(buy_patterns, stock, sub_df,
-                                                    volume_weight_limit=2)
+            _, ma_weight, _ = get_match_ma_patterns(buy_patterns, stock, sub_df, None, None, volume_weight_limit=2)
             if ma_weight >= 2:
                 entry_price, entry_time = price, time
                 holding = True
         else:
-            _, ma_weight, _ = get_match_ma_patterns(sell_patterns, stock, sub_df,
-                                                    volume_weight_limit=1)
+            _, ma_weight, _ = get_match_ma_patterns(sell_patterns, stock, sub_df, None, None, volume_weight_limit=1)
             if ma_weight >= 1:
                 if price > entry_price:
                     records.append((entry_time, time, entry_price, price, 'take_profit'))

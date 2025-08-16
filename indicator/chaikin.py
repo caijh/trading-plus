@@ -1,8 +1,10 @@
 import pandas as pd
 import pandas_ta as ta
 
+from indicator.base import Indicator
 
-class Chaikin:
+
+class Chaikin(Indicator):
     def __init__(self, signal=1, fast=3, slow=10):
         """
         Chaikin Oscillator 策略
@@ -17,7 +19,7 @@ class Chaikin:
         self.label = 'Chaikin'
         self.weight = 1
 
-    def match(self, stock, df: pd.DataFrame):
+    def match(self, stock, df: pd.DataFrame, trending, direction):
         """
         根据 Chaikin 指标判断买入/卖出信号。
 

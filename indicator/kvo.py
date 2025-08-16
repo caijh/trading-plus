@@ -1,8 +1,10 @@
 import pandas as pd
 import pandas_ta as ta
 
+from indicator.base import Indicator
 
-class KVO:
+
+class KVO(Indicator):
     def __init__(self, signal=1, fast=34, slow=55, confirm_period=3):
         """
         KVO 确认指标
@@ -20,7 +22,7 @@ class KVO:
         self.label = "KVO"
         self.weight = 1
 
-    def match(self, stock, df: pd.DataFrame):
+    def match(self, stock, df: pd.DataFrame, trending, direction):
         """
         确认主指标有效性
         返回 True 代表主指标有效，False 代表无效

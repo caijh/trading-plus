@@ -1,7 +1,9 @@
 import pandas_ta as ta
 
+from indicator.base import Indicator
 
-class MFI:
+
+class MFI(Indicator):
     def __init__(self, signal=1, period=14):
         """
         初始化 Money Flow Index（MFI）策略
@@ -15,7 +17,7 @@ class MFI:
         self.label = f'MFI{period}'
         self.weight = 1
 
-    def match(self, stock, df, overbought=80, oversold=20):
+    def match(self, stock, df, trending, direction, overbought=80, oversold=20):
         if df is None or len(df) < self.period + 3:
             print(f'{stock["code"]} 数据不足，无法计算 MFI 指标')
             return False

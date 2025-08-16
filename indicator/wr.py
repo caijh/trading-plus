@@ -1,9 +1,10 @@
 import pandas_ta as ta
 
+from indicator.base import Indicator
 from indicator.service import volume_registry
 
 
-class WR:
+class WR(Indicator):
     weight = 1
     signal = 1
     recent = 1
@@ -18,11 +19,13 @@ class WR:
         self.label = 'WR'
         self.recent = recent
 
-    def match(self, stock, df):
+    def match(self, stock, df, trending, direction):
         """
         判断是否满足 WR 指标的买入或卖出信号。
         :param stock: 股票信息字典
         :param df: DataFrame，必须包含 high、low、close
+        :param trending 趋势
+        :param direction 方向
         :return: True / False
         """
         # 计算 WR 指标，默认周期 14

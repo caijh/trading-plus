@@ -1,9 +1,10 @@
 import pandas_ta as ta
 
+from indicator.base import Indicator
 from indicator.service import volume_registry
 
 
-class SMA:
+class SMA(Indicator):
     """
     简单移动平均线（SMA）信号判断类。
 
@@ -35,7 +36,7 @@ class SMA:
         self.signal = signal
         self.label = f'SMA{self.ma}'
 
-    def match(self, stock, df):
+    def match(self, stock, df, trending, direction):
         """
         判断股票价格MA是否发生金叉或死叉。
 

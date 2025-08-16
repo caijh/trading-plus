@@ -35,13 +35,14 @@ class MultiIndicatorTradingModel(TradingModel):
             resistance = resistance_n
         return support, resistance
 
-    def get_trading_signal(self, stock, df, signal):
+    def get_trading_signal(self, stock, df, signal, trending, direction):
         candlestick_patterns, ma_patterns = get_patterns(signal)
-        matched_candlestick_patterns, candlestick_weight = get_match_patterns(candlestick_patterns, stock,
-                                                                              df, 'candlestick')
+        matched_candlestick_patterns, candlestick_weight = get_match_patterns(candlestick_patterns, stock, df, trending,
+                                                                              direction, 'candlestick')
         if signal == 1:
             if candlestick_weight >= self.buy_candlestick_weight:
                 matched_ma_patterns, ma_weight, matched_volume_patterns = get_match_ma_patterns(ma_patterns, stock, df,
+                                                                                                trending, direction,
                                                                                                 self.buy_volume_weight)
                 if ma_weight >= self.buy_ma_weight and len(matched_volume_patterns) >= 2:
                     # 将所有匹配的K线形态、均线和量能模式的标签添加到股票的模式列表中
@@ -50,8 +51,9 @@ class MultiIndicatorTradingModel(TradingModel):
                     append_matched_pattern_label(matched_volume_patterns, stock)
                     return 1
         elif signal == -1:
-            matched_ma_patterns, ma_weight, matched_volume_patterns = get_match_ma_patterns(ma_patterns, stock,
-                                                                                            df, self.sell_volume_weight)
+            matched_ma_patterns, ma_weight, matched_volume_patterns = get_match_ma_patterns(ma_patterns, stock, df,
+                                                                                            trending, trending,
+                                                                                            self.sell_volume_weight)
             if candlestick_weight >= self.sell_candlestick_weight and ma_weight >= self.sell_ma_weight:
                 # 同样将所有匹配的模式标签添加到股票的模式列表中
                 append_matched_pattern_label(matched_candlestick_patterns, stock)
@@ -66,8 +68,10 @@ class MultiIndicatorTradingModel(TradingModel):
         stock['support'] = support
         stock['resistance'] = resistance
         stock['price'] = float(df.iloc[-1]['close'])
+        trending = stock['trending']
+        direction = stock['direction']
 
-        trading_signal = self.get_trading_signal(stock, df, signal)
+        trading_signal = self.get_trading_signal(stock, df, signal, trending, direction)
         stock['signal'] = trading_signal
         if trading_signal == 1:
             strategy = super().create_trading_strategy(stock, df)
@@ -104,14 +108,14 @@ def get_patterns(signal):
     return candlestick_patterns, ma_patterns
 
 
-def get_match_patterns(patterns, stock, df, pattern_type=''):
+def get_match_patterns(patterns, stock, df, trending, direction, pattern_type=''):
     code = stock['code']
     name = stock['name']
     weight = 0
     matched_patterns = []
     try:
         for pattern in patterns:
-            if pattern.match(stock, df):
+            if pattern.match(stock, df, trending, direction):
                 if pattern_type != 'volume':
                     print(f'{code} {name} Match {pattern.label}')
                 weight += pattern.weight
@@ -154,7 +158,7 @@ def get_volume_patterns(matched_ma_patterns):
     return patterns
 
 
-def get_match_ma_patterns(patterns, stock, df, volume_weight_limit=1):
+def get_match_ma_patterns(patterns, stock, df, trending, direction, volume_weight_limit=1):
     """
     根据给定的模式列表，筛选出与特定股票匹配的均线模式。
 
@@ -187,7 +191,7 @@ def get_match_ma_patterns(patterns, stock, df, volume_weight_limit=1):
         # 遍历所有模式，寻找匹配的均线模式
         for pattern in patterns:
             # 如果当前模式与股票匹配，则进一步检查成交量模式
-            if pattern.match(stock, df):
+            if pattern.match(stock, df, trending, direction):
                 # 获取当前模式对应的成交量确认模式
                 volume_confirm_patterns = pattern.get_volume_confirm_patterns()
 
@@ -202,7 +206,8 @@ def get_match_ma_patterns(patterns, stock, df, volume_weight_limit=1):
                         total_volume_weight += volume_pattern.weight
 
                 # 检查成交量模式是否匹配，并获取匹配的模式和权重
-                volume_matched_patterns, volume_weight = get_match_patterns(volume_patterns, stock, df,
+                volume_matched_patterns, volume_weight = get_match_patterns(volume_patterns, stock, df, trending,
+                                                                            direction,
                                                                             'volume')
                 for volume_pattern in volume_matched_patterns:
                     if volume_pattern.label not in exec_matched_volume_pattern_labels:

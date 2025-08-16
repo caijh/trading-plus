@@ -1,8 +1,10 @@
 import pandas as pd
 import pandas_ta as ta
 
+from indicator.base import Indicator
 
-class CMF:
+
+class CMF(Indicator):
     """
     一个基于 Chaikin Money Flow (CMF) 指标的交易策略类。
     参数:
@@ -16,7 +18,7 @@ class CMF:
         self.label = f'CMF{period}'
         self.weight = 1
 
-    def match(self, stock: dict, df: pd.DataFrame) -> bool:
+    def match(self, stock: dict, df: pd.DataFrame, trending, direction) -> bool:
         """
         检查给定股票数据是否匹配策略设定的交易信号。
 

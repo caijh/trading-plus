@@ -1,9 +1,10 @@
 import pandas_ta as ta
 
+from indicator.base import Indicator
 from indicator.service import volume_registry
 
 
-class BIAS:
+class BIAS(Indicator):
     ma = 5
     bias = -0.15
     label = ''
@@ -17,7 +18,7 @@ class BIAS:
         self.bias = bias
         self.label = f'Bias{self.ma}'
 
-    def match(self, stock, df):
+    def match(self, stock, df, trending, direction):
         """
         判断给定股票是否满足特定的买入条件。
 

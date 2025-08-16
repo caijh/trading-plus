@@ -1,10 +1,11 @@
 import pandas as pd
 import pandas_ta as ta
 
+from indicator.base import Indicator
 from indicator.service import volume_registry
 
 
-class SAR:
+class SAR(Indicator):
     name = 'SAR'
 
     def __init__(self, signal=1):
@@ -18,7 +19,7 @@ class SAR:
         self.label = 'SAR'
         self.weight = 1
 
-    def match(self, stock, df):
+    def match(self, stock, df, trending, direction):
         if df is None or len(df) < 3:
             print(f'{stock["code"]} 数据不足，无法计算 PSAR')
             return False

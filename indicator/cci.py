@@ -1,7 +1,8 @@
+from indicator.base import Indicator
 from indicator.service import volume_registry
 
 
-class CCI:
+class CCI(Indicator):
     signal = 1  # 1 表示买入信号，-1 表示卖出信号
     weight = 1
     period = 20
@@ -13,13 +14,14 @@ class CCI:
         self.period = period
         self.recent = recent
 
-    def match(self, stock, df):
+    def match(self, stock, df, trending, direction):
         """
         判断CCI指标的买卖信号。
 
         :param stock: 股票信息字典，包含股票代码等信息。
-        :param prices: 价格数据（未使用，可扩展）。
-        :param df: 股票历史数据 DataFrame，必须至少包含 ['high', 'low', 'close'] 列。
+        :param df: 股票历史数据 DataFrame，必须至少包含 ['high', 'low', 'close'] 列
+        :param trending 趋势
+        :param direction 方向
 
         :return: True/False，是否出现符合条件的买卖信号。
         """

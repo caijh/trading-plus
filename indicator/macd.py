@@ -1,9 +1,10 @@
 import pandas_ta as ta
 
+from indicator.base import Indicator
 from indicator.service import volume_registry
 
 
-class MACD:
+class MACD(Indicator):
     """
     MACD指标类，用于判断股票的买入或卖出信号（金叉/死叉）。
 
@@ -33,13 +34,15 @@ class MACD:
         self.signal = signal
         self.recent = recent
 
-    def match(self, stock, df):
+    def match(self, stock, df, trending, direction):
         """
         根据给定的股票数据判断是否满足MACD金叉或死叉条件。
 
         Args:
             stock (str): 股票代码（未使用，保留接口兼容性）。
-            df (pd.DataFrame): 包含股票历史价格的数据框，需包含'close'列。
+            df (pd.DataFrame): 包含股票历史价格的数据框，需包含'close'列
+            trending: 趋势
+            direction: 方向
 
         Returns:
             bool: 如果满足信号条件返回True，否则返回False。

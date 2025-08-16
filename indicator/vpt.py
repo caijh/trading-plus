@@ -1,4 +1,7 @@
-class VPT:
+from indicator.base import Indicator
+
+
+class VPT(Indicator):
     """
     VPT 指标计算类。
 
@@ -19,12 +22,14 @@ class VPT:
         self.label = f'VPT'
         self.weight = 1
 
-    def match(self, stock, df):
+    def match(self, stock, df, trending, direction):
         """
         判断当前数据是否满足 VPT 信号条件。
 
         Args:
             stock (dict): 股票信息字典。
+            trending: 趋势
+            direction: 方向
             df (pd.DataFrame): 包含股票数据的 DataFrame，包括 'close' 和 'volume' 列。
 
         Returns:

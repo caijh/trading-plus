@@ -1,7 +1,9 @@
 import pandas_ta as ta
 
+from indicator.base import Indicator
 
-class ADX:
+
+class ADX(Indicator):
     name = 'ADX'
 
     def __init__(self, signal=1, period=14, adx_threshold=25):
@@ -19,7 +21,7 @@ class ADX:
         self.label = f'ADX{period}'
         self.weight = 1
 
-    def match(self, stock, df):
+    def match(self, stock, df, trending, direction):
         if df is None or len(df) < self.period + 2:
             print(f'{stock["code"]} 数据不足，无法计算 DMI')
             return False

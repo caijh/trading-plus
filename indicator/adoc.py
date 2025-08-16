@@ -1,9 +1,10 @@
 import pandas_ta as ta
 
 from calculate.service import upping_trending, downing_trending
+from indicator.base import Indicator
 
 
-class ADOSC:
+class ADOSC(Indicator):
     label = ''
     signal = 1
     weight = 1
@@ -13,7 +14,7 @@ class ADOSC:
         self.label = 'ADOSC'
         self.threshold = threshold
 
-    def match(self, stock, df):
+    def match(self, stock, df, trending, direction):
         """
         判断给定股票是否满足特定的交易条件。
 

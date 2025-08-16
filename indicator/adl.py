@@ -1,9 +1,10 @@
 import pandas_ta as ta
 
 from calculate.service import upping_trending, downing_trending
+from indicator.base import Indicator
 
 
-class ADL:
+class ADL(Indicator):
     """
     ADLine 类用于计算和匹配股票的 ADLine（累积/派发线）指标。
 
@@ -25,7 +26,7 @@ class ADL:
         self.weight = 1
         self.window = window
 
-    def match(self, stock, df):
+    def match(self, stock, df, trending, direction):
         """
         匹配给定股票的 ADLine 信号。
 

@@ -1,13 +1,10 @@
 import pandas_ta as ta
 
 from calculate.service import upping_trending, downing_trending
+from indicator.base import Indicator
 
 
-class OBV:
-    # 类变量定义
-    label = ''
-    signal = 1
-    weight = 1
+class OBV(Indicator):
 
     def __init__(self, signal):
         """
@@ -18,8 +15,9 @@ class OBV:
         """
         self.signal = signal
         self.label = 'OBV'
+        self.weight = 1
 
-    def match(self, stock, df):
+    def match(self, stock, df, trending, direction):
         """
         根据给定的数据判断是否满足OBV买入或卖出信号。
 

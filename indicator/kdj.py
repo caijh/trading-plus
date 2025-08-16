@@ -1,7 +1,8 @@
+from indicator.base import Indicator
 from indicator.service import volume_registry
 
 
-class KDJ:
+class KDJ(Indicator):
     label = ''
     signal = 1
     weight = 1
@@ -19,7 +20,7 @@ class KDJ:
         self.recent = recent
         self.use_j_filter = use_j_filter
 
-    def match(self, stock, df):
+    def match(self, stock, df, trending, direction):
         if df is None or len(df) < 15:
             return False
 

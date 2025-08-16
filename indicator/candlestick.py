@@ -1,5 +1,7 @@
 import pandas_ta as ta
 
+from indicator.base import Indicator
+
 ALL_PATTERNS = [
     {"name": "2crows", "description": "两只乌鸦", "signal": -1, "weight": 0},
     {"name": "3blackcrows", "description": "三只乌鸦", "signal": -1, "weight": 0},
@@ -65,7 +67,7 @@ ALL_PATTERNS = [
 ]
 
 
-class Candlestick:
+class Candlestick(Indicator):
     name = ''
     column = ''
     label = ''
@@ -80,13 +82,14 @@ class Candlestick:
         self.column = f'CDL_{self.name.upper()}'
         self.description = pattern['description']
 
-    def match(self, stock, df):
+    def match(self, stock, df, trending, direction):
         """
         判断给定股票的最近几个交易日中是否出现了特定的K线形态，并记录出现的日期。
 
         :param stock: 股票字典，将在其中记录形态出现的日期。
-        :param prices: 股票价格数据（未使用，但保留参数结构）。
         :param df: 包含股票历史数据的DataFrame，至少包括['open', 'high', 'low', 'close']列。
+        :param trending 趋势
+        :param direction 方向
         :return: 布尔值，表示是否匹配到了指定的K线形态。
         """
         # 用最近20根K线计算形态

@@ -1,7 +1,9 @@
 import pandas_ta as ta
 
+from indicator.base import Indicator
 
-class AROON:
+
+class AROON(Indicator):
     def __init__(self, signal=1, period=14):
         """
         初始化 Aroon 趋势确认指标
@@ -16,7 +18,7 @@ class AROON:
         self.label = f'AROON{period}'
         self.weight = 1
 
-    def match(self, stock, df, up_threshold=70, down_threshold=70):
+    def match(self, stock, df, trending, direction, up_threshold=70, down_threshold=70):
         """
         判断是否符合趋势确认条件
         - 多头确认: Aroon Up >= up_threshold 且 Aroon Down <= (100 - up_threshold)

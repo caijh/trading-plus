@@ -1,7 +1,8 @@
 from calculate.service import detect_turning_point_indexes
+from indicator.base import Indicator
 
 
-class VOL:
+class VOL(Indicator):
     """
     通用成交量确认类。
 
@@ -24,13 +25,14 @@ class VOL:
         self.label = f'VOL'
         self.weight = 1
 
-    def match(self, stock, df):
+    def match(self, stock, df, trending, direction):
         """
         根据成交量模式匹配股票。
 
         :param stock: 股票代码
-        :param prices: 价格数据（未使用）
         :param df: 包含成交量等信息的数据框
+        :param trending 趋势
+        :param direction 方向
         :return: 如果成交量模式匹配，则返回 True，否则返回 False
         """
         # 检查数据是否足够

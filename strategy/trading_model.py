@@ -8,7 +8,8 @@ class TradingModel:
 
     def get_support_resistance(self, stock, df):
         return 0, 0
-    def get_trading_signal(self, stock, df, signal):
+
+    def get_trading_signal(self, stock, df, signal, trending, direction):
         return 0
 
     def create_trading_strategy(self, stock, df):
