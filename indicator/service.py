@@ -34,8 +34,8 @@ volume_registry = {
         -1: [RSI(-1), ADX(-1), CMF(-1), MFI(-1), AR(-1), OBV(-1)]
     },
     'RSI': {
-        1: [ADX(1), MFI(1), OBV(1), AROON(1)],
-        -1: [ADX(-1), MFI(-1), OBV(-1), AROON(-1)]
+        1: [ADX(1), MFI(1), OBV(1)],
+        -1: [ADX(-1), MFI(-1), OBV(-1)]
     },
     'WR': {
         1: [ADX(1), CMF(1), OBV(1), KVO(1)],
