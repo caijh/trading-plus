@@ -243,27 +243,35 @@ def get_match_ma_patterns(patterns, stock, df, trending, direction, volume_weigh
 def analyze_stock(stock, k_type=KType.DAY, signal=1,
                   buy_candlestick_weight=1, sell_candlestick_weight=0,
                   buy_ma_weight=2, sell_ma_weight=1,
-                  buy_volume_weight=1, sell_volume_weight=1, prices=None, prices_df=None):
+                  buy_volume_weight=1, sell_volume_weight=1):
     print("=====================================================")
-    code = stock['code']
-    name = stock['name']
+    prices = get_stock_prices(stock['code'], k_type)
+    if prices is None or len(prices) == 0:
+        print(f'No prices get for  stock {stock['code']}')
+        return None
+
+    df = create_dataframe(stock, prices)
+    return analyze_stock_prices(stock, df, signal,
+                                buy_candlestick_weight, sell_candlestick_weight,
+                                buy_ma_weight, sell_ma_weight,
+                                buy_volume_weight, sell_volume_weight)
+
+
+def analyze_stock_prices(stock, df, signal=1,
+                         buy_candlestick_weight=1, sell_candlestick_weight=0,
+                         buy_ma_weight=2, sell_ma_weight=1,
+                         buy_volume_weight=1, sell_volume_weight=1):
+    print("=====================================================")
     stock['patterns'] = []
     stock['patterns_candlestick'] = []
-    prices = get_stock_prices(code, k_type) if prices is None else prices
-    if prices is None or len(prices) == 0:
-        print(f'No prices get for  stock {code}')
-        return None
-    else:
-        print(f'Analyzing Stock, code = {code}, name = {name}')
-        df = create_dataframe(stock, prices) if prices_df is None else prices_df
-
-        trading_model = MultiIndicatorTradingModel(buy_candlestick_weight, buy_ma_weight, buy_volume_weight,
+    print(f'Analyzing Stock, code = {stock['code']}, name = {stock['name']}')
+    trading_model = MultiIndicatorTradingModel(buy_candlestick_weight, buy_ma_weight, buy_volume_weight,
                                                    sell_candlestick_weight, sell_ma_weight, sell_volume_weight)
-        strategy = trading_model.get_trading_strategy(stock, df, signal)
-        stock['strategy'] = strategy.to_dict() if strategy is not None else None
-        print(
-            f'Analyzing Complete code = {code}, name = {name}, trending = {stock["trending"]}, direction = {stock["direction"]}, patterns = {stock["patterns"]}, support = {stock["support"]} resistance = {stock["resistance"]} price = {stock["price"]}')
-        return strategy
+    strategy = trading_model.get_trading_strategy(stock, df, signal)
+    stock['strategy'] = strategy.to_dict() if strategy is not None else None
+    print(
+        f'Analyzing Complete code = {stock['code']}, name = {stock['name']}, trending = {stock["trending"]}, direction = {stock["direction"]}, patterns = {stock["patterns"]}, support = {stock["support"]} resistance = {stock["resistance"]} price = {stock["price"]}')
+    return strategy
 
 
 def get_up_ma_patterns():

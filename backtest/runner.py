@@ -22,7 +22,7 @@ from indicator.vpt import VPT
 from indicator.wr import WR
 from stock.service import get_stock_prices, get_stock, KType
 from strategy.model import TradingStrategy
-from strategy.trading_model_multi_indicator import get_match_ma_patterns, analyze_stock
+from strategy.trading_model_multi_indicator import get_match_ma_patterns, analyze_stock, analyze_stock_prices
 
 
 def build_pattern_objects(pattern_names, signal=1):
@@ -155,6 +155,8 @@ def run_backtest_patterns(stock_code, buy_patterns, sell_patterns):
 def alpha_run_backtest(stock_code):
     stock = get_stock(stock_code)
     prices = get_stock_prices(stock_code)
+    if not (len(prices) > 0):
+        return []
     df = create_dataframe(stock, prices)
     if df is None or df.empty:
         return []
@@ -163,10 +165,10 @@ def alpha_run_backtest(stock_code):
     strategy = None
     holding = False
     entry_price, entry_time = None, None
-    start = 20
+    start = 21
     for i in range(start, len(df)):
         if strategy is None:
-            _strategy = analyze_stock(stock, k_type=KType.DAY, prices=prices[0: i], prices_df=df.iloc[:i])
+            _strategy = analyze_stock_prices(stock, df.iloc[:i], signal=1)
             if _strategy is not None:
                 strategy = _strategy
                 strategy.created_at = pd.to_datetime(df.index[i])
@@ -208,7 +210,7 @@ def alpha_run_backtest(stock_code):
                 strategy = None
 
             if strategy is not None:
-                analyze_stock(stock, k_type=KType.DAY, prices=prices[0: i + 1], prices_df=sub_df, signal=-1)
+                analyze_stock_prices(stock, df=sub_df, signal=-1)
                 if len(stock['patterns']) > 0:
                     strategy.signal = -1
 

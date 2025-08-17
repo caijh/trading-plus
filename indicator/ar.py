@@ -34,9 +34,7 @@ class AR(Indicator):
 
         ar = high_open.rolling(self.period).sum() / sum_open_low * 100
 
-        # 将计算结果添加到数据帧中
-        df[self.label] = ar
-        return df
+        return ar
 
     def match(self, stock, df, trending, direction):
         """
@@ -50,7 +48,6 @@ class AR(Indicator):
         try:
             # 确保 AR 指标已计算
             ar_series = self.calculate_ar(df)
-
             ar_value = ar_series.iloc[-1]
             if self.signal == 1:
                 # 超卖，产生买入信号
