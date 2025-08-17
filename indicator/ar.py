@@ -24,11 +24,6 @@ class AR(Indicator):
         """
         计算 AR 指标值
         """
-        # 检查所需列是否存在
-        required_columns = ['high', 'low', 'open']
-        if not all(col in df.columns for col in required_columns):
-            raise ValueError(f"数据帧中缺少必需的列：{required_columns}")
-
         # 高开差与开低差
         high_open = df['high'] - df['open']
         open_low = df['open'] - df['low']
@@ -54,10 +49,9 @@ class AR(Indicator):
         """
         try:
             # 确保 AR 指标已计算
-            if self.label not in df.columns:
-                df = self.calculate_ar(df)
+            ar_series = self.calculate_ar(df)
 
-            ar_value = df[self.label].iloc[-1]
+            ar_value = ar_series.iloc[-1]
             if self.signal == 1:
                 # 超卖，产生买入信号
                 if ar_value < self.buy_threshold:

@@ -27,10 +27,6 @@ class KVO(Indicator):
         确认主指标有效性
         返回 True 代表主指标有效，False 代表无效
         """
-        # 数据列检查
-        required_cols = ["high", "low", "close", "volume"]
-        if not all(col in df.columns for col in required_cols):
-            return False
 
         # 计算 KVO 和信号线
         kvo_df = ta.kvo(

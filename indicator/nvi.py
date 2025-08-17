@@ -67,8 +67,7 @@ class NVI(Indicator):
 
         # 计算 NVI 指标，这里只使用 NVI 序列本身
         # pandas-ta 的 nvi() 函数返回一个包含 NVI 和 NVI_SMA 的 DataFrame
-        nvi_df = ta.nvi(close=df['close'], volume=df['volume'])
-        nvi_series = nvi_df[f'NVI_{nvi_df.columns[0].split("_")[1]}']
+        nvi_series = ta.nvi(close=df['close'], volume=df['volume'])
 
         if nvi_series.empty:
             return False
