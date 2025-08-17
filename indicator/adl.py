@@ -20,7 +20,7 @@ def _calculate_trend(series: pd.Series, period: int = 5) -> float:
     return slope
 
 
-def _trend_confirmation_adl(df: pd.DataFrame, signal_type: str, period: int) -> bool:
+def _trend_confirmation_adl(df: pd.DataFrame, trend: str, period: int) -> bool:
     """
     判断 ADL 与价格走势是否同步。
     - 价格和 ADL 趋势都为正（上涨确认）
@@ -32,9 +32,9 @@ def _trend_confirmation_adl(df: pd.DataFrame, signal_type: str, period: int) -> 
     # 计算价格和 ADL 的趋势斜率
     adl_slope = _calculate_trend(adl_series, period)
     price_slope = _calculate_trend(price_series, period)
-    if signal_type == 'bullish':
+    if trend == 'bullish':
         return adl_slope > 0 and price_slope > 0
-    elif signal_type == 'bearish':
+    elif trend == 'bearish':
         return adl_slope < 0 and price_slope < 0
     return False
 
