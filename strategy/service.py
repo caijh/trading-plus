@@ -142,9 +142,9 @@ def check_strategy_reverse_task():
                 continue
 
             # 分析股票数据，k_type为DAY表示日线图
-            strategy = analyze_stock(stock, k_type=KType.DAY)
+            new_strategy = analyze_stock(stock, k_type=KType.DAY)
             # 检查分析结果中是否有卖出信号
-            if strategy is not None and strategy.signal == -1:
+            if new_strategy is not None and new_strategy.signal == -1:
                 # 有卖出信号，更新策略的买入价、卖出价、止损价、信号和更新时间
                 strategy.signal = -1
                 strategy.exit_patterns = stock['patterns']
