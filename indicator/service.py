@@ -19,8 +19,8 @@ volume_registry = {
         -1: [ADX(-1), VPT(-1), CMF(-1), OBV(-1), AROON(-1), MACD(-1)]
     },
     'MACD': {
-        1: [AROON(1), RSI(1), OBV(1), ADL(1), Chaikin(1), KVO(1), ADOSC(1)],
-        -1: [AROON(-1), RSI(-1), OBV(-1), ADL(-1), Chaikin(-1), KVO(-1), ADOSC(-1)]
+        1: [AROON(1), RSI(1), OBV(1), ADL(1), Chaikin(1), KVO(1), ADOSC(1), VPT(1)],
+        -1: [AROON(-1), RSI(-1), OBV(-1), ADL(-1), Chaikin(-1), KVO(-1), ADOSC(-1), VPT(-1)]
     },
     'SAR': {
         1: [ADX(1), CMF(1), MFI(1), OBV(1), NVI(1)],
@@ -31,8 +31,8 @@ volume_registry = {
         -1: [ADX(-1), MFI(-1), ADOSC(-1)]
     },
     'KDJ': {
-        1: [RSI(1), ADX(1), CMF(1), MFI(1), AR(1), OBV(1)],
-        -1: [RSI(-1), ADX(-1), CMF(-1), MFI(-1), AR(-1), OBV(-1)]
+        1: [RSI(1), ADX(1), CMF(1), MFI(1), AR(1), OBV(1), VPT(1)],
+        -1: [RSI(-1), ADX(-1), CMF(-1), MFI(-1), AR(-1), OBV(-1), VPT(-1)]
     },
     'RSI': {
         1: [ADX(1), MFI(1), OBV(1)],

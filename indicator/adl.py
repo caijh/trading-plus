@@ -39,7 +39,7 @@ def _trend_confirmation_adl(df: pd.DataFrame, trend: str, period: int) -> bool:
     return False
 
 
-def _divergence_adl(df: pd.DataFrame, signal_type: str, period: int) -> bool:
+def _divergence_adl(df: pd.DataFrame, divergence: str, period: int) -> bool:
     """
     判断 ADL 与价格走势是否背离。
 
@@ -54,10 +54,10 @@ def _divergence_adl(df: pd.DataFrame, signal_type: str, period: int) -> bool:
     adl_slope = _calculate_trend(adl_series, period)
     price_slope = _calculate_trend(price_series, period)
 
-    if signal_type == 'bullish':
+    if divergence == 'bullish':
         # 看涨底背离：价格下跌（斜率<0）但 ADL 上涨（斜率>0）
         return price_slope < 0 < adl_slope
-    elif signal_type == 'bearish':
+    elif divergence == 'bearish':
         # 看跌顶背离：价格上涨（斜率>0）但 ADL 下跌（斜率<0）
         return price_slope > 0 > adl_slope
 
