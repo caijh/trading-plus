@@ -224,7 +224,7 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     # else:
     #     resistance = cal_price_from_ma(stock, recent_df, resistance, current_price, is_support=False)
 
-    if upping:
+    if upping and len(turning_points) > 0:
         first_point = turning_points.iloc[-1]
         second_point = turning_points.iloc[-2] if len(turning_points) > 1 else None
         support_price = None
@@ -245,7 +245,7 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
 
             if resistance_price is not None:
                 resistance = resistance_price
-    else:
+    elif len(turning_points) > 0:
         if not supports.empty and support is None:
             support_price = select_nearest_point(stock, recent_df, supports, current_price, ma_name,
                                                  is_support=True)
