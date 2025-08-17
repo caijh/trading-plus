@@ -61,7 +61,7 @@ def analyze_funds(exchange):
             if strategy is not None and strategy['sigal'] == 1:
                 funds.append(stock)
         except Exception as e:
-            print(f'Failed to analyze stock: {e}')
+            print(f'Failed to analyze stock {code}: {e}')
 
     # 返回具有特定模式的股票列表
     return funds
