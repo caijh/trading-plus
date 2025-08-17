@@ -57,9 +57,8 @@ def analyze_funds(exchange):
 
         # 调用函数分析股票，专注于日K线图中的模式
         try:
-            analyze_stock(stock, k_type=KType.DAY, buy_ma_weight=3, buy_volume_weight=2)
-            # 如果股票中发现了至少一个模式，则将其添加到结果列表中
-            if len(stock['patterns']) > 0:
+            strategy = analyze_stock(stock, k_type=KType.DAY, buy_ma_weight=2, buy_volume_weight=2)
+            if strategy is not None and strategy['sigal'] == 1:
                 funds.append(stock)
         except Exception as e:
             print(f'Failed to analyze stock: {e}')

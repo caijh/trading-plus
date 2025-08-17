@@ -6,6 +6,7 @@ from extensions import db
 from holdings.service import get_holdings
 from stock.service import get_stock, KType
 from strategy.model import TradingStrategy
+from strategy.trading_model import TradingModel
 from strategy.trading_model_multi_indicator import analyze_stock
 
 
@@ -36,12 +37,14 @@ def add_update_strategy(stock):
             stock_name=stock_name,
             exchange=strategy['exchange'],
             buy_patterns=strategy['buy_patterns'],
-            buy_price=strategy['buy_price'],
+            entry_price=strategy['entry_price'],
             take_profit=strategy['take_profit'],
             stop_loss=strategy['stop_loss'],
-            sell_patterns=strategy['sell_patterns'],
+            exit_patterns=strategy['exit_patterns'],
             signal=strategy['signal']
         )
+        if not TradingModel.check_trading_strategy(stock, strategy):
+            return None
 
         # 查询是否已存在该股票的交易策略
         existing_strategy = get_strategy_by_stock_code(stock_code)
@@ -50,9 +53,9 @@ def add_update_strategy(stock):
             holdings = get_holdings(stock_code)
             if holdings is None:
                 # 没有持仓, 更新已有策略
-                existing_strategy.buy_patterns = strategy.buy_patterns
-                existing_strategy.sell_patterns = []
-                existing_strategy.buy_price = strategy.buy_price
+                existing_strategy.entry_patterns = strategy.entry_patterns
+                existing_strategy.exit_patterns = []
+                existing_strategy.entry_price = strategy.entry_price
                 existing_strategy.take_profit = strategy.take_profit
                 existing_strategy.stop_loss = strategy.stop_loss
             else:
@@ -138,13 +141,13 @@ def check_strategy_reverse_task():
             if stock is None:
                 continue
 
-            # 分析股票数据，k_type为DAY表示日线图，signal为-1表示卖出交易信号
-            analyze_stock(stock, k_type=KType.DAY, signal=-1)
+            # 分析股票数据，k_type为DAY表示日线图
+            strategy = analyze_stock(stock, k_type=KType.DAY)
             # 检查分析结果中是否有卖出信号
-            if len(stock['patterns']) > 0:
+            if strategy is not None and strategy['signal'] == -1:
                 # 有卖出信号，更新策略的买入价、卖出价、止损价、信号和更新时间
                 strategy.signal = -1
-                strategy.sell_patterns = stock['patterns']
+                strategy.exit_patterns = stock['patterns']
                 strategy.updated_at = datetime.now(timezone.utc)
             else:
                 # 如果没有卖出信号，获取股票的持仓信息
@@ -156,16 +159,16 @@ def check_strategy_reverse_task():
                         days=env_vars.STRATEGY_RETENTION_DAY):
                         strategy.updated_at = datetime.now(timezone.utc)
                         strategy.signal = -1
-                else:
-                    # 如果有持仓信息，仅更新卖出价
-                    new_take_profit = float(stock['resistance'])
-                    take_profit = float(strategy.take_profit)
-                    buy_price = float(strategy.buy_price)
-                    stop_loss = float(strategy.stop_loss)
-                    if (take_profit > new_take_profit > buy_price) and (
-                        (new_take_profit - buy_price) / (buy_price - stop_loss) > 0):
-                        strategy.take_profit = new_take_profit
-                        strategy.updated_at = datetime.now()
+                # else:
+                #     # 如果有持仓信息，仅更新卖出价
+                #     new_take_profit = float(stock['resistance'])
+                #     take_profit = float(strategy.take_profit)
+                #     entry_price = float(strategy.entry_price)
+                #     stop_loss = float(strategy.stop_loss)
+                #     if (take_profit > new_take_profit > entry_price) and (
+                #         (new_take_profit - entry_price) / (entry_price - stop_loss) > 0):
+                #         strategy.take_profit = new_take_profit
+                #         strategy.updated_at = datetime.now()
             # 打印更新策略的日志信息
             print(f"🔄 更新交易策略：{code}")
 

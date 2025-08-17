@@ -60,11 +60,11 @@ def analysis_index():
     if stock is None:
         return jsonify({'msg': 'stock not found'}), 404
 
-    analyze_stock(stock, k_type=KType.DAY, signal=-1)
-    if len(stock['patterns']) > 0:
+    strategy = analyze_stock(stock, k_type=KType.DAY)
+    if strategy is not None and strategy['signal'] == -1:
         return jsonify({'code': 0, 'msg': 'Index pattern not match, analysis_index_task not run.'}), 200
 
-    future = executor.submit(analysis_index_task, code)
+    _ = executor.submit(analysis_index_task, code)
 
     # 返回任务id和200状态码
     return jsonify({'code': 0, 'msg': 'Job running'}), 200
@@ -108,15 +108,7 @@ def analysis_stock():
     if stock is None:
         return jsonify({'msg': 'stock not found'}), 404
 
-    # 分析股票信息, 是否有买入信号
-    analyze_stock(stock, signal=1)
-    if len(stock['patterns']) == 0:
-        # 分析股票是否有卖出信号
-        analyze_stock(stock, k_type=KType.DAY, signal=-1)
-        if len(stock['patterns']) > 0:
-            stock['signal'] = -1
-    else:
-        stock['signal'] = 1
+    analyze_stock(stock)
 
     # 返回分析后的股票信息
     return jsonify({'code': 0, 'data': stock, 'msg': 'success'}), 200
@@ -172,12 +164,9 @@ def analysis_funds():
         if stock is None:
             return jsonify({'msg': 'stock not found'}), 404
 
-        analyze_stock(stock)
-        if len(stock['patterns']) == 0:
-            # 分析股票是否有卖出信号
-            analyze_stock(stock, k_type=KType.DAY, signal=-1)
-            if len(stock['patterns']) == 0:
-                exec_analyze_funds = False
+        strategy = analyze_stock(stock)
+        if index == '000001.SH' and strategy is not None and strategy['signal'] == -1:
+            exec_analyze_funds = False
 
     if not exec_analyze_funds:
         return jsonify({'code': 0, 'msg': 'Index pattern not match, analysis_funds_task not run.'}), 200

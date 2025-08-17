@@ -85,7 +85,7 @@ def run_backtest(strategy: TradingStrategy):
     if df is None or df.empty:
         return []
 
-    patterns = build_pattern_objects(strategy.buy_patterns)
+    patterns = build_pattern_objects(strategy.entry_patterns)
     records = []
     holding = False
     entry_price, entry_time = None, None
@@ -111,15 +111,14 @@ def run_backtest(strategy: TradingStrategy):
                 strategy.signal = 1
                 continue
 
-            analyze_stock(stock, k_type=KType.DAY, prices=prices[0: i + 1], prices_df=sub_df, signal=-1,
-                          sell_volume_weight=0)
+            analyze_stock(stock, k_type=KType.DAY, sell_volume_weight=0)
             if len(stock['patterns']) > 0:
                 strategy.signal = -1
 
     return records
 
 
-def run_backtest_patterns(stock_code, buy_patterns, sell_patterns):
+def run_backtest_patterns(stock_code, entry_patterns, exit_patterns):
     stock = get_stock(stock_code)
     prices = get_stock_prices(stock_code)
     df = create_dataframe(stock, prices)
@@ -135,12 +134,12 @@ def run_backtest_patterns(stock_code, buy_patterns, sell_patterns):
         time = sub_df.index[-1]
 
         if not holding:
-            _, ma_weight, _ = get_match_ma_patterns(buy_patterns, stock, sub_df, None, None, volume_weight_limit=2)
+            _, ma_weight, _ = get_match_ma_patterns(entry_patterns, stock, sub_df, None, None, volume_weight_limit=2)
             if ma_weight >= 2:
                 entry_price, entry_time = price, time
                 holding = True
         else:
-            _, ma_weight, _ = get_match_ma_patterns(sell_patterns, stock, sub_df, None, None, volume_weight_limit=1)
+            _, ma_weight, _ = get_match_ma_patterns(exit_patterns, stock, sub_df, None, None, volume_weight_limit=1)
             if ma_weight >= 1:
                 if price > entry_price:
                     records.append((entry_time, time, entry_price, price, 'take_profit'))
@@ -168,8 +167,8 @@ def alpha_run_backtest(stock_code):
     start = 21
     for i in range(start, len(df)):
         if strategy is None:
-            _strategy = analyze_stock_prices(stock, df.iloc[:i], signal=1)
-            if _strategy is not None:
+            _strategy = analyze_stock_prices(stock, df.iloc[:i])
+            if _strategy is not None and _strategy.signal == 1:
                 strategy = _strategy
                 strategy.created_at = pd.to_datetime(df.index[i])
 
@@ -183,9 +182,8 @@ def alpha_run_backtest(stock_code):
         time = sub_df.index[-1]
 
         if not holding:
-            price = sub_df['open'].iloc[-1]
-            if price < float(strategy.buy_price):
-                entry_price, entry_time = price, time
+            if low_price <= float(strategy.entry_price) <= high_price:
+                entry_price, entry_time = float(strategy.entry_price), time
                 holding = True
 
             if not holding and strategy is not None:
@@ -200,18 +198,18 @@ def alpha_run_backtest(stock_code):
                 strategy = None
                 continue
 
-            if float(strategy.stop_loss or 0) > 0 and low_price < float(strategy.stop_loss) < high_price:
-                records.append((entry_time, time, entry_price, price, 'stop_loss'))
+            if float(strategy.take_profit or 0) > 0 and low_price <= float(strategy.take_profit) <= high_price:
+                records.append((entry_time, time, entry_price, price, 'take_profit'))
                 holding = False
                 strategy = None
-            elif float(strategy.take_profit or 0) > 0 and low_price <= float(strategy.take_profit) <= high_price:
-                records.append((entry_time, time, entry_price, price, 'take_profit'))
+            elif float(strategy.stop_loss or 0) > 0 and low_price <= float(strategy.stop_loss) <= high_price:
+                records.append((entry_time, time, entry_price, price, 'stop_loss'))
                 holding = False
                 strategy = None
 
             if strategy is not None:
-                analyze_stock_prices(stock, df=sub_df, signal=-1)
-                if len(stock['patterns']) > 0:
+                _strategy = analyze_stock_prices(stock, df=sub_df)
+                if _strategy is not None and _strategy.signal == -1:
                     strategy.signal = -1
 
     return records

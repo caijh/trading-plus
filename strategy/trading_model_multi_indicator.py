@@ -1,4 +1,3 @@
-from calculate.service import calculate_support_resistance, calculate_support_resistance_by_turning_points
 from dataset.service import create_dataframe
 from indicator.bias import BIAS
 from indicator.candlestick import get_bullish_candlestick_patterns, get_bearish_candlestick_patterns
@@ -9,6 +8,7 @@ from indicator.sar import SAR
 from indicator.sma import SMA
 from indicator.wr import WR
 from stock.service import KType, get_stock_prices
+from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
 
 
@@ -24,61 +24,111 @@ class MultiIndicatorTradingModel(TradingModel):
         self.sell_candlestick_weight = sell_candlestick_weight
         self.sell_ma_weight = sell_ma_weight
         self.sell_volume_weight = sell_volume_weight
+        self.patterns = []
 
-    def get_support_resistance(self, stock, df):
-        (support, resistance) = calculate_support_resistance(stock, df)
-        (support_n, resistance_n) = calculate_support_resistance_by_turning_points(stock, df)
-        if support_n is not None:
-            support = support_n
-
-        if resistance_n is not None:
-            resistance = resistance_n
-        return support, resistance
-
-    def get_trading_signal(self, stock, df, signal, trending, direction):
-        candlestick_patterns, ma_patterns = get_patterns(signal)
+    def get_trading_signal(self, stock, df, trending, direction):
+        candlestick_patterns, ma_patterns = get_patterns(1)
         matched_candlestick_patterns, candlestick_weight = get_match_patterns(candlestick_patterns, stock, df, trending,
                                                                               direction, 'candlestick')
-        if signal == 1:
-            if candlestick_weight >= self.buy_candlestick_weight:
-                matched_ma_patterns, ma_weight, matched_volume_patterns = get_match_ma_patterns(ma_patterns, stock, df,
-                                                                                                trending, direction,
-                                                                                                self.buy_volume_weight)
-                if ma_weight >= self.buy_ma_weight and len(matched_volume_patterns) >= 2:
-                    # 将所有匹配的K线形态、均线和量能模式的标签添加到股票的模式列表中
-                    append_matched_pattern_label(matched_candlestick_patterns, stock)
-                    append_matched_pattern_label(matched_ma_patterns, stock)
-                    append_matched_pattern_label(matched_volume_patterns, stock)
-                    return 1
-        elif signal == -1:
+        if candlestick_weight >= self.buy_candlestick_weight:
             matched_ma_patterns, ma_weight, matched_volume_patterns = get_match_ma_patterns(ma_patterns, stock, df,
-                                                                                            trending, trending,
-                                                                                            self.sell_volume_weight)
-            if candlestick_weight >= self.sell_candlestick_weight and ma_weight >= self.sell_ma_weight:
-                # 同样将所有匹配的模式标签添加到股票的模式列表中
-                append_matched_pattern_label(matched_candlestick_patterns, stock)
-                append_matched_pattern_label(matched_ma_patterns, stock)
-                append_matched_pattern_label(matched_volume_patterns, stock)
-                return -1
+                                                                                            trending, direction,
+                                                                                            self.buy_volume_weight)
+            if ma_weight >= self.buy_ma_weight and len(matched_volume_patterns) >= 2:
+                # 将所有匹配的K线形态、均线和量能模式的标签添加到股票的模式列表中
+                append_matched_pattern_label(matched_candlestick_patterns, self.patterns)
+                append_matched_pattern_label(matched_ma_patterns, self.patterns)
+                append_matched_pattern_label(matched_volume_patterns, self.patterns)
+                return 1
+
+        candlestick_patterns, ma_patterns = get_patterns(-1)
+        matched_candlestick_patterns, candlestick_weight = get_match_patterns(candlestick_patterns, stock, df, trending,
+                                                                              direction, 'candlestick')
+        matched_ma_patterns, ma_weight, matched_volume_patterns = get_match_ma_patterns(ma_patterns, stock, df,
+                                                                                        trending, trending,
+                                                                                        self.sell_volume_weight)
+        if candlestick_weight >= self.sell_candlestick_weight and ma_weight >= self.sell_ma_weight:
+            # 同样将所有匹配的模式标签添加到股票的模式列表中
+            append_matched_pattern_label(matched_candlestick_patterns, self.patterns)
+            append_matched_pattern_label(matched_ma_patterns, self.patterns)
+            append_matched_pattern_label(matched_volume_patterns, self.patterns)
+            return -1
 
         return 0
 
-    def get_trading_strategy(self, stock, df, signal):
-        support, resistance = self.get_support_resistance(stock, df)
-        stock['support'] = support
-        stock['resistance'] = resistance
-        stock['price'] = float(df.iloc[-1]['close'])
+    def create_trading_strategy(self, stock, df, signal):
+        """
+            根据输入股票信息生成交易策略，考虑趋势、止损空间、盈亏比率等。
+            """
+        # 股票基础信息提取
+        stock_code = stock['code']
+        stock_name = stock['name']
         trending = stock['trending']
         direction = stock['direction']
+        n_digits = 3 if stock['stock_type'] == 'Fund' else 2
 
-        trading_signal = self.get_trading_signal(stock, df, signal, trending, direction)
-        stock['signal'] = trading_signal
-        if trading_signal == 1:
-            strategy = super().create_trading_strategy(stock, df)
-            if super().check_trading_strategy(stock, strategy):
-                return strategy
+        # 原始价格点
+        support = stock['support']
+        resistance = stock['resistance']
+        price = stock['price']
+        patterns = self.patterns
+        exchange = stock['exchange']
+        if signal == 1:
+            # 动态设置买入价、止损、目标价
+            if trending == 'UP':
+                if direction == 'UP':
+                    entry_price = price if float(stock['EMA5']) > price else float(stock['EMA5'])
+                    entry_price = round(entry_price, n_digits)
+                    stop_loss = round(support * 0.995, n_digits)
+                    target_price = resistance
+                else:
+                    entry_price = round(support, n_digits)
+                    stop_loss = round(entry_price * 0.98, n_digits)
+                    target_price = resistance  # 预估反弹目标
+            else:
+                if direction == 'UP':
+                    entry_price = price if float(stock['EMA5']) > price else float(stock['EMA5'])
+                    entry_price = round(entry_price * 0.99, n_digits)
+                    stop_loss = round(support, n_digits)
+                    target_price = resistance
+                else:
+                    entry_price = round(support * 0.99, n_digits)
+                    stop_loss = round(entry_price * 0.98, n_digits)
+                    target_price = resistance  # 预估反弹目标
 
-        return None
+            loss_ratio = (entry_price - stop_loss) / entry_price
+            if loss_ratio < 0.008:  # 小于0.8%止损空间太窄
+                stop_loss = round(entry_price * 0.98, n_digits)  # 最少预留2%
+
+            # 超高盈亏比，动态调整目标价：以 4 盈亏比为上限
+            profit_ratio = (target_price - entry_price) / (entry_price - stop_loss)
+            if profit_ratio > 4:
+                target_price = round(5 * entry_price - 4 * stop_loss, n_digits)
+        elif signal == -1:
+            entry_price = resistance
+            stop_loss = round(entry_price * 1.005, n_digits)
+            target_price = support
+        else:
+            return None
+
+        # 创建策略对象
+        return TradingStrategy(
+            strategy_name=self.name,
+            stock_code=stock_code,
+            stock_name=stock_name,
+            exchange=exchange,
+            entry_patterns=patterns,
+            entry_price=entry_price,
+            take_profit=target_price,
+            stop_loss=stop_loss,
+            exit_patterns=[],
+            signal=signal
+        )
+
+    def get_trading_strategy(self, stock, df):
+        signal = self.get_trading_signal(stock, df, stock['trending'], stock['direction'])
+        strategy = self.create_trading_strategy(stock, df, signal)
+        return strategy
 
 
 def get_patterns(signal):
@@ -125,7 +175,7 @@ def get_match_patterns(patterns, stock, df, trending, direction, pattern_type=''
     return matched_patterns, weight
 
 
-def append_matched_pattern_label(matched_patterns, stock):
+def append_matched_pattern_label(matched_patterns, patterns):
     """
     将匹配到的模式标签添加到股票信息中。
 
@@ -141,7 +191,7 @@ def append_matched_pattern_label(matched_patterns, stock):
     # 遍历匹配到的模式列表
     for matched_pattern in matched_patterns:
         # 将模式的标签添加到股票信息的 'patterns' 列表中
-        stock['patterns'].append(matched_pattern.label)
+        patterns.append(matched_pattern.label)
 
 
 def get_volume_patterns(matched_ma_patterns):
@@ -240,7 +290,7 @@ def get_match_ma_patterns(patterns, stock, df, trending, direction, volume_weigh
     return matched_ma_patterns, ma_weight, list(matched_volume_patterns)
 
 
-def analyze_stock(stock, k_type=KType.DAY, signal=1,
+def analyze_stock(stock, k_type=KType.DAY,
                   buy_candlestick_weight=1, sell_candlestick_weight=0,
                   buy_ma_weight=2, sell_ma_weight=1,
                   buy_volume_weight=1, sell_volume_weight=1):
@@ -251,27 +301,47 @@ def analyze_stock(stock, k_type=KType.DAY, signal=1,
         return None
 
     df = create_dataframe(stock, prices)
-    return analyze_stock_prices(stock, df, signal,
-                                buy_candlestick_weight, sell_candlestick_weight,
+    return analyze_stock_prices(stock, df, buy_candlestick_weight, sell_candlestick_weight,
                                 buy_ma_weight, sell_ma_weight,
                                 buy_volume_weight, sell_volume_weight)
 
 
-def analyze_stock_prices(stock, df, signal=1,
-                         buy_candlestick_weight=1, sell_candlestick_weight=0,
+def analyze_stock_prices(stock, df, buy_candlestick_weight=1, sell_candlestick_weight=0,
                          buy_ma_weight=2, sell_ma_weight=1,
                          buy_volume_weight=1, sell_volume_weight=1):
     print("=====================================================")
     stock['patterns'] = []
     stock['patterns_candlestick'] = []
     print(f'Analyzing Stock, code = {stock['code']}, name = {stock['name']}')
-    trading_model = MultiIndicatorTradingModel(buy_candlestick_weight, buy_ma_weight, buy_volume_weight,
-                                                   sell_candlestick_weight, sell_ma_weight, sell_volume_weight)
-    strategy = trading_model.get_trading_strategy(stock, df, signal)
-    stock['strategy'] = strategy.to_dict() if strategy is not None else None
+
+    trading_models = get_trading_models(buy_candlestick_weight, buy_ma_weight, buy_volume_weight,
+                                        sell_candlestick_weight, sell_ma_weight, sell_volume_weight)
+
+    support, resistance = TradingModel.get_support_resistance(stock, df)
+    stock['support'] = support
+    stock['resistance'] = resistance
+    stock['price'] = df.iloc[-1]['close']
+    strategy = None
+    for model in trading_models:
+        strategy = model.get_trading_strategy(stock, df)
+        if strategy is not None:
+            stock['signal'] = strategy.signal
+            stock['strategy'] = strategy.to_dict()
+            stock['patterns'].extend(strategy.entry_patterns)
+            break
+
     print(
         f'Analyzing Complete code = {stock['code']}, name = {stock['name']}, trending = {stock["trending"]}, direction = {stock["direction"]}, patterns = {stock["patterns"]}, support = {stock["support"]} resistance = {stock["resistance"]} price = {stock["price"]}')
     return strategy
+
+
+def get_trading_models(buy_candlestick_weight, buy_ma_weight, buy_volume_weight,
+                       sell_candlestick_weight, sell_ma_weight, sell_volume_weight):
+    return [
+        # AntiTradingModel(),
+        MultiIndicatorTradingModel(buy_candlestick_weight, buy_ma_weight, buy_volume_weight,
+                                   sell_candlestick_weight, sell_ma_weight, sell_volume_weight)
+    ]
 
 
 def get_up_ma_patterns():

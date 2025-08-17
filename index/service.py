@@ -58,7 +58,7 @@ def analyze_index(signal):
         else:
             signal = 1
         index['stock_type'] = 'Index'
-        analyze_stock(index, k_type=KType.DAY, signal=signal)
+        analyze_stock(index, k_type=KType.DAY)
         if index['code'] == 'NDX.NS':
             qqq = {
                 "code": "QQQ.NS",
@@ -67,7 +67,7 @@ def analyze_index(signal):
                 "stock_type": "Fund",
                 "stock_code": "QQQ"
             }
-            analyze_stock(qqq, k_type=KType.DAY, signal=signal)
+            analyze_stock(qqq, k_type=KType.DAY)
             index['patterns'] = qqq['patterns']
         indexes.append(index)
 
@@ -94,9 +94,9 @@ def analyze_index_stocks(code):
         stock_code = item['stock_code']
         stock = get_stock(stock_code)
         # 分析股票的日K线图
-        analyze_stock(stock, k_type=KType.DAY)
+        strategy = analyze_stock(stock, k_type=KType.DAY)
         # 如果股票中发现有模式，则将其添加到stocks列表中
-        if len(stock['patterns']) > 0:
+        if strategy is not None and strategy['signal'] == 1:
             stocks.append(stock)
 
     return stocks
