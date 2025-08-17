@@ -17,8 +17,8 @@ def save_analyzed_stocks(stocks):
 
     # 把分析过股票插入数据中，根据code删除原有的，再插入AnalyzedStock对应的表中
     with db.session.begin():
-        for stock in stocks:
-            try:
+        try:
+            for stock in stocks:
                 analyzed_stock = AnalyzedStock(
                     code=stock["code"],
                     name=stock["name"],
@@ -30,8 +30,6 @@ def save_analyzed_stocks(stocks):
                 )
                 db.session.add(analyzed_stock)
                 print(f"Add {analyzed_stock} to AnalyzedStock")
-            except Exception as e:
-                print(f"处理 stock 出错: {stock['code']}, 错误信息: {e}")
-        db.session.commit()
-
-
+            db.session.commit()
+        except Exception as e:
+            print(f"处理 stock 出错: {stock['code']}, 错误信息: {e}")

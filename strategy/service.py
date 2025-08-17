@@ -36,7 +36,7 @@ def add_update_strategy(stock):
             stock_code=stock_code,
             stock_name=stock_name,
             exchange=strategy['exchange'],
-            buy_patterns=strategy['buy_patterns'],
+            entry_patterns=strategy['entry_patterns'],
             entry_price=strategy['entry_price'],
             take_profit=strategy['take_profit'],
             stop_loss=strategy['stop_loss'],
@@ -144,7 +144,7 @@ def check_strategy_reverse_task():
             # 分析股票数据，k_type为DAY表示日线图
             strategy = analyze_stock(stock, k_type=KType.DAY)
             # 检查分析结果中是否有卖出信号
-            if strategy is not None and strategy['signal'] == -1:
+            if strategy is not None and strategy.signal == -1:
                 # 有卖出信号，更新策略的买入价、卖出价、止损价、信号和更新时间
                 strategy.signal = -1
                 strategy.exit_patterns = stock['patterns']

@@ -96,7 +96,7 @@ def analyze_index_stocks(code):
         # 分析股票的日K线图
         strategy = analyze_stock(stock, k_type=KType.DAY)
         # 如果股票中发现有模式，则将其添加到stocks列表中
-        if strategy is not None and strategy['signal'] == 1:
+        if strategy is not None and strategy.signal == 1:
             stocks.append(stock)
 
     return stocks

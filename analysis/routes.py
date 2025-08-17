@@ -61,7 +61,7 @@ def analysis_index():
         return jsonify({'msg': 'stock not found'}), 404
 
     strategy = analyze_stock(stock, k_type=KType.DAY)
-    if strategy is not None and strategy['signal'] == -1:
+    if strategy is not None and strategy.signal == -1:
         return jsonify({'code': 0, 'msg': 'Index pattern not match, analysis_index_task not run.'}), 200
 
     _ = executor.submit(analysis_index_task, code)
@@ -165,7 +165,7 @@ def analysis_funds():
             return jsonify({'msg': 'stock not found'}), 404
 
         strategy = analyze_stock(stock)
-        if index == '000001.SH' and strategy is not None and strategy['signal'] == -1:
+        if index == '000001.SH' and strategy is not None and strategy.signal == -1:
             exec_analyze_funds = False
 
     if not exec_analyze_funds:

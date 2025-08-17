@@ -10,6 +10,7 @@ from indicator.wr import WR
 from stock.service import KType, get_stock_prices
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
+from strategy.trading_model_anti import AntiTradingModel
 
 
 class MultiIndicatorTradingModel(TradingModel):
@@ -105,8 +106,8 @@ class MultiIndicatorTradingModel(TradingModel):
             if profit_ratio > 4:
                 target_price = round(5 * entry_price - 4 * stop_loss, n_digits)
         elif signal == -1:
-            entry_price = resistance
-            stop_loss = round(entry_price * 1.005, n_digits)
+            entry_price = price
+            stop_loss = resistance
             target_price = support
         else:
             return None
@@ -127,6 +128,8 @@ class MultiIndicatorTradingModel(TradingModel):
 
     def get_trading_strategy(self, stock, df):
         signal = self.get_trading_signal(stock, df, stock['trending'], stock['direction'])
+        if signal == 0:
+            return None
         strategy = self.create_trading_strategy(stock, df, signal)
         return strategy
 
@@ -320,7 +323,8 @@ def analyze_stock_prices(stock, df, buy_candlestick_weight=1, sell_candlestick_w
     support, resistance = TradingModel.get_support_resistance(stock, df)
     stock['support'] = support
     stock['resistance'] = resistance
-    stock['price'] = df.iloc[-1]['close']
+    stock['price'] = float(df.iloc[-1]['close'])
+    stock['signal'] = 0
     strategy = None
     for model in trading_models:
         strategy = model.get_trading_strategy(stock, df)
@@ -331,14 +335,14 @@ def analyze_stock_prices(stock, df, buy_candlestick_weight=1, sell_candlestick_w
             break
 
     print(
-        f'Analyzing Complete code = {stock['code']}, name = {stock['name']}, trending = {stock["trending"]}, direction = {stock["direction"]}, patterns = {stock["patterns"]}, support = {stock["support"]} resistance = {stock["resistance"]} price = {stock["price"]}')
+        f'Analyzing Complete code = {stock['code']}, name = {stock['name']}, trending = {stock["trending"]}, direction = {stock["direction"]}, signal= {stock["signal"]}, patterns = {stock["patterns"]}, support = {stock["support"]} resistance = {stock["resistance"]} price = {stock["price"]}')
     return strategy
 
 
 def get_trading_models(buy_candlestick_weight, buy_ma_weight, buy_volume_weight,
                        sell_candlestick_weight, sell_ma_weight, sell_volume_weight):
     return [
-        # AntiTradingModel(),
+        AntiTradingModel(),
         MultiIndicatorTradingModel(buy_candlestick_weight, buy_ma_weight, buy_volume_weight,
                                    sell_candlestick_weight, sell_ma_weight, sell_volume_weight)
     ]
