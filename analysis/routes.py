@@ -163,7 +163,7 @@ def analysis_funds():
             return jsonify({'msg': 'stock not found'}), 404
 
         strategy = analyze_stock(stock)
-        if index == '000001.SH' and strategy is not None and strategy.signal == -1:
+        if strategy is not None and strategy.signal == -1:
             exec_analyze_funds = False
 
     if not exec_analyze_funds:
