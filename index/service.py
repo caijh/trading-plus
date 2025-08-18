@@ -38,7 +38,7 @@ def get_index_stocks(code):
     return http_get_with_retries(url, 3, [])
 
 
-def analyze_index(signal):
+def analyze_index():
     """
     分析股票指数
 
@@ -52,11 +52,6 @@ def analyze_index(signal):
     data = get_stock_index_list()
     indexes = []
     for index in data:
-        # 分析每个指数的日K线图模式
-        if signal is not None:
-            signal = int(signal)
-        else:
-            signal = 1
         index['stock_type'] = 'Index'
         analyze_stock(index, k_type=KType.DAY)
         if index['code'] == 'NDX.NS':

@@ -23,9 +23,8 @@ def analysis_index_stocks():
         - response body: 包含分析结果的JSON字符串
         - status code: HTTP状态码，200表示成功
     """
-    signal = request.args.get('signal')
     # 调用analyze_index函数进行指数分析
-    indexes = analyze_index(signal)
+    indexes = analyze_index()
     # 将分析结果序列化为JSON，并返回200状态码表示成功
     return jsonify({'code': 0, 'data': indexes, 'msg': 'success'}), 200
 
