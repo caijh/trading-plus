@@ -52,6 +52,9 @@ def analysis_index():
     if code == 'NDX.NS':
         # NDX 没有成交量
         stock_code = 'QQQ.NS'
+    if code == 'SPX.NS':
+        # NDX 没有成交量
+        stock_code = 'SPY.NS'
 
     stock = get_stock(stock_code)
 
@@ -150,10 +153,6 @@ def analysis_funds():
     index = None
     if exchange == 'SSE' or exchange == 'SZSE':
         index = '000001.SH'
-    elif exchange == 'HKEX':
-        index = 'HSI.HK'
-    # elif exchange == 'NASDAQ':
-    #     index = 'SPY.NS'
 
     exec_analyze_funds = True
     if index is not None:
