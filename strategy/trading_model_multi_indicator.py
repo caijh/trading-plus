@@ -79,7 +79,7 @@ class MultiIndicatorTradingModel(TradingModel):
             if trending == 'UP':
                 if direction == 'UP':
                     entry_price = price if float(stock['EMA5']) > price else float(stock['EMA5'])
-                    entry_price = round(entry_price, n_digits)
+                    entry_price = round(entry_price * 1.001, n_digits)
                     stop_loss = round(support * 0.995, n_digits)
                     target_price = resistance
                 else:
