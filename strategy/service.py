@@ -155,9 +155,9 @@ def check_strategy_reverse_task():
                 # 如果没有持仓信息
                 if holdings is None:
                     # 更新太旧策略signal = -1
-                    if datetime.now(timezone.utc) - strategy.created_at > timedelta(
+                    if datetime.now() - strategy.created_at > timedelta(
                         days=env_vars.STRATEGY_RETENTION_DAY):
-                        strategy.updated_at = datetime.now(timezone.utc)
+                        strategy.updated_at = datetime.now()
                         strategy.signal = -1
                 # else:
                 #     # 如果有持仓信息，仅更新卖出价
