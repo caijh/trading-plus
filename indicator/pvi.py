@@ -62,16 +62,16 @@ class PVI(Indicator):
         if self.signal == 1:
             if direction == 'UP':
                 # 看涨趋势确认: PVI 在上涨
-                return super().trend_confirmation(pvi_series, "bullish")
+                return Indicator.trend_confirmation(pvi_series, "bullish")
             elif direction == 'DOWN':
                 # 看涨背离: 价格下跌但 PVI 上升（底部背离）
-                return super().divergence(pvi_series, divergence="bullish")
+                return Indicator.divergence(pvi_series, divergence="bullish")
         elif self.signal == -1:
             if direction == 'UP':
                 # 看跌背离: 价格上涨但 PVI 下跌（顶部背离）
-                return super().divergence(pvi_series, divergence="bearish")
+                return Indicator.divergence(pvi_series, divergence="bearish")
             elif direction == 'DOWN':
                 # 看跌趋势确认: PVI 在下跌
-                return super().trend_confirmation(pvi_series, "bearish")
+                return Indicator.trend_confirmation(pvi_series, "bearish")
 
         return False
