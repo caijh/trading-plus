@@ -25,7 +25,6 @@ class TradingStrategy(db.Model):
 
     def to_dict(self):
         return {
-            'id': self.id,
             'strategy_name': self.strategy_name,
             'stock_code': self.stock_code,
             'stock_name': self.stock_name,
