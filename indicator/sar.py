@@ -1,4 +1,3 @@
-import pandas as pd
 import pandas_ta as ta
 
 from indicator.base import Indicator
@@ -8,14 +7,18 @@ from indicator.service import volume_registry
 class SAR(Indicator):
     name = 'SAR'
 
-    def __init__(self, signal=1):
+    def __init__(self, signal=1, step=0.02, max_step=0.2):
         """
         Parabolic SAR 策略
 
         参数:
-        - signal: 1 表示买入信号（SAR 从上转到下），-1 表示卖出信号（SAR 从下转到上）
+        - signal: 1 表示买入信号，-1 表示卖出信号
+        - step: 加速因子，默认为 0.02
+        - max_step: 最大加速因子，默认为 0.2
         """
         self.signal = signal
+        self.step = step
+        self.max_step = max_step
         self.label = 'SAR'
         self.weight = 1
 
@@ -24,27 +27,35 @@ class SAR(Indicator):
             print(f'{stock["code"]} 数据不足，无法计算 PSAR')
             return False
 
-        # 计算 SAR（默认加速因子 step=0.02, max_step=0.2）
-        psar = ta.psar(df['high'], df['low'], df['close'])
-        if 'PSARl_0.02_0.2' not in psar.columns or 'PSARs_0.02_0.2' not in psar.columns:
-            print(f'{stock["code"]} PSAR计算失败')
+        # 动态生成 PSAR 列名
+        psar_columns = [f'PSARl_{self.step}_{self.max_step}', f'PSARs_{self.step}_{self.max_step}']
+
+        # 计算 PSAR
+        psar = ta.psar(df['high'], df['low'], df['close'], af0=self.step, af=self.step, max_af=self.max_step)
+
+        # 检查 PSAR 计算结果是否有效
+        if not all(col in psar.columns for col in psar_columns):
+            print(f'{stock["code"]} PSAR计算失败，请检查参数或数据')
             return False
 
-        # 最新一条 SAR 值
-        psar_last = psar['PSARl_0.02_0.2'].iloc[-1] if not pd.isna(psar['PSARl_0.02_0.2'].iloc[-1]) else \
-            psar['PSARs_0.02_0.2'].iloc[-1]
-        psar_prev = psar['PSARl_0.02_0.2'].iloc[-2] if not pd.isna(psar['PSARl_0.02_0.2'].iloc[-2]) else \
-            psar['PSARs_0.02_0.2'].iloc[-2]
-        close_last = df['close'].iloc[-1]
-        close_prev = df['close'].iloc[-2]
+        # 合并多余的列，只保留 SAR 点位和收盘价
+        psar['psar'] = psar[psar_columns[0]].fillna(psar[psar_columns[1]])
+        df['psar'] = psar['psar']
 
-        # 买入信号：SAR 从上转到下（之前 close < SAR，当前 close > SAR）
+        # 向量化处理，判断趋势反转
+        # 通过 shift(-1) 比较前一根K线，以判断趋势变化
+        df['sar_is_below'] = df['psar'] < df['close']
+        df['prev_sar_is_below'] = df['sar_is_below'].shift(1)
+
+        # 买入信号: SAR 从上转下 (前一根K线 SAR 在价格上方，当前在下方)
         if self.signal == 1:
-            return close_prev < psar_prev and close_last > psar_last
+            # 最后一个点的趋势反转
+            return df['prev_sar_is_below'].iloc[-1] == False and df['sar_is_below'].iloc[-1] == True
 
-        # 卖出信号：SAR 从下转到上（之前 close > SAR，当前 close < SAR）
+        # 卖出信号: SAR 从下转上 (前一根K线 SAR 在价格下方，当前在上方)
         elif self.signal == -1:
-            return close_prev > psar_prev and close_last < psar_last
+            # 最后一个点的趋势反转
+            return df['prev_sar_is_below'].iloc[-1] == True and df['sar_is_below'].iloc[-1] == False
 
         return False
 
