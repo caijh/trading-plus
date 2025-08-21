@@ -567,11 +567,11 @@ def get_recent_price(stock, df, price_type, recent):
 
     if price_type == 'high':
         max_idx = recent_df['high'].idxmax()
-        stock['resistance_date'] = max_idx.strftime('%Y-%m-%d %H:%M:%S')
+        # stock['resistance_date'] = max_idx.strftime('%Y-%m-%d %H:%M:%S')
         return float(recent_df.loc[max_idx]['high'])
     elif price_type == 'low':
         min_idx = recent_df['low'].idxmin()
-        stock['support_date'] = min_idx.strftime('%Y-%m-%d %H:%M:%S')
+        # stock['support_date'] = min_idx.strftime('%Y-%m-%d %H:%M:%S')
         return float(recent_df.loc[min_idx]['low'])
 
     return None

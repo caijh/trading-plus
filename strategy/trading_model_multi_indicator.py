@@ -1,3 +1,4 @@
+from calculate.service import get_recent_price
 from dataset.service import create_dataframe
 from indicator.bias import BIAS
 from indicator.candlestick import get_bullish_candlestick_patterns, get_bearish_candlestick_patterns
@@ -59,60 +60,85 @@ class MultiIndicatorTradingModel(TradingModel):
 
     def create_trading_strategy(self, stock, df, signal):
         """
-            根据输入股票信息生成交易策略，考虑趋势、止损空间、盈亏比率等。
-            """
-        # 股票基础信息提取
+        根据输入股票信息生成交易策略，考虑趋势、止损空间、盈亏比率等。
+        """
+        if signal not in [1, -1]:
+            return None
+
+        # Stock basic information extraction
         stock_code = stock['code']
         stock_name = stock['name']
         trending = stock['trending']
         direction = stock['direction']
         n_digits = 3 if stock['stock_type'] == 'Fund' else 2
-
-        # 原始价格点
+        price = stock['price']
+        ema5_price = stock['EMA5']
+        entry_price = ema5_price
         support = stock['support']
         resistance = stock['resistance']
-        price = stock['price']
+        target_price = resistance
+        stop_loss = round(entry_price * 0.98, n_digits)
         patterns = self.patterns
         exchange = stock['exchange']
+        recent_low_price = get_recent_price(stock, df, 'low', 3)
+
         if signal == 1:
-            # 动态设置买入价、止损、目标价
-            if trending == 'UP':
-                if direction == 'UP':
-                    entry_price = price if float(stock['EMA5']) > price else float(stock['EMA5'])
-                    entry_price = round(entry_price * 1.001, n_digits)
-                    stop_loss = round(support * 0.995, n_digits)
-                    target_price = resistance
-                else:
-                    entry_price = round(support, n_digits)
-                    stop_loss = round(entry_price * 0.98, n_digits)
-                    target_price = resistance  # 预估反弹目标
-            else:
-                if direction == 'UP':
-                    entry_price = price if float(stock['EMA5']) > price else float(stock['EMA5'])
-                    entry_price = round(entry_price * 0.99, n_digits)
-                    stop_loss = round(support, n_digits)
-                    target_price = resistance
-                else:
-                    entry_price = round(support * 0.99, n_digits)
-                    stop_loss = round(entry_price * 0.98, n_digits)
-                    target_price = resistance  # 预估反弹目标
+            # Define strategies for different trend and direction combinations
+            strategies = {
+                # Strong Uptrend, Bullish Direction
+                ('UP', 'UP'): {
+                    'entry_price': round((ema5_price if price > ema5_price else price) * 1.002, n_digits),
+                    # Buy the dip
+                    'stop_loss': round(support * 0.99, n_digits),
+                    'take_profit': resistance,
+                },
+                # Strong Uptrend, Bearish Direction (potential retracement)
+                ('UP', 'DOWN'): {
+                    'entry_price': round(support * 1.002, n_digits),  # Buy at support bounce
+                    'stop_loss': round(support * 0.98, n_digits),
+                    'take_profit': resistance,
+                },
+                # Weak Uptrend, Bullish Direction
+                ('DOWN', 'UP'): {
+                    'entry_price': round((ema5_price if price > ema5_price else price) * 0.995, n_digits),
+                    # Wait for confirmation of reversal
+                    'stop_loss': round(support * 0.98, n_digits),
+                    'take_profit': resistance,
+                },
+                # Weak Uptrend, Bearish Direction (potential retracement)
+                ('DOWN', 'DOWN'): {
+                    'entry_price': round(ema5_price if price > ema5_price else price, n_digits),
+                    # Buy on breakout confirmation
+                    'stop_loss': round(recent_low_price, n_digits),
+                    'take_profit': round(price * 1.05, n_digits),  # Set a realistic profit target
+                },
+            }
 
-            loss_ratio = (entry_price - stop_loss) / entry_price
-            if loss_ratio < 0.008:  # 小于0.8%止损空间太窄
-                stop_loss = round(entry_price * 0.98, n_digits)  # 最少预留2%
+            # Select strategy based on trending and direction
+            strategy_key = (trending, direction)
+            strategy = strategies.get(strategy_key)
+            entry_price = strategy['entry_price']
+            stop_loss = strategy['stop_loss']
+            target_price = strategy['take_profit']
 
-            # 超高盈亏比，动态调整目标价：以 4 盈亏比为上限
-            profit_ratio = (target_price - entry_price) / (entry_price - stop_loss)
-            if profit_ratio > 4:
-                target_price = round(5 * entry_price - 4 * stop_loss, n_digits)
+            # Ensure minimum stop-loss space (at least 2%)
+            min_loss_ratio = 0.02
+            actual_loss_ratio = (entry_price - stop_loss) / entry_price
+            if actual_loss_ratio < min_loss_ratio:
+                stop_loss = round(entry_price * (1 - min_loss_ratio), n_digits)
+
+            # Cap the reward-to-risk ratio at 4:1
+            reward_to_risk_ratio = (target_price - entry_price) / (entry_price - stop_loss)
+            if reward_to_risk_ratio > 4:
+                target_price = round(entry_price + 4 * (entry_price - stop_loss), n_digits)
+
+        # Short strategy logic (remains unchanged from original)
         elif signal == -1:
             entry_price = price
             stop_loss = resistance
             target_price = support
-        else:
-            return None
 
-        # 创建策略对象
+        # Create and return the trading strategy object
         return TradingStrategy(
             strategy_name=self.name,
             stock_code=stock_code,
