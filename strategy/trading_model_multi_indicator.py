@@ -81,6 +81,7 @@ class MultiIndicatorTradingModel(TradingModel):
         patterns = self.patterns
         exchange = stock['exchange']
         recent_low_price = get_recent_price(stock, df, 'low', 3)
+        recent_high_price = get_recent_price(stock, df, 'high', 5)
 
         if signal == 1:
             # Define strategies for different trend and direction combinations
@@ -110,7 +111,7 @@ class MultiIndicatorTradingModel(TradingModel):
                     'entry_price': round(ema5_price if price > ema5_price else price, n_digits),
                     # Buy on breakout confirmation
                     'stop_loss': round(recent_low_price, n_digits),
-                    'take_profit': round(price * 1.05, n_digits),  # Set a realistic profit target
+                    'take_profit': round(recent_high_price * 1.02, n_digits),  # Set a realistic profit target
                 },
             }
 
