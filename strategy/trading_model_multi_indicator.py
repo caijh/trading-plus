@@ -72,7 +72,7 @@ class MultiIndicatorTradingModel(TradingModel):
         direction = stock['direction']
         n_digits = 3 if stock['stock_type'] == 'Fund' else 2
         price = stock['price']
-        ema5_price = stock['EMA5']
+        ema5_price = df.iloc[-1]['EMA5']
         entry_price = ema5_price
         support = stock['support']
         resistance = stock['resistance']

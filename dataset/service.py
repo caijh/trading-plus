@@ -43,14 +43,6 @@ def create_dataframe(stock, prices):
     df['SMA120'] = df['close'].rolling(window=120).mean().round(3)
     df['SMA200'] = df['close'].rolling(window=200).mean().round(3)
 
-    stock['EMA5'] = df['EMA5'].iloc[-1]
-    stock['SMA5'] = df['SMA5'].iloc[-1]
-    stock['SMA10'] = df['SMA10'].iloc[-1]
-    stock['SMA20'] = df['SMA20'].iloc[-1]
-    stock['SMA50'] = df['SMA50'].iloc[-1]
-    stock['SMA120'] = df['SMA120'].iloc[-1]
-    stock['SMA200'] = df['SMA200'].iloc[-1]
-
     # 将日期格式从字符串转换为datetime对象
     df['date'] = pd.to_datetime(df['date'], format='%Y%m%d')
 
