@@ -197,10 +197,13 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     stock['direction'] = 'UP' if upping else 'DOWN'
 
     if len(turning_up_points) > 1:
-        stock['trending'] = 'UP' if current_price > turning_up_points.iloc[-1]['low'] > turning_up_points.iloc[-2][
-            'low'] else 'DOWN'
-        stock['turning_up_point_1'] = turning_up_points.iloc[-1].name.strftime('%Y-%m-%d')
-        stock['turning_up_point_2'] = turning_up_points.iloc[-2].name.strftime('%Y-%m-%d')
+        up_point_1 = turning_up_idxes[-1]
+        up_point_2 = turning_up_idxes[-2]
+        up_point_1_idx, up_point_1_price = get_recent_price_base_index(stock, recent_df, up_point_1, 'low')
+        up_point_2_idx, up_point_2_price = get_recent_price_base_index(stock, recent_df, up_point_2, 'low')
+        stock['trending'] = 'UP' if current_price > up_point_1_price > up_point_2_price else 'DOWN'
+        stock['turning_up_point_1'] = recent_df.loc[up_point_1_idx].name.strftime('%Y-%m-%d')
+        stock['turning_up_point_2'] = recent_df.loc[up_point_2_idx].name.strftime('%Y-%m-%d')
     else:
         stock['trending'] = 'DOWN'
 
@@ -559,19 +562,43 @@ def calculate_vwap_support_resistance(stock, df, window=14, multiplier=2):
     return s, r
 
 
-def get_recent_price(stock, df, price_type, recent):
+def get_recent_price(stock, df, recent, price_type):
     if len(df) < recent:
         return None
 
     recent_df = df.iloc[-recent:]
+    idx, price = _get_recent_price(recent_df, price_type)
+    return price
 
+
+def _get_recent_price(recent_df, price_type):
     if price_type == 'high':
         max_idx = recent_df['high'].idxmax()
-        # stock['resistance_date'] = max_idx.strftime('%Y-%m-%d %H:%M:%S')
-        return float(recent_df.loc[max_idx]['high'])
+        return max_idx, float(recent_df.loc[max_idx]['high'])
     elif price_type == 'low':
         min_idx = recent_df['low'].idxmin()
-        # stock['support_date'] = min_idx.strftime('%Y-%m-%d %H:%M:%S')
-        return float(recent_df.loc[min_idx]['low'])
-
+        return min_idx, float(recent_df.loc[min_idx]['low'])
     return None
+
+
+def get_recent_price_base_index(stock, df, index, price_type):
+    """
+    在给定索引前后2个位置（共5个）的K线数据中，
+    找出最高价或最低价。
+
+    Args:
+        df (pd.DataFrame): 包含'high'和'low'列的股票数据DataFrame。
+        index (int): 目标K线的索引。
+        price_type (str): 'high' 或 'low'，指定要查找的价格类型。
+
+    Returns:
+        float: 指定范围内的最高价或最低价。
+    """
+    # 确定要切片的范围，确保不超出DataFrame边界
+    start_idx = max(0, index - 2)
+    end_idx = min(len(df), index + 3)
+
+    # 切片获取子DataFrame
+    recent_df = df.iloc[start_idx:end_idx]
+
+    return _get_recent_price(recent_df, price_type)

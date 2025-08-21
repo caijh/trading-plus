@@ -80,8 +80,8 @@ class MultiIndicatorTradingModel(TradingModel):
         stop_loss = round(entry_price * 0.98, n_digits)
         patterns = self.patterns
         exchange = stock['exchange']
-        recent_low_price = get_recent_price(stock, df, 'low', 3)
-        recent_high_price = get_recent_price(stock, df, 'high', 5)
+        recent_low_price = get_recent_price(stock, df, 3, 'low')
+        recent_high_price = get_recent_price(stock, df, 5, 'high')
 
         if signal == 1:
             # Define strategies for different trend and direction combinations
