@@ -73,7 +73,7 @@ class MultiIndicatorTradingModel(TradingModel):
         n_digits = 3 if stock['stock_type'] == 'Fund' else 2
         price = stock['price']
         ema5_price = df.iloc[-1]['EMA5']
-        entry_price = ema5_price
+        entry_price = float(ema5_price)
         support = stock['support']
         resistance = stock['resistance']
         target_price = resistance
@@ -118,9 +118,9 @@ class MultiIndicatorTradingModel(TradingModel):
             # Select strategy based on trending and direction
             strategy_key = (trending, direction)
             strategy = strategies.get(strategy_key)
-            entry_price = strategy['entry_price']
-            stop_loss = strategy['stop_loss']
-            target_price = strategy['take_profit']
+            entry_price = float(strategy['entry_price'])
+            stop_loss = float(strategy['stop_loss'])
+            target_price = float(strategy['take_profit'])
 
             # Ensure minimum stop-loss space (at least 2%)
             min_loss_ratio = 0.02
