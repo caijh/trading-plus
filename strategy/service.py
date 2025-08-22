@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 from analysis.model import AnalyzedStock
 from environment.service import env_vars
@@ -148,7 +148,7 @@ def check_strategy_reverse_task():
                 # 有卖出信号，更新策略的买入价、卖出价、止损价、信号和更新时间
                 strategy.signal = -1
                 strategy.exit_patterns = stock['patterns']
-                strategy.updated_at = datetime.now(timezone.utc)
+                strategy.updated_at = datetime.now()
             else:
                 # 如果没有卖出信号，获取股票的持仓信息
                 holdings = get_holdings(code)
