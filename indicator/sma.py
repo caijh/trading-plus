@@ -74,12 +74,12 @@ class SMA(Indicator):
         # 根据信号类型判断金叉或死叉条件
         if self.signal == 1:
             # 金叉条件：收盘价上穿EMA，且EMA上穿SMA
-            return (close_price >= latest_ema_price) and (latest_ema_price > latest_ma_price) and (
-                pre_ema_price <= pre_ma_price)
+            return ((latest_ema_price > latest_ma_price) and (pre_ema_price < pre_ma_price)
+                    and (close_price >= latest_ema_price))
         elif self.signal == -1:
             # 死叉条件：收盘价下穿EMA，且EMA下穿SMA
-            return (close_price < latest_ema_price) and (latest_ema_price < latest_ma_price) and (
-                pre_ema_price >= pre_ma_price)
+            return ((latest_ema_price < latest_ma_price) and (pre_ema_price > pre_ma_price)
+                    and (close_price <= latest_ema_price))
         return False
 
     def get_volume_confirm_patterns(self):
