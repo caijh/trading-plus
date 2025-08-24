@@ -152,11 +152,12 @@ def run_backtest_patterns(stock_code, entry_patterns, exit_patterns):
     return records
 
 
-def alpha_run_backtest(stock_code):
+def alpha_run_backtest(stock_code, start=21):
     stock = get_stock(stock_code)
     prices = get_stock_prices(stock_code)
-    if not (len(prices) > 0):
+    if not prices:
         return []
+
     df = create_dataframe(stock, prices)
     if df is None or df.empty:
         return []
@@ -165,52 +166,56 @@ def alpha_run_backtest(stock_code):
     strategy = None
     holding = False
     entry_price, entry_time = None, None
-    start = 21
+
     for i in range(start, len(df)):
+        time = df.index[i]
+        row = df.iloc[i]
+        low_price, high_price, close_price, open_price = row['low'], row['high'], row['close'], row['open']
+
+        # 更新策略
         if strategy is None:
             _strategy = analyze_stock_prices(stock, df.iloc[:i])
-            if _strategy is not None and _strategy.signal == 1:
+            if _strategy and _strategy.signal == 1:
                 strategy = _strategy
-                strategy.created_at = pd.to_datetime(df.index[i])
+                strategy.created_at = pd.to_datetime(time)
 
         if strategy is None:
             continue
 
-        sub_df = df.iloc[:i + 1]
-        price = sub_df['close'].iloc[-1]
-        low_price = sub_df['low'].iloc[-1]
-        high_price = sub_df['high'].iloc[-1]
-        time = sub_df.index[-1]
-
+        # 入场逻辑
         if not holding:
             if low_price <= float(strategy.entry_price) <= high_price:
                 entry_price, entry_time = float(strategy.entry_price), time
                 holding = True
 
-            if not holding and strategy is not None:
+            # 策略过期
+            if not holding:
                 strategy.updated_at = pd.to_datetime(time)
                 if strategy.updated_at - strategy.created_at > timedelta(days=env_vars.STRATEGY_RETENTION_DAY):
                     strategy = None
-        else:
-            if strategy.signal == -1:
-                price = sub_df['open'].iloc[-1]
-                records.append((entry_time, time, entry_price, price, 'stop_signal'))
-                holding = False
-                strategy = None
-                continue
+            continue
 
-            if float(strategy.take_profit or 0) > 0 and low_price <= float(strategy.take_profit) <= high_price:
-                records.append((entry_time, time, entry_price, price, 'take_profit'))
-                holding = False
-                strategy = None
-            elif float(strategy.stop_loss or 0) > 0 and low_price <= float(strategy.stop_loss) <= high_price:
-                records.append((entry_time, time, entry_price, price, 'stop_loss'))
-                holding = False
-                strategy = None
+        # 持仓中平仓逻辑
+        exit_reason = None
+        exit_price = close_price
 
-            if strategy is not None:
-                _strategy = analyze_stock_prices(stock, df=sub_df)
-                if _strategy is not None and _strategy.signal == -1:
-                    strategy.signal = -1
+        if strategy.signal == -1:
+            exit_price = open_price
+            exit_reason = 'stop_signal'
+        elif strategy.take_profit and low_price <= float(strategy.take_profit) <= high_price:
+            exit_reason = 'take_profit'
+        elif strategy.stop_loss and low_price <= float(strategy.stop_loss) <= high_price:
+            exit_reason = 'stop_loss'
+
+        if exit_reason:
+            records.append((entry_time, time, entry_price, exit_price, exit_reason))
+            holding = False
+            strategy = None
+            continue
+
+        # 更新策略信号
+        _strategy = analyze_stock_prices(stock, df.iloc[:i + 1])
+        if _strategy and _strategy.signal == -1:
+            strategy.signal = -1
 
     return records

@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 
-from backtest.analyzer import analyze_results
+from backtest.analyzer import evaluate_strategy
 from backtest.runner import alpha_run_backtest
 
 backtest_blueprint = Blueprint('backtest', __name__, url_prefix='/backtest')
@@ -20,7 +20,7 @@ def analysis_stock():
     #     return jsonify({'msg': 'strategy not found'}), 404
 
     results = alpha_run_backtest(code)
-    result = analyze_results(results)
+    result = evaluate_strategy(results)
 
     # 返回分析后的股票信息
     return jsonify({'code': 0, 'data': result, 'msg': 'success'}), 200
