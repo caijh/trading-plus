@@ -3,6 +3,7 @@ import pandas_ta as ta
 
 from calculate.service import get_recent_price
 from indicator.candlestick import get_bullish_candlestick_patterns, get_bearish_candlestick_patterns
+from indicator.macd import MACD
 from indicator.sma import SMA
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
@@ -118,7 +119,7 @@ class MultiIndicatorTradingModel(TradingModel):
         strategy_template = {
             # 顺势交易
             (Trend.UP, Direction.UP): {
-                'long': {'entry': max(price, ema5_price) * 1.002, 'stop': support * 0.985,
+                'long': {'entry': min(price, ema5_price) * 1.002, 'stop': support * 0.985,
                          'target': resistance * 0.998},
                 'short': {'entry': resistance, 'stop': resistance * 1.01, 'target': support * 1.002},
             },
@@ -377,7 +378,7 @@ def get_up_ma_patterns():
         SMA(10, 1),
         SMA(21, 1),
         SMA(50, 1),
-        # MACD(1),
+        MACD(1),
         # SAR(1),
         # BIAS(20, -0.09, 1),
         # KDJ(1),
@@ -399,7 +400,7 @@ def get_down_ma_patterns():
         SMA(10, -1),
         SMA(21, -1),
         SMA(50, -1),
-        # MACD(-1),
+        MACD(-1),
         # SAR(-1),
         # BIAS(20, 0.09, -1),
         # KDJ(-1),
