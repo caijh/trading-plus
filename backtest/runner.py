@@ -166,6 +166,11 @@ def alpha_run_backtest(stock_code, start=61):
     strategy = None
     holding = False
     entry_price, entry_time = None, None
+    patterns = []
+    trending = None
+    direction = None
+    trending_list = []
+    direction_list = []
 
     for i in range(start, len(df)):
         time = df.index[i]
@@ -177,6 +182,8 @@ def alpha_run_backtest(stock_code, start=61):
             _strategy = analyze_stock_prices(stock, df.iloc[:i])
             if _strategy and _strategy.signal == 1:
                 strategy = _strategy
+                trending = stock['trending']
+                direction = stock['direction']
                 strategy.created_at = pd.to_datetime(time)
 
         if strategy is None:
@@ -213,6 +220,14 @@ def alpha_run_backtest(stock_code, start=61):
 
         if exit_reason:
             records.append((entry_time, time, entry_price, exit_price, exit_reason))
+            if exit_price > entry_price:
+                patterns.extend(strategy.entry_patterns)
+                patterns.append('|')
+                trending_list.append("T" + trending)
+                direction_list.append("T" + direction)
+            if exit_price < entry_price:
+                trending_list.append('L' + trending)
+                direction_list.append('L' + direction)
             holding = False
             strategy = None
             continue
@@ -222,4 +237,4 @@ def alpha_run_backtest(stock_code, start=61):
         if _strategy and _strategy.signal == -1:
             strategy.signal = -1
 
-    return records
+    return records, patterns, trending_list, direction_list

@@ -17,9 +17,9 @@ class TradingStrategy(db.Model):
     stop_loss = db.Column(Numeric(38, 3), nullable=True)  # 止损价
     signal = db.Column(db.INTEGER, nullable=False)  # 信号，执行买还是卖出
     exit_patterns = db.Column(db.JSON, nullable=True)  # 存储 JSON 格式的技术指标
+    remark = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())  # 记录创建时间
     updated_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now(), onupdate=db.func.now())  # 更新时间
-    remark = db.Column(db.Text, nullable=True)
 
     def __repr__(self):
         return f"<TradingStrategy {self.stock_code} Buy:{self.entry_price} Sell:{self.take_profit} StopLoss:{self.stop_loss}>"

@@ -2,14 +2,8 @@ import pandas as pd
 import pandas_ta as ta
 
 from calculate.service import get_recent_price
-from indicator.bias import BIAS
 from indicator.candlestick import get_bullish_candlestick_patterns, get_bearish_candlestick_patterns
-from indicator.kdj import KDJ
-from indicator.macd import MACD
-from indicator.rsi import RSI
-from indicator.sar import SAR
 from indicator.sma import SMA
-from indicator.wr import WR
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
 
@@ -49,7 +43,7 @@ class MultiIndicatorTradingModel(TradingModel):
             matched_ma_patterns, ma_weight, matched_volume_patterns = get_match_ma_patterns(ma_patterns, stock, df,
                                                                                             trending, direction,
                                                                                             self.buy_volume_weight)
-            if ma_weight >= self.buy_ma_weight and len(matched_volume_patterns) >= 2:
+            if ma_weight >= self.buy_ma_weight and len(matched_volume_patterns) >= 1:
                 # 将所有匹配的K线形态、均线和量能模式的标签添加到股票的模式列表中
                 append_matched_pattern_label(matched_candlestick_patterns, self.patterns)
                 append_matched_pattern_label(matched_ma_patterns, self.patterns)
@@ -99,9 +93,17 @@ class MultiIndicatorTradingModel(TradingModel):
         resistance = stock.get('resistance')
         exchange = stock.get('exchange')
         patterns = self.patterns
+        sma200_price_now = df.iloc[-1]['SMA200']
+        sma200_price_prev = df.iloc[-2]['SMA200']
 
         if not all([price, support, resistance, ema5_price]):
             return None
+        if signal == 1:
+            if sma200_price_now < sma200_price_prev:
+                return None
+        if signal == -1:
+            if sma200_price_now > sma200_price_prev:
+                return None
 
         # 最近 swing 拐点
         swing_low = df.loc[df['turning'] == 1, 'low']
@@ -125,7 +127,8 @@ class MultiIndicatorTradingModel(TradingModel):
                 'short': {'entry': resistance * 0.997, 'stop': resistance * 1.01, 'target': support * 1.002},
             },
             (Trend.DOWN, Direction.UP): {
-                'long': {'entry': price * 1.0, 'stop': support * 0.985, 'target': resistance * 0.995},
+                'long': {'entry': min(price, ema5_price) * 0.995, 'stop': support * 0.985,
+                         'target': resistance * 0.995},
                 'short': {'entry': price * 0.997, 'stop': resistance * 1.01, 'target': support * 1.002},
             },
             (Trend.DOWN, Direction.DOWN): {
@@ -137,7 +140,7 @@ class MultiIndicatorTradingModel(TradingModel):
 
             # 横盘 / SIDE
             (Trend.SIDE, Direction.UP): {
-                'long': {'entry': support * 1.002, 'stop': support * 0.985, 'target': resistance * 0.995},
+                'long': {'entry': support * 0.99, 'stop': support * 0.99 * 0.98, 'target': recent_high_price * 0.995},
                 'short': {'entry': resistance * 0.998, 'stop': resistance * 1.01, 'target': support * 1.002},
             },
             (Trend.SIDE, Direction.DOWN): {
@@ -370,9 +373,17 @@ def get_up_ma_patterns():
     以及一个特定参数的偏差率模式。这些模式用于在金融数据分析中计算和应用各种移动平均线和偏差率指标。
     """
     # 初始化均线和偏差率模式列表
-    ma_patterns = [SMA(10, 1), SMA(20, 1), SMA(50, 1),
-                   MACD(1), SAR(1),
-                   BIAS(20, -0.09, 1), KDJ(1), RSI(1), WR(1)]
+    ma_patterns = [
+        SMA(10, 1),
+        SMA(21, 1),
+        SMA(50, 1),
+        # MACD(1),
+        # SAR(1),
+        # BIAS(20, -0.09, 1),
+        # KDJ(1),
+        # RSI(1),
+        # WR(1)
+    ]
     return ma_patterns
 
 
@@ -384,7 +395,15 @@ def get_down_ma_patterns():
     以及一个特定参数的偏差率模式。这些模式用于在金融数据分析中计算和应用各种移动平均线和偏差率指标。
     """
     # 初始化均线和偏差率
-    ma_patterns = [SMA(10, -1), SMA(20, -1), SMA(50, -1),
-                   MACD(-1), SAR(-1),
-                   BIAS(20, 0.09, -1), KDJ(-1), RSI(-1), WR(-1)]
+    ma_patterns = [
+        SMA(10, -1),
+        SMA(21, -1),
+        SMA(50, -1),
+        # MACD(-1),
+        # SAR(-1),
+        # BIAS(20, 0.09, -1),
+        # KDJ(-1),
+        # RSI(-1),
+        # WR(-1)
+    ]
     return ma_patterns

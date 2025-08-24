@@ -60,6 +60,7 @@ def evaluate_strategy(records, risk_free_rate=0.0):
 
     result = {
         "total_trades": total_trades,  # 总交易次数
+        "win_trades": len(wins),
         "win_rate": round(win_rate, 2),  # 胜率 %
         "average_return_pct": round(avg_return, 2),  # 平均收益率 %
         "avg_win_pct": round(avg_win, 2),  # 平均盈利 %

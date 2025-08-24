@@ -19,7 +19,10 @@ def analysis_stock():
     # if strategy is None:
     #     return jsonify({'msg': 'strategy not found'}), 404
 
-    results = alpha_run_backtest(code)
+    results, patterns, trending_list, direction_list = alpha_run_backtest(code)
+    print(patterns)
+    print(trending_list)
+    print(direction_list)
     result = evaluate_strategy(results)
 
     # 返回分析后的股票信息
