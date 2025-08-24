@@ -1,3 +1,6 @@
+import pandas as pd
+import pandas_ta as ta
+
 from calculate.service import get_recent_price
 from indicator.bias import BIAS
 from indicator.candlestick import get_bullish_candlestick_patterns, get_bearish_candlestick_patterns
@@ -9,7 +12,19 @@ from indicator.sma import SMA
 from indicator.wr import WR
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
-from strategy.trading_model_ict import ICTTradingModel
+
+
+class Trend:
+    UP = 'UP'
+    DOWN = 'DOWN'
+    SIDE = 'SIDE'
+    UNKNOWN = 'UNKNOWN'
+
+
+class Direction:
+    UP = 'UP'
+    DOWN = 'DOWN'
+    SIDE = 'SIDE'
 
 
 class MultiIndicatorTradingModel(TradingModel):
@@ -56,88 +71,117 @@ class MultiIndicatorTradingModel(TradingModel):
 
         return 0
 
-    def create_trading_strategy(self, stock, df, signal):
+    def create_trading_strategy(self, stock: dict, df: pd.DataFrame, signal: int):
         """
-        根据输入股票信息生成交易策略，考虑趋势、止损空间、盈亏比率等。
+        根据股票信息生成交易策略，考虑趋势、方向、止损空间和盈亏比。
+
+        Args:
+            stock (dict): 包含股票信息的字典。
+            df (pd.DataFrame): 股票历史数据 DataFrame。
+            signal (int): 交易信号，1为多头，-1为空头。
+
+        Returns:
+            TradingStrategy 或 None
         """
         if signal not in [1, -1]:
             return None
 
-        # Stock basic information extraction
-        stock_code = stock['code']
-        stock_name = stock['name']
-        trending = stock['trending']
-        direction = stock['direction']
-        n_digits = 3 if stock['stock_type'] == 'Fund' else 2
-        price = stock['price']
-        ema5_price = df.iloc[-1]['EMA5']
-        entry_price = float(ema5_price)
-        support = stock['support']
-        resistance = stock['resistance']
-        target_price = resistance
-        stop_loss = round(entry_price * 0.98, n_digits)
+        # 基本信息
+        stock_code = stock.get('code')
+        stock_name = stock.get('name')
+        trending = stock.get('trending', Trend.UNKNOWN)
+        direction = stock.get('direction', Direction.SIDE)
+        stock_type = stock.get('stock_type', 'Stock')
+        n_digits = 3 if stock_type == 'Fund' else 2
+        price = stock.get('price')
+        ema5_price = float(df.iloc[-1]['EMA5'])
+        support = stock.get('support')
+        resistance = stock.get('resistance')
+        exchange = stock.get('exchange')
         patterns = self.patterns
-        exchange = stock['exchange']
-        recent_low_price = get_recent_price(stock, df, 3, 'low')
-        recent_high_price = get_recent_price(stock, df, 5, 'high')
 
+        if not all([price, support, resistance, ema5_price]):
+            return None
+
+        # 最近 swing 拐点
+        swing_low = df.loc[df['turning'] == 1, 'low']
+        swing_high = df.loc[df['turning'] == -1, 'high']
+        recent_low_price = swing_low.iloc[-1] if not swing_low.empty else get_recent_price(stock, df, 3, 'low')
+        recent_high_price = swing_high.iloc[-1] if not swing_high.empty else get_recent_price(stock, df, 5, 'high')
+
+        # ATR 用于最小止损
+        atr = float(ta.atr(df['high'], df['low'], df['close'], length=14).iloc[-1])
+
+        # 策略模板
+        strategy_template = {
+            # 顺势交易
+            (Trend.UP, Direction.UP): {
+                'long': {'entry': max(price, ema5_price) * 1.002, 'stop': support * 0.985,
+                         'target': resistance * 0.998},
+                'short': {'entry': resistance, 'stop': resistance * 1.01, 'target': support * 1.002},
+            },
+            (Trend.UP, Direction.DOWN): {
+                'long': {'entry': support * 1.001, 'stop': support * 0.985, 'target': resistance * 0.995},
+                'short': {'entry': resistance * 0.997, 'stop': resistance * 1.01, 'target': support * 1.002},
+            },
+            (Trend.DOWN, Direction.UP): {
+                'long': {'entry': price * 1.0, 'stop': support * 0.985, 'target': resistance * 0.995},
+                'short': {'entry': price * 0.997, 'stop': resistance * 1.01, 'target': support * 1.002},
+            },
+            (Trend.DOWN, Direction.DOWN): {
+                'long': {'entry': ema5_price * 1.002, 'stop': recent_low_price * 0.995,
+                         'target': recent_high_price * 1.015},
+                'short': {'entry': ema5_price * 0.998, 'stop': recent_high_price * 1.005,
+                          'target': recent_low_price * 0.985},
+            },
+
+            # 横盘 / SIDE
+            (Trend.SIDE, Direction.UP): {
+                'long': {'entry': support * 1.002, 'stop': support * 0.985, 'target': resistance * 0.995},
+                'short': {'entry': resistance * 0.998, 'stop': resistance * 1.01, 'target': support * 1.002},
+            },
+            (Trend.SIDE, Direction.DOWN): {
+                'long': {'entry': support * 1.002, 'stop': support * 0.985, 'target': resistance * 0.995},
+                'short': {'entry': resistance * 0.998, 'stop': resistance * 1.01, 'target': support * 1.002},
+            },
+            (Trend.SIDE, Direction.SIDE): {
+                'long': {'entry': support * 1.002, 'stop': support * 0.985, 'target': resistance * 0.995},
+                'short': {'entry': resistance * 0.998, 'stop': resistance * 1.01, 'target': support * 1.002},
+            },
+
+            # UNKNOWN
+            (Trend.UNKNOWN, Direction.SIDE): {
+                'long': {'entry': support * 1.002, 'stop': support * 0.985, 'target': resistance * 0.995},
+                'short': {'entry': resistance * 0.998, 'stop': resistance * 1.01, 'target': support * 1.002},
+            },
+        }
+
+        strategy_key = (trending, direction)
+        if strategy_key not in strategy_template:
+            strategy_key = (Trend.SIDE, Direction.SIDE)  # fallback
+
+        strat_type = 'long' if signal == 1 else 'short'
+        strat = strategy_template[strategy_key][strat_type]
+
+        entry_price = round(float(strat['entry']), n_digits)
+        stop_loss = round(float(strat['stop']), n_digits)
+        target_price = round(float(strat['target']), n_digits)
+
+        # 风险控制：最小止损（2%或 ATR*0.4）
+        min_stop = atr * 0.4
         if signal == 1:
-            # Define strategies for different trend and direction combinations
-            strategies = {
-                # Strong Uptrend, Bullish Direction
-                ('UP', 'UP'): {
-                    'entry_price': round((ema5_price if price > ema5_price else price) * 1.002, n_digits),
-                    # Buy the dip
-                    'stop_loss': round(support * 0.99, n_digits),
-                    'take_profit': resistance,
-                },
-                # Strong Uptrend, Bearish Direction (potential retracement)
-                ('UP', 'DOWN'): {
-                    'entry_price': round(support * 1.002, n_digits),  # Buy at support bounce
-                    'stop_loss': round(support * 0.98, n_digits),
-                    'take_profit': resistance,
-                },
-                # Weak Uptrend, Bullish Direction
-                ('DOWN', 'UP'): {
-                    'entry_price': round((ema5_price if price > ema5_price else price) * 0.995, n_digits),
-                    # Wait for confirmation of reversal
-                    'stop_loss': round(support * 0.98, n_digits),
-                    'take_profit': resistance,
-                },
-                # Weak Uptrend, Bearish Direction (potential retracement)
-                ('DOWN', 'DOWN'): {
-                    'entry_price': round(ema5_price if price > ema5_price else price, n_digits),
-                    # Buy on breakout confirmation
-                    'stop_loss': round(recent_low_price, n_digits),
-                    'take_profit': round(recent_high_price * 1.02, n_digits),  # Set a realistic profit target
-                },
-            }
+            stop_loss = min(stop_loss, entry_price - max(entry_price * 0.02, min_stop))
+        else:
+            stop_loss = max(stop_loss, entry_price + max(entry_price * 0.02, min_stop))
 
-            # Select strategy based on trending and direction
-            strategy_key = (trending, direction)
-            strategy = strategies.get(strategy_key)
-            entry_price = float(strategy['entry_price'])
-            stop_loss = float(strategy['stop_loss'])
-            target_price = float(strategy['take_profit'])
-
-            # Ensure minimum stop-loss space (at least 2%)
-            min_loss_ratio = 0.02
-            actual_loss_ratio = (entry_price - stop_loss) / entry_price
-            if actual_loss_ratio < min_loss_ratio:
-                stop_loss = round(entry_price * (1 - min_loss_ratio), n_digits)
-
-            # Cap the reward-to-risk ratio at 4:1
-            reward_to_risk_ratio = (target_price - entry_price) / (entry_price - stop_loss)
-            if reward_to_risk_ratio > 4:
+        # 风险控制：最大 RR 4:1
+        reward_to_risk = abs(target_price - entry_price) / abs(entry_price - stop_loss)
+        if reward_to_risk > 4:
+            if signal == 1:
                 target_price = round(entry_price + 4 * (entry_price - stop_loss), n_digits)
+            else:
+                target_price = round(entry_price - 4 * (stop_loss - entry_price), n_digits)
 
-        # Short strategy logic (remains unchanged from original)
-        elif signal == -1:
-            entry_price = price
-            stop_loss = resistance
-            target_price = support
-
-        # Create and return the trading strategy object
         return TradingStrategy(
             strategy_name=self.name,
             stock_code=stock_code,
@@ -316,16 +360,6 @@ def get_match_ma_patterns(patterns, stock, df, trending, direction, volume_weigh
 
     # 返回匹配的均线模式、总权重和匹配的成交量模式列表
     return matched_ma_patterns, ma_weight, list(matched_volume_patterns)
-
-
-def get_trading_models(buy_candlestick_weight, buy_ma_weight, buy_volume_weight,
-                       sell_candlestick_weight, sell_ma_weight, sell_volume_weight):
-    return [
-        # AntiTradingModel(),
-        ICTTradingModel(),
-        # MultiIndicatorTradingModel(buy_candlestick_weight, buy_ma_weight, buy_volume_weight,
-        #                            sell_candlestick_weight, sell_ma_weight, sell_volume_weight)
-    ]
 
 
 def get_up_ma_patterns():

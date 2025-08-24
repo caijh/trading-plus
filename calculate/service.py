@@ -166,6 +166,61 @@ def calculate_support_resistance(stock, df, window=20, num_std=2):
     return s, r
 
 
+def calculate_trending_direction(stock, df):
+    """
+    计算趋势 (trending) 和 当前价格方向 (direction)
+
+    trending: 'UP' 表示趋势向上, 'DOWN' 表示趋势向下
+    direction: 'UP' 表示当前价格方向向上, 'DOWN' 表示向下
+    """
+
+    # 从 df['turning'] 获取拐点索引
+    turning_up_idxes = df.index[df['turning'] == 1]
+    turning_down_idxes = df.index[df['turning'] == -1]
+
+    # 获取拐点对应的价格
+    turning_up_points = df.loc[turning_up_idxes][['close', 'low', 'high', 'open']]
+    turning_down_points = df.loc[turning_down_idxes][['close', 'low', 'high', 'open']]
+
+    # 当前价格与均线
+    current_price = df['close'].iloc[-1]
+    current_ma_price = df['EMA5'].iloc[-1]
+    pre_ma_price = df['EMA5'].iloc[-2]
+
+    # === 当前方向: 结合EMA斜率和价格位置 ===
+    if pre_ma_price < current_ma_price < current_price:
+        direction = 'UP'
+    elif pre_ma_price > current_ma_price > current_price:
+        direction = 'DOWN'
+    else:
+        direction = 'SIDE'  # 横盘或震荡
+
+    # === 趋势判定: 根据拐点高低点结构 ===
+    trending = 'UNKNOWN'
+    if len(turning_up_points) > 1 and len(turning_down_points) > 1:
+        # up = 低点（lows），down = 高点（highs）
+        last_up, prev_up = turning_up_points.iloc[-1], turning_up_points.iloc[-2]  # 低点
+        last_down, prev_down = turning_down_points.iloc[-1], turning_down_points.iloc[-2]  # 高点
+
+        # 上升趋势：高点抬高 + 低点抬高
+        if last_down['high'] > prev_down['high'] and last_up['low'] > prev_up['low']:
+            trending = 'UP'
+        # 下降趋势：高点降低 + 低点降低
+        elif last_down['high'] < prev_down['high'] and last_up['low'] < prev_up['low']:
+            trending = 'DOWN'
+        else:
+            trending = 'SIDE'
+
+        # 保存最近两个拐点日期
+        stock['turning_up_point_1'] = last_up.name.strftime('%Y-%m-%d')
+        stock['turning_up_point_2'] = prev_up.name.strftime('%Y-%m-%d')
+        stock['turning_down_point_1'] = last_down.name.strftime('%Y-%m-%d')
+        stock['turning_down_point_2'] = prev_down.name.strftime('%Y-%m-%d')
+
+    return trending, direction
+
+
+
 def calculate_support_resistance_by_turning_points(stock, df, window=5):
     """
     根据均线拐点识别支撑与阻力位
@@ -197,23 +252,11 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     turning_up_points = recent_df.loc[turning_up_idxes][[f'{ma_name}', 'close', 'low', 'high', 'open']]
     turning_down_points = recent_df.loc[turning_down_idxes][[f'{ma_name}', 'close', 'low', 'high', 'open']]
 
-    # 获取当前价格、最近的向上拐点和向下拐点
-    current_price = recent_df['close'].iloc[-1]
-    current_ma_price = recent_df[f'{ma_name}'].iloc[-1]
-    pre_ma_price = recent_df[f'{ma_name}'].iloc[-2]
-    # 判断当前趋势
-    upping = True if current_ma_price > pre_ma_price else False
-    stock['direction'] = 'UP' if upping else 'DOWN'
-
-    if len(turning_up_points) > 1:
-        stock['trending'] = 'UP' if current_price > turning_up_points.iloc[-1]['low'] > turning_up_points.iloc[-2][
-            'low'] else 'DOWN'
-        stock['turning_up_point_1'] = turning_up_points.iloc[-1].name.strftime('%Y-%m-%d')
-        stock['turning_up_point_2'] = turning_up_points.iloc[-2].name.strftime('%Y-%m-%d')
-    else:
-        stock['trending'] = 'DOWN'
+    # 判断当前方向
+    upping = True if stock['direction'] == 'UP' else False
 
     # 支撑点：拐点价格 < 当前价格
+    current_price = recent_df['close'].iloc[-1]
     supports = turning_down_points[turning_down_points['high'] < current_price]
     resistances = turning_up_points[turning_up_points['low'] > current_price]
 
@@ -222,16 +265,14 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     resistance = None
 
     # if not supports.empty and support is None:
-    #     print("Support point:")
-    #     support = select_nearest_point(stock, recent_df, supports, current_price, is_support=True)  # 时间上最靠近当前的支撑点
+    #     support = select_nearest_point(stock, recent_df, supports, current_price,field=ma_name, is_support=True)  # 时间上最靠近当前的支撑点
     # else:
-    #     support = cal_price_from_ma(stock, recent_df, support, current_price, is_support=True)
+    #     support = cal_price_from_ma(stock, recent_df, current_price, is_support=True)
     #
     # if not resistances.empty and resistance is None:
-    #     print("Resistance point:")
-    #     resistance = select_nearest_point(stock, recent_df, resistances, current_price, is_support=False)
+    #     resistance = select_nearest_point(stock, recent_df, resistances, current_price,field=ma_name, is_support=False)
     # else:
-    #     resistance = cal_price_from_ma(stock, recent_df, resistance, current_price, is_support=False)
+    #     resistance = cal_price_from_ma(stock, recent_df, current_price, is_support=False)
 
     if upping and len(turning_points) > 0:
         first_point = turning_points.iloc[-1]

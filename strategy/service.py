@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 from analysis.model import AnalyzedStock
+from calculate.service import calculate_trending_direction
 from dataset.service import create_dataframe
 from environment.service import env_vars
 from extensions import db
@@ -8,7 +9,9 @@ from holdings.service import get_holdings
 from stock.service import get_stock, KType, get_stock_prices
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
-from strategy.trading_model_multi_indicator import get_trading_models
+from strategy.trading_model_anti import AntiTradingModel
+from strategy.trading_model_ict import ICTTradingModel
+from strategy.trading_model_multi_indicator import MultiIndicatorTradingModel
 
 
 def add_update_strategy(stock):
@@ -143,7 +146,7 @@ def check_strategy_reverse_task():
                 continue
 
             # 分析股票数据，k_type为DAY表示日线图
-            new_strategy = analyze_stock(stock, k_type=KType.DAY)
+            new_strategy = analyze_stock(stock, k_type=KType.DAY, strategy_name=strategy.strategy_name)
             # 检查分析结果中是否有卖出信号
             if new_strategy is not None and new_strategy.signal == -1:
                 # 有卖出信号，更新策略的买入价、卖出价、止损价、信号和更新时间
@@ -205,7 +208,7 @@ def run_generate_strategy():
         print(f"Error: {e}")
 
 
-def analyze_stock(stock, k_type=KType.DAY,
+def analyze_stock(stock, k_type=KType.DAY, strategy_name=None,
                   buy_candlestick_weight=1, sell_candlestick_weight=0,
                   buy_ma_weight=2, sell_ma_weight=1,
                   buy_volume_weight=1, sell_volume_weight=1):
@@ -216,12 +219,12 @@ def analyze_stock(stock, k_type=KType.DAY,
         return None
 
     df = create_dataframe(stock, prices)
-    return analyze_stock_prices(stock, df, buy_candlestick_weight, sell_candlestick_weight,
+    return analyze_stock_prices(stock, df, strategy_name, buy_candlestick_weight, sell_candlestick_weight,
                                 buy_ma_weight, sell_ma_weight,
                                 buy_volume_weight, sell_volume_weight)
 
 
-def analyze_stock_prices(stock, df, buy_candlestick_weight=1, sell_candlestick_weight=0,
+def analyze_stock_prices(stock, df, strategy_name=None, buy_candlestick_weight=1, sell_candlestick_weight=0,
                          buy_ma_weight=2, sell_ma_weight=1,
                          buy_volume_weight=1, sell_volume_weight=1):
     print("=====================================================")
@@ -231,6 +234,13 @@ def analyze_stock_prices(stock, df, buy_candlestick_weight=1, sell_candlestick_w
 
     trading_models = get_trading_models(buy_candlestick_weight, buy_ma_weight, buy_volume_weight,
                                         sell_candlestick_weight, sell_ma_weight, sell_volume_weight)
+
+    if strategy_name is not None:
+        trading_models = [model for model in trading_models if model.name == strategy_name]
+
+    trending, direction = calculate_trending_direction(stock, df)
+    stock['trending'] = trending
+    stock['direction'] = direction
 
     support, resistance = TradingModel.get_support_resistance(stock, df)
     stock['support'] = support
@@ -249,3 +259,13 @@ def analyze_stock_prices(stock, df, buy_candlestick_weight=1, sell_candlestick_w
     print(
         f'Analyzing Complete code = {stock['code']}, name = {stock['name']}, trending = {stock["trending"]}, direction = {stock["direction"]}, signal= {stock["signal"]}, patterns = {stock["patterns"]}, support = {stock["support"]} resistance = {stock["resistance"]} price = {stock["price"]}')
     return strategy
+
+
+def get_trading_models(buy_candlestick_weight, buy_ma_weight, buy_volume_weight,
+                       sell_candlestick_weight, sell_ma_weight, sell_volume_weight):
+    return [
+        AntiTradingModel(),
+        ICTTradingModel(),
+        MultiIndicatorTradingModel(buy_candlestick_weight, buy_ma_weight, buy_volume_weight,
+                                   sell_candlestick_weight, sell_ma_weight, sell_volume_weight)
+    ]
