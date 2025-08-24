@@ -40,8 +40,8 @@ class ICTTradingModel(TradingModel):
         atr = df['atr'].iloc[-1]
 
         # 4️⃣ 公平价值缺口 (FVG) 判断 + 有效性过滤
-        bullish_fvg = (low_1 > high_3) and ((low_1 - high_3) > 0.2 * atr)
-        bearish_fvg = (high_1 < low_3) and ((low_3 - high_1) > 0.2 * atr)
+        bullish_fvg = (low_1 > high_3) and ((low_1 - high_3) > 0.1 * atr)
+        bearish_fvg = (high_1 < low_3) and ((low_3 - high_1) > 0.1 * atr)
 
         # 5️⃣ 交易逻辑：必须符合趋势 + FVG + MSS
         # 📈 多头信号

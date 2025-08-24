@@ -207,6 +207,10 @@ def alpha_run_backtest(stock_code, start=61):
         elif strategy.stop_loss and low_price <= float(strategy.stop_loss) <= high_price:
             exit_reason = 'stop_loss'
 
+        strategy.updated_at = pd.to_datetime(time)
+        if close_price > entry_price and strategy.updated_at - strategy.created_at > timedelta(14):
+            exit_reason = 'stop_holding'
+
         if exit_reason:
             records.append((entry_time, time, entry_price, exit_price, exit_reason))
             holding = False
