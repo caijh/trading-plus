@@ -10,15 +10,17 @@ class AntiTradingModel(TradingModel):
 
     def get_trading_signal(self, stock, df, trending, direction):
         """
-        优化后的 ANTI 策略：结合 KD 指标、均线和成交量。
+        改进版 ANTI 策略：
+        - KDJ 超买/超卖触发
+        - EMA 趋势过滤
+        - 成交量确认
+        - 动态止盈止损 (在 create_trading_strategy 里实现)
         """
-
-        # 1. 数据充足性检查 (Added)
-        # 至少需要足够的均线计算周期，例如20周期，这里取更长确保数据完整
-        if len(df) < 50:
+        if len(df) < 100:
             return 0
 
-        # 2. 计算 KD 指标
+        # ========== 1. 计算指标 ==========
+        # KDJ (stochastic)
         kdj_df = df.ta.stoch(
             high='high',
             low='low',
@@ -27,57 +29,41 @@ class AntiTradingModel(TradingModel):
             d=10,
             smooth_d=3
         )
-        # 兼容 pandas-ta V0.3.14b 的命名
         kdj_df.rename(
             columns={'STOCHk_7_10_3': 'K', 'STOCHd_7_10_3': 'D'},
             inplace=True
         )
-        k_series = kdj_df['K']
-        d_series = kdj_df['D']
+        k_series, d_series = kdj_df['K'], kdj_df['D']
 
-        # 3. 引入额外的确认指标：EMA 和成交量 (Added)
-        # 短期均线（10日EMA）和长期均线（20日EMA）
-        df['ema10'] = ta.ema(df['close'], length=10)
-        df['ema20'] = ta.ema(df['close'], length=20)
+        # EMA 均线
+        ema10 = ta.ema(df['close'], length=10)
+        ema20 = ta.ema(df['close'], length=20)
+        ema50 = ta.ema(df['close'], length=50)
 
-        # 过去5天的平均成交量，用于判断是否放量
-        df['vol_ma5'] = ta.sma(df['volume'], length=5)
+        # 成交量均线
+        vol_ma5 = ta.sma(df['volume'], length=5)
 
-        # 4. 获取最新的指标值
-        k_now, k_prev1, k_prev2 = k_series.iloc[-1], k_series.iloc[-2], k_series.iloc[-3]
-        d_now, d_prev1, d_prev2 = d_series.iloc[-1], d_series.iloc[-2], d_series.iloc[-3]
+        # 最新值
+        k_now, d_now = k_series.iloc[-1], d_series.iloc[-1]
+        k_prev, d_prev = k_series.iloc[-2], d_series.iloc[-2]
+        k_prev_prev, d_prev_prev = k_series.iloc[-3], d_series.iloc[-3]
 
-        close_now = df['close'].iloc[-1]
-        ema10_now, ema20_now = df['ema10'].iloc[-1], df['ema20'].iloc[-1]
-        vol_now, vol_ma5_now = df['volume'].iloc[-1], df['vol_ma5'].iloc[-1]
+        vol_now, vol_pre = df['volume'].iloc[-1], df['volume'].iloc[-2]
 
-        # 📈 优化后的多头信号：D趋势向上 + K回调再上穿D + 均线多头排列 + 价格放量 (Multi-confirmation)
-        # 提高胜率的关键：增加多个确认条件
-        bullish_kdj = (d_now > d_prev1 > d_prev2) and \
-                      (k_now > k_prev1 < k_prev2) and \
-                      (k_now > d_now) and (k_prev1 < d_prev1)
+        # ========== 2. 多头信号 ==========
+        bullish_kdj = (d_now > d_prev > d_prev_prev) and (k_prev_prev > k_prev < k_now) and (k_now >= d_now)
+        bullish_trend = trending == 'UP'  # 均线多头排列
+        bullish_volume = (vol_now < vol_pre)  # 缩量
 
-        # 均线多头排列确认 (added)
-        bullish_ma = (ema10_now > ema20_now)
-
-        # 成交量放大确认 (added)
-        bullish_volume = (vol_now > vol_ma5_now)
-
-        if bullish_kdj and bullish_ma and bullish_volume:
+        if bullish_kdj and bullish_trend and bullish_volume:
             return 1
 
-        # 📉 优化后的空头信号：D趋势向下 + K反弹再下穿D + 均线空头排列 + 价格放量
-        bearish_kdj = (d_now < d_prev1 < d_prev2) and \
-                      (k_now < k_prev1 > k_prev2) and \
-                      (k_now < d_now) and (k_prev1 > d_prev1)
+        # ========== 3. 空头信号 ==========
+        bearish_kdj = (d_now < d_prev < d_prev_prev) and (k_prev_prev < k_prev > k_now) and (k_now <= d_now)
+        bearish_trend = trending == 'DOWN'  # 均线空头排列
+        bearish_volume = (vol_now > vol_pre)  # 放量下跌
 
-        # 均线空头排列确认 (added)
-        bearish_ma = (ema10_now < ema20_now)
-
-        # 成交量放大确认 (added)
-        bearish_volume = (vol_now > vol_ma5_now)
-
-        if bearish_kdj and bearish_ma and bearish_volume:
+        if bearish_kdj and bearish_trend and bearish_volume:
             return -1
 
         return 0
@@ -85,8 +71,7 @@ class AntiTradingModel(TradingModel):
     def create_trading_strategy(self, stock, df, signal):
         """
         创建交易策略对象，支持多头和空头
-        signal = 1 做多
-        signal = -1 做空
+        - 止盈止损基于 ATR
         """
         if len(df) == 0:
             return None
@@ -94,25 +79,21 @@ class AntiTradingModel(TradingModel):
         last_close = df['close'].iloc[-1]
         n_digits = 3 if stock['stock_type'] == 'Fund' else 2
 
+        # 计算 ATR
+        atr_series = ta.atr(df['high'], df['low'], df['close'], length=14)
+        atr_now = atr_series.iloc[-1]
+
         if signal == 1:
-            # 📈 做多策略
+            # 📈 多头策略
             entry_price = last_close
-            take_profit = round(last_close * 1.05, n_digits)
-            # 止损点更精确：使用前一日的最低价作为止损位
-            stop_loss = df['low'].iloc[-2]
-            # 确保止损价低于入场价 (added)
-            if stop_loss > entry_price:
-                stop_loss = round(entry_price * 0.98, n_digits)
+            stop_loss = round(entry_price - 1.5 * atr_now, n_digits)
+            take_profit = round(entry_price + 2.5 * atr_now, n_digits)
 
         elif signal == -1:
-            # 📉 做空策略
+            # 📉 空头策略
             entry_price = last_close
-            take_profit = round(last_close * 0.95, n_digits)
-            # 止损点更精确：使用前一日的最高价作为止损位
-            stop_loss = df['high'].iloc[-2]
-            # 确保止损价高于入场价 (added)
-            if stop_loss < entry_price:
-                stop_loss = round(entry_price * 1.02, n_digits)
+            stop_loss = round(entry_price + 1.5 * atr_now, n_digits)
+            take_profit = round(entry_price - 2.5 * atr_now, n_digits)
 
         else:
             return None
@@ -122,7 +103,7 @@ class AntiTradingModel(TradingModel):
             strategy_name=self.name,
             stock_code=stock['code'],
             stock_name=stock['name'],
-            entry_patterns=['ANTI', 'KDJ', 'EMA', 'VOL'] if signal == 1 else [],
+            entry_patterns=['ANTI', 'KDJ', 'EMA', 'VOL', 'ATR'],
             exit_patterns=[],
             exchange=stock['exchange'],
             entry_price=float(entry_price),
@@ -140,6 +121,4 @@ class AntiTradingModel(TradingModel):
         if trading_signal == 0:
             return None
 
-        strategy = self.create_trading_strategy(stock, df, trading_signal)
-
-        return strategy
+        return self.create_trading_strategy(stock, df, trading_signal)

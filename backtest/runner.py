@@ -152,7 +152,7 @@ def run_backtest_patterns(stock_code, entry_patterns, exit_patterns):
     return records
 
 
-def alpha_run_backtest(stock_code, start=21):
+def alpha_run_backtest(stock_code, start=61):
     stock = get_stock(stock_code)
     prices = get_stock_prices(stock_code)
     if not prices:
