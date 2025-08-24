@@ -1,5 +1,6 @@
 import pandas as pd
 
+from calculate.service import detect_turning_point_indexes
 from stock.service import get_adj_factor
 
 
@@ -42,6 +43,21 @@ def create_dataframe(stock, prices):
     df['SMA50'] = df['close'].rolling(window=50).mean().round(3)
     df['SMA120'] = df['close'].rolling(window=120).mean().round(3)
     df['SMA200'] = df['close'].rolling(window=200).mean().round(3)
+
+    # 找出均线的拐点位置
+    turning_points_idxes, turning_up_idxes, turning_down_idxes = detect_turning_point_indexes(df['EMA5'],
+                                                                                              df=df)
+
+    # 向上拐点turning_up_idxes, df['turning']=1, 向下拐点turning_down_idxes, df['turning']=-1,其他df['turning']=0
+    # 新增 turning 列，默认值为 0
+    df['turning'] = 0
+    turning_col_idx = df.columns.get_loc('turning')
+
+    # 标记向上拐点为 1
+    df.iloc[turning_up_idxes, turning_col_idx] = 1
+
+    # 标记向下拐点为 -1
+    df.iloc[turning_down_idxes, turning_col_idx] = -1
 
     # 将日期格式从字符串转换为datetime对象
     df['date'] = pd.to_datetime(df['date'], format='%Y%m%d')

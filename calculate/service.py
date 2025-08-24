@@ -187,13 +187,15 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
         df[f'{ma_name}'] = ta.ema(recent_df['close'], window).round(3)
 
     # 找出均线的拐点位置
-    turning_points_idxes, turning_up_idxes, turning_down_idxes = detect_turning_point_indexes(recent_df[f'{ma_name}'],
-                                                                                              df=recent_df)
+    # 从 df['turning'] 获取拐点索引
+    turning_points_idxes = recent_df.index[recent_df['turning'] != 0]
+    turning_up_idxes = recent_df.index[recent_df['turning'] == 1]
+    turning_down_idxes = recent_df.index[recent_df['turning'] == -1]
 
     # 提取拐点价格及索引
-    turning_points = recent_df.iloc[turning_points_idxes][[f'{ma_name}', 'close', 'low', 'high', 'open']]
-    turning_up_points = recent_df.iloc[turning_up_idxes][[f'{ma_name}', 'close', 'low', 'high', 'open']]
-    turning_down_points = recent_df.iloc[turning_down_idxes][[f'{ma_name}', 'close', 'low', 'high', 'open']]
+    turning_points = recent_df.loc[turning_points_idxes][[f'{ma_name}', 'close', 'low', 'high', 'open']]
+    turning_up_points = recent_df.loc[turning_up_idxes][[f'{ma_name}', 'close', 'low', 'high', 'open']]
+    turning_down_points = recent_df.loc[turning_down_idxes][[f'{ma_name}', 'close', 'low', 'high', 'open']]
 
     # 获取当前价格、最近的向上拐点和向下拐点
     current_price = recent_df['close'].iloc[-1]
@@ -212,8 +214,8 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
         stock['trending'] = 'DOWN'
 
     # 支撑点：拐点价格 < 当前价格
-    supports = turning_down_points[turning_down_points[f'{ma_name}'] < current_price]
-    resistances = turning_up_points[turning_up_points[f'{ma_name}'] > current_price]
+    supports = turning_down_points[turning_down_points['high'] < current_price]
+    resistances = turning_up_points[turning_up_points['low'] > current_price]
 
     # 找最靠近当前价格的支撑和阻力（按时间最近，取所在K线的低 / 高点）
     support = None
