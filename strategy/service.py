@@ -1,13 +1,14 @@
 from datetime import datetime, timedelta
 
 from analysis.model import AnalyzedStock
+from dataset.service import create_dataframe
 from environment.service import env_vars
 from extensions import db
 from holdings.service import get_holdings
-from stock.service import get_stock, KType
+from stock.service import get_stock, KType, get_stock_prices
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
-from strategy.trading_model_multi_indicator import analyze_stock
+from strategy.trading_model_multi_indicator import get_trading_models
 
 
 def add_update_strategy(stock):
@@ -202,3 +203,49 @@ def run_generate_strategy():
         check_strategy_reverse_task()
     except Exception as e:
         print(f"Error: {e}")
+
+
+def analyze_stock(stock, k_type=KType.DAY,
+                  buy_candlestick_weight=1, sell_candlestick_weight=0,
+                  buy_ma_weight=2, sell_ma_weight=1,
+                  buy_volume_weight=1, sell_volume_weight=1):
+    print("=====================================================")
+    prices = get_stock_prices(stock['code'], k_type)
+    if prices is None or len(prices) == 0:
+        print(f'No prices get for  stock {stock['code']}')
+        return None
+
+    df = create_dataframe(stock, prices)
+    return analyze_stock_prices(stock, df, buy_candlestick_weight, sell_candlestick_weight,
+                                buy_ma_weight, sell_ma_weight,
+                                buy_volume_weight, sell_volume_weight)
+
+
+def analyze_stock_prices(stock, df, buy_candlestick_weight=1, sell_candlestick_weight=0,
+                         buy_ma_weight=2, sell_ma_weight=1,
+                         buy_volume_weight=1, sell_volume_weight=1):
+    print("=====================================================")
+    stock['patterns'] = []
+    stock['patterns_candlestick'] = []
+    print(f'Analyzing Stock, code = {stock['code']}, name = {stock['name']}')
+
+    trading_models = get_trading_models(buy_candlestick_weight, buy_ma_weight, buy_volume_weight,
+                                        sell_candlestick_weight, sell_ma_weight, sell_volume_weight)
+
+    support, resistance = TradingModel.get_support_resistance(stock, df)
+    stock['support'] = support
+    stock['resistance'] = resistance
+    stock['price'] = float(df.iloc[-1]['close'])
+    stock['signal'] = 0
+    strategy = None
+    for model in trading_models:
+        strategy = model.get_trading_strategy(stock, df)
+        if strategy is not None:
+            stock['signal'] = strategy.signal
+            stock['strategy'] = strategy.to_dict()
+            stock['patterns'].extend(strategy.entry_patterns)
+            break
+
+    print(
+        f'Analyzing Complete code = {stock['code']}, name = {stock['name']}, trending = {stock["trending"]}, direction = {stock["direction"]}, signal= {stock["signal"]}, patterns = {stock["patterns"]}, support = {stock["support"]} resistance = {stock["resistance"]} price = {stock["price"]}')
+    return strategy

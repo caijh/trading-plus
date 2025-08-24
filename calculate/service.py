@@ -2,7 +2,7 @@ import numpy as np
 import pandas_ta as ta
 
 
-def detect_turning_point_indexes(series):
+def detect_turning_point_indexes(series, df=None):
     """
     Detect turning points in a given series with improved accuracy.
 
@@ -48,8 +48,11 @@ def detect_turning_point_indexes(series):
                 if (latest_up_point_idx is None or (i - latest_up_point_idx) > 2) and series.iloc[
                     idx_next_next] > next_:
                     latest_up_point_idx = i
-                    turning_up_points.append(i)
-                    turning_points.append(i)
+                    if df is not None:
+                        idx, price = _get_recent_price_base_index(df, latest_up_point_idx, 'low')
+                        latest_up_point_idx = idx
+                    turning_up_points.append(latest_up_point_idx)
+                    turning_points.append(latest_up_point_idx)
             else:
                 latest_up_point_idx = i
                 turning_up_points.append(i)
@@ -62,8 +65,11 @@ def detect_turning_point_indexes(series):
                 if (latest_down_point_idx is None or (i - latest_down_point_idx) > 2) and series.iloc[
                     idx_prev_prev] < prev:
                     latest_down_point_idx = i
-                    turning_down_points.append(i)
-                    turning_points.append(i)
+                    if df is not None:
+                        idx, price = _get_recent_price_base_index(df, latest_down_point_idx, 'high')
+                        latest_down_point_idx = idx
+                    turning_down_points.append(latest_down_point_idx)
+                    turning_points.append(latest_down_point_idx)
             else:
                 latest_down_point_idx = i
                 turning_down_points.append(i)
@@ -181,7 +187,8 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
         df[f'{ma_name}'] = ta.ema(recent_df['close'], window).round(3)
 
     # 找出均线的拐点位置
-    turning_points_idxes, turning_up_idxes, turning_down_idxes = detect_turning_point_indexes(recent_df[f'{ma_name}'])
+    turning_points_idxes, turning_up_idxes, turning_down_idxes = detect_turning_point_indexes(recent_df[f'{ma_name}'],
+                                                                                              df=recent_df)
 
     # 提取拐点价格及索引
     turning_points = recent_df.iloc[turning_points_idxes][[f'{ma_name}', 'close', 'low', 'high', 'open']]
@@ -197,13 +204,10 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     stock['direction'] = 'UP' if upping else 'DOWN'
 
     if len(turning_up_points) > 1:
-        up_point_1 = turning_up_idxes[-1]
-        up_point_2 = turning_up_idxes[-2]
-        up_point_1_idx, up_point_1_price = get_recent_price_base_index(stock, recent_df, up_point_1, 'low')
-        up_point_2_idx, up_point_2_price = get_recent_price_base_index(stock, recent_df, up_point_2, 'low')
-        stock['trending'] = 'UP' if current_price > up_point_1_price > up_point_2_price else 'DOWN'
-        stock['turning_up_point_1'] = recent_df.loc[up_point_1_idx].name.strftime('%Y-%m-%d')
-        stock['turning_up_point_2'] = recent_df.loc[up_point_2_idx].name.strftime('%Y-%m-%d')
+        stock['trending'] = 'UP' if current_price > turning_up_points.iloc[-1]['low'] > turning_up_points.iloc[-2][
+            'low'] else 'DOWN'
+        stock['turning_up_point_1'] = turning_up_points.iloc[-1].name.strftime('%Y-%m-%d')
+        stock['turning_up_point_2'] = turning_up_points.iloc[-2].name.strftime('%Y-%m-%d')
     else:
         stock['trending'] = 'DOWN'
 
@@ -581,7 +585,7 @@ def _get_recent_price(recent_df, price_type):
     return None
 
 
-def get_recent_price_base_index(stock, df, index, price_type):
+def get_recent_price_base_index(df, index, price_type):
     """
     在给定索引前后2个位置（共5个）的K线数据中，
     找出最高价或最低价。
@@ -602,3 +606,33 @@ def get_recent_price_base_index(stock, df, index, price_type):
     recent_df = df.iloc[start_idx:end_idx]
 
     return _get_recent_price(recent_df, price_type)
+
+
+def _get_recent_price_base_index(df, index, price_type):
+    """
+    在给定索引前后2个位置（共5个）的K线数据中，
+    找出最高价或最低价。
+
+    Args:
+        df (pd.DataFrame): 包含'high'和'low'列的股票数据DataFrame。
+        index (int): 目标K线的索引。
+        price_type (str): 'high' 或 'low'，指定要查找的价格类型。
+
+    Returns:
+        float: 指定范围内的最高价或最低价。
+    """
+    # 确定要切片的范围，确保不超出DataFrame边界
+    start_idx = max(0, index - 2)
+    end_idx = min(len(df), index + 3)
+
+    idx = index
+    if price_type == 'low':
+        for i in range(start_idx, end_idx):
+            if df.iloc[i]['low'] < df.iloc[idx]['low']:
+                idx = i
+    elif price_type == 'high':
+        for i in range(start_idx, end_idx):
+            if df.iloc[i]['high'] > df.iloc[idx]['high']:
+                idx = i
+    price = df.iloc[idx]['close']
+    return idx, price

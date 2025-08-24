@@ -1,7 +1,7 @@
 from environment.service import env_vars
 from request.service import http_get_with_retries
 from stock.service import KType, get_stock
-from strategy.trading_model_multi_indicator import analyze_stock
+from strategy.service import analyze_stock
 
 
 def get_stock_index_list():

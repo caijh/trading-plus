@@ -1,5 +1,4 @@
 from calculate.service import get_recent_price
-from dataset.service import create_dataframe
 from indicator.bias import BIAS
 from indicator.candlestick import get_bullish_candlestick_patterns, get_bearish_candlestick_patterns
 from indicator.kdj import KDJ
@@ -8,10 +7,9 @@ from indicator.rsi import RSI
 from indicator.sar import SAR
 from indicator.sma import SMA
 from indicator.wr import WR
-from stock.service import KType, get_stock_prices
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
-from strategy.trading_model_anti import AntiTradingModel
+from strategy.trading_model_ict import ICTTradingModel
 
 
 class MultiIndicatorTradingModel(TradingModel):
@@ -320,58 +318,13 @@ def get_match_ma_patterns(patterns, stock, df, trending, direction, volume_weigh
     return matched_ma_patterns, ma_weight, list(matched_volume_patterns)
 
 
-def analyze_stock(stock, k_type=KType.DAY,
-                  buy_candlestick_weight=1, sell_candlestick_weight=0,
-                  buy_ma_weight=2, sell_ma_weight=1,
-                  buy_volume_weight=1, sell_volume_weight=1):
-    print("=====================================================")
-    prices = get_stock_prices(stock['code'], k_type)
-    if prices is None or len(prices) == 0:
-        print(f'No prices get for  stock {stock['code']}')
-        return None
-
-    df = create_dataframe(stock, prices)
-    return analyze_stock_prices(stock, df, buy_candlestick_weight, sell_candlestick_weight,
-                                buy_ma_weight, sell_ma_weight,
-                                buy_volume_weight, sell_volume_weight)
-
-
-def analyze_stock_prices(stock, df, buy_candlestick_weight=1, sell_candlestick_weight=0,
-                         buy_ma_weight=2, sell_ma_weight=1,
-                         buy_volume_weight=1, sell_volume_weight=1):
-    print("=====================================================")
-    stock['patterns'] = []
-    stock['patterns_candlestick'] = []
-    print(f'Analyzing Stock, code = {stock['code']}, name = {stock['name']}')
-
-    trading_models = get_trading_models(buy_candlestick_weight, buy_ma_weight, buy_volume_weight,
-                                        sell_candlestick_weight, sell_ma_weight, sell_volume_weight)
-
-    support, resistance = TradingModel.get_support_resistance(stock, df)
-    stock['support'] = support
-    stock['resistance'] = resistance
-    stock['price'] = float(df.iloc[-1]['close'])
-    stock['signal'] = 0
-    strategy = None
-    for model in trading_models:
-        strategy = model.get_trading_strategy(stock, df)
-        if strategy is not None:
-            stock['signal'] = strategy.signal
-            stock['strategy'] = strategy.to_dict()
-            stock['patterns'].extend(strategy.entry_patterns)
-            break
-
-    print(
-        f'Analyzing Complete code = {stock['code']}, name = {stock['name']}, trending = {stock["trending"]}, direction = {stock["direction"]}, signal= {stock["signal"]}, patterns = {stock["patterns"]}, support = {stock["support"]} resistance = {stock["resistance"]} price = {stock["price"]}')
-    return strategy
-
-
 def get_trading_models(buy_candlestick_weight, buy_ma_weight, buy_volume_weight,
                        sell_candlestick_weight, sell_ma_weight, sell_volume_weight):
     return [
-        AntiTradingModel(),
-        MultiIndicatorTradingModel(buy_candlestick_weight, buy_ma_weight, buy_volume_weight,
-                                   sell_candlestick_weight, sell_ma_weight, sell_volume_weight)
+        # AntiTradingModel(),
+        ICTTradingModel(),
+        # MultiIndicatorTradingModel(buy_candlestick_weight, buy_ma_weight, buy_volume_weight,
+        #                            sell_candlestick_weight, sell_ma_weight, sell_volume_weight)
     ]
 
 
