@@ -7,13 +7,26 @@ from strategy.trading_model import TradingModel
 
 class HammerTradingModel(TradingModel):
     def __init__(self):
+        """
+        初始化锤子线交易模型。
+        """
         super().__init__('HammerTradingModel')
 
     def get_trading_signal(self, stock, df, trending, direction):
         """
-        获取交易信号：
-        - 多头：锤子线 + 成交量放大 + SMA120 向上
-        - 空头：上吊线 + 成交量放大 + SMA120 向下
+        根据锤子线或上吊线形态，结合均线趋势和成交量判断交易信号。
+
+        参数:
+            stock (dict): 股票信息字典，包含股票代码、名称等。
+            df (pandas.DataFrame): 包含历史价格数据的 DataFrame，需包含 'close', 'low', 'high', 'SMA20', 'SMA50', 'SMA120' 列。
+            trending (str): 当前趋势状态（如 'UP'、'DOWN'）。
+            direction (str): 当前方向（'UP' 表示上涨趋势，'DOWN' 表示下跌趋势）。
+
+        返回:
+            int: 交易信号：
+                - 1 表示多头信号（买入）；
+                - -1 表示空头信号（卖出）；
+                - 0 表示无信号。
         """
         # ---- 均线准备 ----
         sma20_series = df['SMA20']
@@ -49,9 +62,15 @@ class HammerTradingModel(TradingModel):
 
     def create_trading_strategy(self, stock, df, signal):
         """
-        根据交易信号生成策略：
-        - 止损基于形态极值
-        - 止盈基于 ATR
+        根据交易信号生成具体的交易策略，包括入场价、止盈价和止损价。
+
+        参数:
+            stock (dict): 股票信息字典，包含股票代码、名称、类型等。
+            df (pandas.DataFrame): 包含历史价格数据的 DataFrame。
+            signal (int): 交易信号（1 表示多头，-1 表示空头）。
+
+        返回:
+            TradingStrategy: 交易策略对象，若信号无效或风控失败则返回 None。
         """
         last_close = df['close'].iloc[-1]
         n_digits = 3 if stock['stock_type'] == 'Fund' else 2
@@ -93,6 +112,16 @@ class HammerTradingModel(TradingModel):
         return strategy
 
     def get_trading_strategy(self, stock, df):
+        """
+        获取完整的交易策略，包括信号判断和策略生成。
+
+        参数:
+            stock (dict): 股票信息字典。
+            df (pandas.DataFrame): 包含历史价格数据的 DataFrame。
+
+        返回:
+            TradingStrategy: 完整的交易策略对象，若无有效信号则返回 None。
+        """
         trading_signal = self.get_trading_signal(stock, df, stock.get('trending', ''), stock.get('direction', ''))
         if trading_signal == 0:
             return None
