@@ -72,13 +72,13 @@ class ICTTradingModel(TradingModel):
         last_swing_low = df[df['turning'] == 1]['low'].iloc[-1] if not df[df['turning'] == 1].empty else None
 
         if signal == 1:  # 多头
-            stop_loss = last_swing_low if last_swing_low is not None else df['low'].iloc[-5:].min()
+            stop_loss = last_swing_high
             entry_price = last_close
             risk = entry_price - stop_loss
             take_profit = entry_price + 2 * risk  # RR=2:1
 
         elif signal == -1:  # 空头
-            stop_loss = last_swing_high if last_swing_high is not None else df['high'].iloc[-5:].max()
+            stop_loss = last_swing_low
             entry_price = last_close
             risk = stop_loss - entry_price
             take_profit = entry_price - 2 * risk  # RR=2:1
