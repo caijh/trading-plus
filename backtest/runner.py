@@ -1,5 +1,4 @@
 import re
-from datetime import timedelta
 
 import pandas as pd
 
@@ -171,6 +170,7 @@ def alpha_run_backtest(stock_code, start=61):
     direction = None
     trending_list = []
     direction_list = []
+    strategy_idx = None
 
     for i in range(start, len(df)):
         time = df.index[i]
@@ -185,6 +185,7 @@ def alpha_run_backtest(stock_code, start=61):
                 trending = stock['trending']
                 direction = stock['direction']
                 strategy.created_at = pd.to_datetime(time)
+                strategy_idx = i
 
         if strategy is None:
             continue
@@ -198,7 +199,7 @@ def alpha_run_backtest(stock_code, start=61):
             # 策略过期
             if not holding:
                 strategy.updated_at = pd.to_datetime(time)
-                if strategy.updated_at - strategy.created_at > timedelta(days=env_vars.STRATEGY_RETENTION_DAY):
+                if strategy_idx - i > env_vars.STRATEGY_RETENTION_DAY:
                     strategy = None
             continue
 
@@ -215,17 +216,20 @@ def alpha_run_backtest(stock_code, start=61):
             exit_reason = 'stop_loss'
 
         strategy.updated_at = pd.to_datetime(time)
-        if close_price > entry_price and strategy.updated_at - strategy.created_at > timedelta(14):
+        if close_price > entry_price and strategy_idx - i > 10:
             exit_reason = 'stop_holding'
 
         if exit_reason:
             records.append((entry_time, time, entry_price, exit_price, exit_reason))
             if exit_price > entry_price:
-                patterns.extend(strategy.entry_patterns)
-                patterns.append('|')
+                # patterns.extend(strategy.entry_patterns)
+                # patterns.append('|')
                 trending_list.append("T" + trending)
                 direction_list.append("T" + direction)
             if exit_price < entry_price:
+                patterns.extend(strategy.entry_patterns)
+                patterns.append('|')
+
                 trending_list.append('L' + trending)
                 direction_list.append('L' + direction)
             holding = False

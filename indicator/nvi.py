@@ -68,24 +68,28 @@ class NVI(Indicator):
         # 计算 NVI 指标，这里只使用 NVI 序列本身
         # pandas-ta 的 nvi() 函数返回一个包含 NVI 和 NVI_SMA 的 DataFrame
         nvi_series = ta.nvi(close=df['close'], volume=df['volume'])
+        nvi_sma_series = ta.sma(nvi_series, length=10)
 
         if nvi_series.empty:
             return False
-
+        last_nvi = nvi_series.iloc[-1]
+        last_nvi_sma = nvi_sma_series.iloc[-1]
         # 根据信号类型和方向判断
         if self.signal == 1:
+            # 获取最新的 NVI 和 NVI_SMA 值
+
             if direction == 'UP':
                 # 看涨趋势确认: NVI 在上涨
-                return _nvi_trend_confirmation(nvi_series, "bullish")
+                return last_nvi > last_nvi_sma and _nvi_trend_confirmation(nvi_series, "bullish")
             elif direction == 'DOWN':
                 # 看涨背离: 价格下跌但 NVI 上升（底部背离）
-                return _nvi_divergence(nvi_series, divergence="bullish")
+                return last_nvi > last_nvi_sma and _nvi_divergence(nvi_series, divergence="bullish")
         elif self.signal == -1:
             if direction == 'UP':
                 # 看跌背离: 价格上涨但 NVI 下跌（顶部背离）
-                return _nvi_divergence(nvi_series, divergence="bearish")
+                return last_nvi < last_nvi_sma and _nvi_divergence(nvi_series, divergence="bearish")
             elif direction == 'DOWN':
                 # 看跌趋势确认: NVI 在下跌
-                return _nvi_trend_confirmation(nvi_series, "bearish")
+                return last_nvi < last_nvi_sma and _nvi_trend_confirmation(nvi_series, "bearish")
 
         return False

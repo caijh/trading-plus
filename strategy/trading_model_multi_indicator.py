@@ -2,8 +2,8 @@ import pandas as pd
 import pandas_ta as ta
 
 from calculate.service import get_recent_price
+from indicator.bias import BIAS
 from indicator.candlestick import get_bullish_candlestick_patterns, get_bearish_candlestick_patterns
-from indicator.sar import SAR
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
 
@@ -132,9 +132,9 @@ class MultiIndicatorTradingModel(TradingModel):
                 'short': {'entry': price * 0.997, 'stop': resistance * 1.01, 'target': support * 1.002},
             },
             (Trend.DOWN, Direction.DOWN): {
-                'long': {'entry': ema5_price * 1.002, 'stop': recent_low_price * 0.995,
+                'long': {'entry': ema5_price, 'stop': recent_low_price * 0.995,
                          'target': recent_high_price * 1.015},
-                'short': {'entry': ema5_price * 0.998, 'stop': recent_high_price * 1.005,
+                'short': {'entry': ema5_price, 'stop': recent_high_price * 1.005,
                           'target': recent_low_price * 0.985},
             },
 
@@ -144,8 +144,8 @@ class MultiIndicatorTradingModel(TradingModel):
                 'short': {'entry': resistance * 0.998, 'stop': resistance * 1.01, 'target': support * 1.002},
             },
             (Trend.SIDE, Direction.DOWN): {
-                'long': {'entry': support * 1.002, 'stop': support * 0.985, 'target': resistance * 0.995},
-                'short': {'entry': resistance * 0.998, 'stop': resistance * 1.01, 'target': support * 1.002},
+                'long': {'entry': support * 1.002, 'stop': support * 1.002 * 0.98, 'target': recent_high_price * 0.995},
+                'short': {'entry': resistance * 0.998, 'stop': resistance * 0.998 * 1.02, 'target': support * 1.002},
             },
             (Trend.SIDE, Direction.SIDE): {
                 'long': {'entry': support * 1.002, 'stop': support * 0.985, 'target': resistance * 0.995},
@@ -378,8 +378,8 @@ def get_up_ma_patterns():
         # SMA(21, 1),
         # SMA(50, 1),
         # MACD(1),
-        SAR(1),
-        # BIAS(20, -0.09, 1),
+        # SAR(1),
+        BIAS(20, -0.09, 1),
         # KDJ(1),
         # RSI(1),
         # WR(1)
@@ -400,8 +400,8 @@ def get_down_ma_patterns():
         # SMA(21, -1),
         # SMA(50, -1),
         # MACD(-1),
-        SAR(-1),
-        # BIAS(20, 0.09, -1),
+        # SAR(-1),
+        BIAS(20, 0.09, -1),
         # KDJ(-1),
         # RSI(-1),
         # WR(-1)
