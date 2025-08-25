@@ -165,7 +165,8 @@ def alpha_run_backtest(stock_code, start=61):
     strategy = None
     holding = False
     entry_price, entry_time = None, None
-    patterns = []
+    win_patterns = []
+    loss_patterns = []
     trending = None
     direction = None
     trending_list = []
@@ -199,7 +200,7 @@ def alpha_run_backtest(stock_code, start=61):
             # 策略过期
             if not holding:
                 strategy.updated_at = pd.to_datetime(time)
-                if strategy_idx - i > env_vars.STRATEGY_RETENTION_DAY:
+                if i - strategy_idx > env_vars.STRATEGY_RETENTION_DAY:
                     strategy = None
             continue
 
@@ -216,20 +217,19 @@ def alpha_run_backtest(stock_code, start=61):
             exit_reason = 'stop_loss'
 
         strategy.updated_at = pd.to_datetime(time)
-        if close_price > entry_price and strategy_idx - i > 10:
+        if close_price > entry_price and i - strategy_idx > 10:
             exit_reason = 'stop_holding'
 
         if exit_reason:
             records.append((entry_time, time, entry_price, exit_price, exit_reason))
             if exit_price > entry_price:
-                # patterns.extend(strategy.entry_patterns)
-                # patterns.append('|')
+                win_patterns.extend(strategy.entry_patterns)
+                win_patterns.append('|')
                 trending_list.append("T" + trending)
                 direction_list.append("T" + direction)
             if exit_price < entry_price:
-                patterns.extend(strategy.entry_patterns)
-                patterns.append('|')
-
+                loss_patterns.extend(strategy.entry_patterns)
+                loss_patterns.append('|')
                 trending_list.append('L' + trending)
                 direction_list.append('L' + direction)
             holding = False
@@ -241,4 +241,4 @@ def alpha_run_backtest(stock_code, start=61):
         if _strategy and _strategy.signal == -1:
             strategy.signal = -1
 
-    return records, patterns, trending_list, direction_list
+    return records, win_patterns, loss_patterns, trending_list, direction_list

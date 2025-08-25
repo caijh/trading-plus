@@ -9,6 +9,8 @@ from holdings.service import get_holdings
 from stock.service import get_stock, KType, get_stock_prices
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
+from strategy.trading_model_anti import AntiTradingModel
+from strategy.trading_model_ict import ICTTradingModel
 from strategy.trading_model_multi_indicator import MultiIndicatorTradingModel
 
 
@@ -272,8 +274,8 @@ def analyze_stock_prices(stock, df, strategy_name=None, buy_candlestick_weight=1
 def get_trading_models(buy_candlestick_weight, buy_ma_weight, buy_volume_weight,
                        sell_candlestick_weight, sell_ma_weight, sell_volume_weight):
     return [
-        # AntiTradingModel(),
-        # ICTTradingModel(),
+        AntiTradingModel(),
+        ICTTradingModel(),
         MultiIndicatorTradingModel(buy_candlestick_weight, buy_ma_weight, buy_volume_weight,
                                    sell_candlestick_weight, sell_ma_weight, sell_volume_weight)
     ]

@@ -46,6 +46,8 @@ class PVI(Indicator):
         返回:
         - 如果满足买入或卖出信号则返回True，否则返回False。
         """
+        if len(df) < 255:
+            return False
         # 确保数据完整性
         if not all(col in df for col in ['close', 'volume']):
             return False
@@ -53,7 +55,7 @@ class PVI(Indicator):
         # 计算 PVI 指标
         # pandas-ta 的 pvi() 函数返回一个包含 PVI 和 PVI_SMA 的 DataFrame
         pvi_df = ta.pvi(close=df['close'], volume=df['volume'])
-        pvi_series = pvi_df[f'PVI_{pvi_df.columns[0].split("_")[1]}']
+        pvi_series = pvi_df['PVI']
 
         if pvi_series.empty:
             return False

@@ -19,8 +19,9 @@ def analysis_stock():
     # if strategy is None:
     #     return jsonify({'msg': 'strategy not found'}), 404
 
-    results, patterns, trending_list, direction_list = alpha_run_backtest(code)
-    print(patterns)
+    results, win_patterns, loss_patterns, trending_list, direction_list = alpha_run_backtest(code)
+    print(win_patterns)
+    print(loss_patterns)
     print(trending_list)
     print(direction_list)
     result = evaluate_strategy(results)
