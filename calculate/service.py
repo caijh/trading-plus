@@ -183,14 +183,13 @@ def calculate_trending_direction(stock, df):
     turning_down_points = df.loc[turning_down_idxes][['close', 'low', 'high', 'open']]
 
     # 当前价格与均线
-    current_price = df['close'].iloc[-1]
     current_ma_price = df['EMA5'].iloc[-1]
     pre_ma_price = df['EMA5'].iloc[-2]
 
     # === 当前方向: 结合EMA斜率和价格位置 ===
-    if pre_ma_price < current_ma_price < current_price:
+    if pre_ma_price < current_ma_price:
         direction = 'UP'
-    elif pre_ma_price > current_ma_price > current_price:
+    elif pre_ma_price > current_ma_price:
         direction = 'DOWN'
     else:
         direction = 'SIDE'  # 横盘或震荡
