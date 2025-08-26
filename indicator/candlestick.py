@@ -110,12 +110,6 @@ class Candlestick(Indicator):
 
         # 提取匹配日期，并写入 stock 中
         if not matched.empty:
-            candlestick_patterns = {
-                'name': self.name,
-                'description': self.description,
-                'dates': matched.index.strftime('%Y-%m-%d').tolist()
-            }
-            stock['patterns_candlestick'].append(candlestick_patterns)
             return True
         else:
             return False

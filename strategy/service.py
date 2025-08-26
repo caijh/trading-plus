@@ -241,7 +241,6 @@ def analyze_stock_prices(stock, df, strategy_name=None,
                          buy_volume_weight=1, sell_volume_weight=1):
     print("=====================================================")
     stock['patterns'] = []
-    stock['patterns_candlestick'] = []
     print(f'Analyzing Stock, code = {stock['code']}, name = {stock['name']}')
 
     trading_models = get_trading_models(buy_candlestick_weight, buy_ma_weight, buy_volume_weight,
