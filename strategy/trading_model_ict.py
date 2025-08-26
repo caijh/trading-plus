@@ -39,7 +39,7 @@ class ICTTradingModel(TradingModel):
         atr = df['atr'].iloc[-1]
 
         # 4️⃣ 公平价值缺口 (FVG) 判断 + 有效性过滤
-        fvg_threshold = 0.2 if stock['stock_type'] == 'Fund' else 0.1
+        fvg_threshold = 0.3 if stock['stock_type'] == 'Fund' else 0.1
         bullish_fvg = (low_1 > high_3) and ((low_1 - high_3) > fvg_threshold * atr)
         bearish_fvg = (high_1 < low_3) and ((low_3 - high_1) > fvg_threshold * atr)
 
