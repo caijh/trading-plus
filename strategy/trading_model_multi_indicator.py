@@ -10,21 +10,9 @@ from indicator.rsi import RSI
 from indicator.sar import SAR
 from indicator.sma import SMA
 from indicator.wr import WR
+from stock.constant import Trend, Direction
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
-
-
-class Trend:
-    UP = 'UP'
-    DOWN = 'DOWN'
-    SIDE = 'SIDE'
-    UNKNOWN = 'UNKNOWN'
-
-
-class Direction:
-    UP = 'UP'
-    DOWN = 'DOWN'
-    SIDE = 'SIDE'
 
 
 class MultiIndicatorTradingModel(TradingModel):

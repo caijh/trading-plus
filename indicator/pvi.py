@@ -41,7 +41,7 @@ class PVI(Indicator):
         - stock: 股票信息，未在本函数中使用。
         - df: 包含股票数据的DataFrame，包括['close'（收盘价）和 'volume'（成交量）]列。
         - trending: 股票的整体趋势（例如：强势上涨或下跌）。
-        - direction: 预期交易方向，'UP'代表看涨，'DOWN'代表看跌。
+        - direction: 预期交易方向，'UP'代表看涨，'DOWN' 代表看跌。
 
         返回:
         - 如果满足买入或卖出信号则返回True，否则返回False。

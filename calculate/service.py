@@ -1,6 +1,8 @@
 import numpy as np
 import pandas_ta as ta
 
+from stock.constant import Direction, Trend
+
 
 def detect_turning_point_indexes(series, df=None):
     """
@@ -188,14 +190,14 @@ def calculate_trending_direction(stock, df):
 
     # === 当前方向: 结合EMA斜率和价格位置 ===
     if pre_ma_price < current_ma_price:
-        direction = 'UP'
+        direction = Direction.UP
     elif pre_ma_price > current_ma_price:
-        direction = 'DOWN'
+        direction = Direction.DOWN
     else:
-        direction = 'SIDE'  # 横盘或震荡
+        direction = Direction.SIDE  # 横盘或震荡
 
     # === 趋势判定: 根据拐点高低点结构 ===
-    trending = 'UNKNOWN'
+    trending = Trend.UNKNOWN
     if len(turning_up_points) > 1 and len(turning_down_points) > 1:
         # up = 低点（lows），down = 高点（highs）
         last_up, prev_up = turning_up_points.iloc[-1], turning_up_points.iloc[-2]  # 低点
@@ -203,12 +205,12 @@ def calculate_trending_direction(stock, df):
 
         # 上升趋势：高点抬高 + 低点抬高
         if last_down['high'] > prev_down['high'] and last_up['low'] > prev_up['low']:
-            trending = 'UP'
+            trending = Trend.UP
         # 下降趋势：高点降低 + 低点降低
         elif last_down['high'] < prev_down['high'] and last_up['low'] < prev_up['low']:
-            trending = 'DOWN'
+            trending = Trend.DOWN
         else:
-            trending = 'SIDE'
+            trending = Trend.SIDE
 
         # 保存最近两个拐点日期
         stock['turning_up_point_1'] = last_up.name.strftime('%Y-%m-%d')
