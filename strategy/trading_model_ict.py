@@ -33,15 +33,15 @@ class ICTTradingModel(TradingModel):
         last_swing_high = swing_high_points['high'].iloc[-1] if not swing_high_points.empty else None
         last_swing_low = swing_low_points['low'].iloc[-1] if not swing_low_points.empty else None
 
-
         high_1, low_1, close_1, open_1 = df['high'].iloc[-1], df['low'].iloc[-1], df['close'].iloc[-1], df['open'].iloc[
             -1]
         high_3, low_3 = df['high'].iloc[-3], df['low'].iloc[-3]
         atr = df['atr'].iloc[-1]
 
         # 4️⃣ 公平价值缺口 (FVG) 判断 + 有效性过滤
-        bullish_fvg = (low_1 > high_3) and ((low_1 - high_3) > 0.1 * atr)
-        bearish_fvg = (high_1 < low_3) and ((low_3 - high_1) > 0.1 * atr)
+        fvg_threshold = 0.2 if stock['stock_type'] == 'Fund' else 0.1
+        bullish_fvg = (low_1 > high_3) and ((low_1 - high_3) > fvg_threshold * atr)
+        bearish_fvg = (high_1 < low_3) and ((low_3 - high_1) > fvg_threshold * atr)
 
         # 5️⃣ 交易逻辑：必须符合趋势 + FVG + MSS
         # 📈 多头信号

@@ -49,7 +49,7 @@ class MultiIndicatorTradingModel(TradingModel):
             matched_ma_patterns, ma_weight, matched_volume_patterns = get_match_ma_patterns(ma_patterns, stock, df,
                                                                                             trending, direction,
                                                                                             self.buy_volume_weight)
-            if ma_weight >= self.buy_ma_weight and len(matched_volume_patterns) >= 1:
+            if ma_weight >= self.buy_ma_weight:
                 # 将所有匹配的K线形态、均线和量能模式的标签添加到股票的模式列表中
                 append_matched_pattern_label(matched_candlestick_patterns, self.patterns)
                 append_matched_pattern_label(matched_ma_patterns, self.patterns)
@@ -133,7 +133,7 @@ class MultiIndicatorTradingModel(TradingModel):
                 'short': {'entry': resistance * 0.997, 'stop': resistance * 1.01, 'target': support * 1.002},
             },
             (Trend.DOWN, Direction.UP): {
-                'long': {'entry': min(price, ema5_price) * 0.995, 'stop': support * 0.985,
+                'long': {'entry': min(price, ema5_price) * 0.99, 'stop': support * 0.98,
                          'target': resistance * 0.995},
                 'short': {'entry': price * 0.997, 'stop': resistance * 1.01, 'target': support * 1.002},
             },

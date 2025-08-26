@@ -151,26 +151,27 @@ def run_backtest_patterns(stock_code, entry_patterns, exit_patterns):
     return records
 
 
-def alpha_run_backtest(stock_code, start=61):
+def alpha_run_backtest(stock_code, strategy_name, start=61):
     stock = get_stock(stock_code)
     prices = get_stock_prices(stock_code)
+    records = []
+    win_patterns = []
+    loss_patterns = []
+    trending_list = []
+    direction_list = []
     if not prices:
-        return []
+        return records, win_patterns, loss_patterns, trending_list, direction_list
 
     df = create_dataframe(stock, prices)
     if df is None or df.empty:
-        return []
+        return records, win_patterns, loss_patterns, trending_list, direction_list
 
-    records = []
+
     strategy = None
     holding = False
     entry_price, entry_time = None, None
-    win_patterns = []
-    loss_patterns = []
     trending = None
     direction = None
-    trending_list = []
-    direction_list = []
     strategy_idx = None
 
     for i in range(start, len(df)):
@@ -180,7 +181,7 @@ def alpha_run_backtest(stock_code, start=61):
 
         # 更新策略
         if strategy is None:
-            _strategy = analyze_stock_prices(stock, df.iloc[:i])
+            _strategy = analyze_stock_prices(stock, df.iloc[:i], strategy_name)
             if _strategy and _strategy.signal == 1:
                 strategy = _strategy
                 trending = stock['trending']
@@ -237,7 +238,7 @@ def alpha_run_backtest(stock_code, start=61):
             continue
 
         # 更新策略信号
-        _strategy = analyze_stock_prices(stock, df.iloc[:i + 1])
+        _strategy = analyze_stock_prices(stock, df.iloc[:i + 1], strategy_name)
         if _strategy and _strategy.signal == -1:
             strategy.signal = -1
 

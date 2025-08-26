@@ -235,7 +235,8 @@ def analyze_stock(stock, k_type=KType.DAY, strategy_name=None,
                                 buy_volume_weight, sell_volume_weight)
 
 
-def analyze_stock_prices(stock, df, strategy_name=None, buy_candlestick_weight=1, sell_candlestick_weight=0,
+def analyze_stock_prices(stock, df, strategy_name=None,
+                         buy_candlestick_weight=1, sell_candlestick_weight=0,
                          buy_ma_weight=1, sell_ma_weight=1,
                          buy_volume_weight=1, sell_volume_weight=1):
     print("=====================================================")
