@@ -25,6 +25,7 @@ class ICTTradingModel(TradingModel):
 
         # 2️⃣ ATR 波动率，用于FVG过滤
         df['atr'] = ta.atr(df['high'], df['low'], df['close'], length=14)
+        atr = df['atr'].iloc[-1]
 
         # 3️⃣ MSS（市场结构转变）检测，改用 turning
         swing_high_points = df[df['turning'] == -1][['high', 'low', 'close', 'open']]
@@ -36,7 +37,11 @@ class ICTTradingModel(TradingModel):
         high_1, low_1, close_1, open_1 = df['high'].iloc[-1], df['low'].iloc[-1], df['close'].iloc[-1], df['open'].iloc[
             -1]
         high_3, low_3 = df['high'].iloc[-3], df['low'].iloc[-3]
-        atr = df['atr'].iloc[-1]
+
+        # 最近一次突破
+        last_close = df['close'].iloc[-1]
+        bos_up = last_swing_high and (last_close > last_swing_high)
+        bos_down = last_swing_low and (last_close < last_swing_low)
 
         # 4️⃣ 公平价值缺口 (FVG) 判断 + 有效性过滤
         fvg_threshold = 0.3 if stock['stock_type'] == 'Fund' else 0.1
@@ -45,11 +50,11 @@ class ICTTradingModel(TradingModel):
 
         # 5️⃣ 交易逻辑：必须符合趋势 + FVG + MSS
         # 📈 多头信号
-        if bullish_fvg and trend_up and last_swing_high and (high_1 > last_swing_high) and (close_1 > open_1):
+        if bullish_fvg and trend_up and bos_up and (close_1 > open_1):
             return 1
 
         # 📉 空头信号
-        if bearish_fvg and trend_down and last_swing_low and (low_1 < last_swing_low) and (close_1 < open_1):
+        if bearish_fvg and trend_down and bos_down and (close_1 < open_1):
             return -1
 
         return 0
