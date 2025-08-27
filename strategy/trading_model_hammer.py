@@ -1,7 +1,7 @@
 import pandas_ta as ta
 
 from indicator.candlestick import Candlestick
-from stock.constant import Trend
+from stock.constant import Trend, Direction
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
 
@@ -33,31 +33,31 @@ class HammerTradingModel(TradingModel):
         sma20_series = df['SMA20']
         sma50_series = df['SMA50']
         sma120_series = df['SMA120']
-        latest_sma20_price = sma20_series.iloc[-1]
-        latest_sma50_price = sma50_series.iloc[-1]
+        prev_sma20_price = sma20_series.iloc[-2]
+        prev_sma50_price = sma50_series.iloc[-3]
         latest_sma120_price = sma120_series.iloc[-1]
         prev_sma120_price = sma120_series.iloc[-2]
 
         # ---- 当日价格 ----
-        close_price = df.iloc[-1]['close']
-        low_price = df.iloc[-1]['low']
-        high_price = df.iloc[-1]['high']
+        close_price = df.iloc[-2]['close']
+        low_price = df.iloc[-2]['low']
+        high_price = df.iloc[-2]['high']
 
         # ---- Hammer (多头) ----
         candlestick = Candlestick({"name": "hammer", "description": "锤子线", "signal": 1, "weight": 1}, 1)
         if (candlestick.match(stock, df, trending, direction)
-            and stock['trending'] == Trend.UP):
-            if (low_price <= latest_sma20_price < close_price) \
-                or (low_price <= latest_sma50_price < close_price):
+            and not stock['direction'] == Direction.DOWN):
+            if (low_price <= prev_sma20_price < close_price) \
+                or (low_price <= prev_sma50_price < close_price):
                 if latest_sma120_price > prev_sma120_price:  # 长期趋势向上
                     return 1
 
         # ---- Hangingman (空头) ----
         candlestick = Candlestick({"name": "hangingman", "description": "上吊线", "signal": -1, "weight": 0}, -1)
         if (candlestick.match(stock, df, trending, direction)
-            and stock['trending'] == Trend.DOWN):
-            if (high_price >= latest_sma20_price > close_price) \
-                or (high_price >= latest_sma50_price > close_price):
+            and not stock['direction'] == Trend.UP):
+            if (high_price >= prev_sma20_price > close_price) \
+                or (high_price >= prev_sma50_price > close_price):
                 if latest_sma120_price < prev_sma120_price:  # 长期趋势向下
                     return -1
 
