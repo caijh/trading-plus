@@ -118,7 +118,7 @@ class HammerTradingModel(TradingModel):
             strategy_name=self.name,
             stock_code=stock['code'],
             stock_name=stock['name'],
-            entry_patterns=['hammer', 'VOL', 'SMA'] if signal == 1 else ['hangingman', 'VOL', 'SMA'],
+            entry_patterns=['hammer', 'UP', 'SMA'] if signal == 1 else ['hangingman', 'DOWN', 'SMA'],
             exit_patterns=[],
             exchange=stock['exchange'],
             entry_price=float(round(entry_price, n_digits)),
