@@ -63,4 +63,15 @@ class TradingModel:
         return True
 
     def get_trading_strategy(self, stock, df):
+        """
+        根据股票数据和信号生成交易策略
+
+        参数:
+            stock: 股票信息字典，包含股票相关数据
+            df: 股票数据DataFrame，包含历史价格等信息
+
+        返回值:
+            交易策略对象，如果无交易信号则返回None
+        """
+
         return None
