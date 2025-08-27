@@ -88,13 +88,15 @@ class ICTTradingModel(TradingModel):
             stop_loss = last_swing_high * 0.995
             entry_price = last_close
             risk = entry_price - stop_loss
-            take_profit = target_high if target_high and target_high > entry_price else entry_price + 2 * risk
+            target_risk = entry_price + 2 * risk
+            take_profit = target_high if target_high and target_high < target_risk else target_risk
 
         elif signal == -1:  # 空头
             stop_loss = last_swing_low * 1.005
             entry_price = last_close
             risk = stop_loss - entry_price
-            take_profit = target_low if target_low and target_low < entry_price else entry_price - 2 * risk
+            target_risk = entry_price - 2 * risk
+            take_profit = target_low if target_low and target_low > target_risk else target_risk
 
         else:
             return None
