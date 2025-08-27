@@ -14,7 +14,7 @@ analysis = Blueprint('analysis', __name__, url_prefix='/analysis')
 @analysis.route('/index', methods=['GET'])
 def analysis_index_stocks():
     """
-    分析指数股票
+    分析指数
     该函数响应GET请求，分析索引股票数据，并以JSON格式返回分析结果
 
     Returns:

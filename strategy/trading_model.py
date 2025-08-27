@@ -7,13 +7,30 @@ class TradingModel:
 
     @staticmethod
     def get_support_resistance(stock, df):
+        """
+        计算股票的支撑位和阻力位
+
+        参数:
+            stock: 股票代码或股票对象
+            df: 包含股票价格数据的DataFrame
+
+        返回:
+            tuple: (支撑位, 阻力位) 的元组
+        """
+        # 计算基于常规方法的支撑位和阻力位
         (support, resistance) = calculate_support_resistance(stock, df)
+
+        # 计算基于转折点的支撑位和阻力位
         (support_n, resistance_n) = calculate_support_resistance_by_turning_points(stock, df)
+
+        # 如果转折点方法计算出了支撑位，则使用转折点的结果
         if support_n is not None:
             support = support_n
 
+        # 如果转折点方法计算出了阻力位，则使用转折点的结果
         if resistance_n is not None:
             resistance = resistance_n
+
         return support, resistance
 
     def get_trading_signal(self, stock, df, trending, direction):
