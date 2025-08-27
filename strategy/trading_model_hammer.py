@@ -47,8 +47,9 @@ class HammerTradingModel(TradingModel):
         candlestick = Candlestick({"name": "hammer", "description": "锤子线", "signal": 1, "weight": 1}, 1)
         if (candlestick.match(stock, df, trending, direction)
             and not stock['direction'] == Direction.DOWN):
-            if (low_price <= prev_sma20_price < close_price) \
-                or (low_price <= prev_sma50_price < close_price):
+            if (low_price <= prev_sma20_price * 1.002 and prev_sma20_price < close_price) \
+                or (
+                low_price <= prev_sma50_price * 1.002 and prev_sma50_price < close_price):
                 if latest_sma120_price > prev_sma120_price:  # 长期趋势向上
                     return 1
 
@@ -56,8 +57,8 @@ class HammerTradingModel(TradingModel):
         candlestick = Candlestick({"name": "hangingman", "description": "上吊线", "signal": -1, "weight": 0}, -1)
         if (candlestick.match(stock, df, trending, direction)
             and not stock['direction'] == Trend.UP):
-            if (high_price >= prev_sma20_price > close_price) \
-                or (high_price >= prev_sma50_price > close_price):
+            if (high_price >= prev_sma20_price * 0.998 and prev_sma20_price > close_price) \
+                or (high_price >= prev_sma50_price * 0.998 > close_price):
                 if latest_sma120_price < prev_sma120_price:  # 长期趋势向下
                     return -1
 
