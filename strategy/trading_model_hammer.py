@@ -1,6 +1,7 @@
 import pandas_ta as ta
 
 from indicator.candlestick import Candlestick
+from stock.constant import Trend
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
 
@@ -44,7 +45,8 @@ class HammerTradingModel(TradingModel):
 
         # ---- Hammer (多头) ----
         candlestick = Candlestick({"name": "hammer", "description": "锤子线", "signal": 1, "weight": 1}, 1)
-        if candlestick.match(stock, df, trending, direction) and direction == 'UP':
+        if (candlestick.match(stock, df, trending, direction)
+            and stock['trending'] == Trend.UP):
             if (low_price <= latest_sma20_price < close_price) \
                 or (low_price <= latest_sma50_price < close_price):
                 if latest_sma120_price > prev_sma120_price:  # 长期趋势向上
@@ -52,7 +54,8 @@ class HammerTradingModel(TradingModel):
 
         # ---- Hangingman (空头) ----
         candlestick = Candlestick({"name": "hangingman", "description": "上吊线", "signal": -1, "weight": 0}, -1)
-        if candlestick.match(stock, df, trending, direction) and direction == 'DOWN':
+        if (candlestick.match(stock, df, trending, direction)
+            and stock['trending'] == Trend.DOWN):
             if (high_price >= latest_sma20_price > close_price) \
                 or (high_price >= latest_sma50_price > close_price):
                 if latest_sma120_price < prev_sma120_price:  # 长期趋势向下
