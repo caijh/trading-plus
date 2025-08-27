@@ -67,21 +67,28 @@ class ICTTradingModel(TradingModel):
         last_close = df['close'].iloc[-1]
         n_digits = 3 if stock['stock_type'] == 'Fund' else 2
 
+        swing_highs = df[df['turning'] == -1]
+        swing_lows = df[df['turning'] == 1]
+
         # 从 turning 提取最近拐点
-        last_swing_high = df[df['turning'] == -1]['high'].iloc[-1] if not df[df['turning'] == -1].empty else None
-        last_swing_low = df[df['turning'] == 1]['low'].iloc[-1] if not df[df['turning'] == 1].empty else None
+        last_swing_high = swing_highs['high'].iloc[-1] if not swing_highs.empty else None
+        last_swing_low = swing_lows['low'].iloc[-1] if not swing_lows.empty else None
+
+        # 取前一个 swing 作为对侧流动性目标
+        target_high = swing_highs['high'].iloc[-2] if len(swing_highs) >= 2 else None
+        target_low = swing_lows['low'].iloc[-2] if len(swing_lows) >= 2 else None
 
         if signal == 1:  # 多头
             stop_loss = last_swing_high
             entry_price = last_close
             risk = entry_price - stop_loss
-            take_profit = entry_price + 2 * risk  # RR=2:1
+            take_profit = target_high if target_high and target_high > entry_price else entry_price + 2 * risk
 
         elif signal == -1:  # 空头
             stop_loss = last_swing_low
             entry_price = last_close
             risk = stop_loss - entry_price
-            take_profit = entry_price - 2 * risk  # RR=2:1
+            take_profit = target_low if target_low and target_low < entry_price else entry_price - 2 * risk
 
         else:
             return None
