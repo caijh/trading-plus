@@ -256,7 +256,7 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     # 判断当前方向
     upping = True if stock['direction'] == 'UP' else False
 
-    # 支撑点：拐点价格 < 当前价格
+    # 支撑点：前低; 阻力点：前高
     current_price = recent_df['close'].iloc[-1]
     supports = turning_down_points[turning_down_points['high'] < current_price]
     resistances = turning_up_points[turning_up_points['low'] > current_price]
@@ -275,45 +275,63 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     # else:
     #     resistance = cal_price_from_ma(stock, recent_df, current_price, is_support=False)
 
+    # 如果当前处于上涨趋势，并且存在转折点数据
     if upping and len(turning_points) > 0:
+        # 获取最近的两个转折点，用于判断支撑位和阻力位
         first_point = turning_points.iloc[-1]
         second_point = turning_points.iloc[-2] if len(turning_points) > 1 else None
         support_price = None
+
+        # 根据当前价格与均线的关系，计算可能的支撑价格
         if second_point is not None and current_price > second_point[f'{ma_name}']:
             support_price = cal_price_from_kline(stock, recent_df, second_point, current_price, ma_name,
                                                  is_support=True)
         elif current_price > first_point[f'{ma_name}']:
             support_price = cal_price_from_kline(stock, recent_df, first_point, current_price, ma_name, is_support=True)
+
+        # 如果计算出有效的支撑价格，则更新支撑位
         if support_price is not None:
             support = support_price
 
+        # 如果存在阻力位数据且当前未设置阻力位，则选择最近的阻力点
         if not resistances.empty and resistance is None:
             resistance_latest = select_nearest_point(stock, recent_df, resistances, current_price, ma_name,
                                                      is_support=False)
             resistance_score = select_score_point(stock, recent_df, resistances, current_price, ma_name,
                                                   is_support=False)
+            # 选取更接近当前价格的阻力位
             resistance_price = resistance_score if resistance_score < resistance_latest else resistance_latest
 
+            # 如果找到有效的阻力价格，则更新阻力位
             if resistance_price is not None:
                 resistance = resistance_price
+
+    # 如果不是上涨趋势，但存在转折点数据
     elif len(turning_points) > 0:
+        # 如果存在支撑位数据且当前未设置支撑位，则选择最近的支撑点
         if not supports.empty and support is None:
             support_price = select_nearest_point(stock, recent_df, supports, current_price, ma_name,
                                                  is_support=True)
             if support_price is not None:
                 support = support_price
 
+        # 获取最近的两个转折点，用于判断阻力位
         first_point = turning_points.iloc[-1]
         second_point = turning_points.iloc[-2] if len(turning_points) > 1 else None
         resistance_price = None
+
+        # 根据当前价格与均线的关系，计算可能的阻力价格
         if second_point is not None and current_price < second_point[f'{ma_name}']:
             resistance_price = cal_price_from_kline(stock, recent_df, second_point, current_price, ma_name,
                                                     is_support=False)
         elif current_price < first_point[f'{ma_name}']:
             resistance_price = cal_price_from_kline(stock, recent_df, first_point, current_price, ma_name,
                                                     is_support=False)
+
+        # 如果计算出有效的阻力价格，则更新阻力位
         if resistance_price is not None:
             resistance = resistance_price
+
     # 根据基金或股票类型决定小数点保留位数
     s = get_round_price(stock, support)
     r = get_round_price(stock, resistance)
