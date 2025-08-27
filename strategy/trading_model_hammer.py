@@ -1,7 +1,6 @@
 import pandas_ta as ta
 
 from indicator.candlestick import Candlestick
-from stock.constant import Direction
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
 
@@ -43,10 +42,18 @@ class HammerTradingModel(TradingModel):
         low_price = df.iloc[-2]['low']
         high_price = df.iloc[-2]['high']
 
+        swing_highs = df[df['turning'] == -1]
+        swing_lows = df[df['turning'] == 1]
+
+        trend_up = True if len(swing_lows) > 2 and swing_lows.iloc[-1]['low'] > swing_lows.iloc[-2]['low'] else False
+        trend_down = True if len(swing_highs) > 2 and swing_highs.iloc[-1]['high'] < swing_highs.iloc[-2][
+            'high'] else False
+
         # ---- Hammer (多头) ----
         candlestick = Candlestick({"name": "hammer", "description": "锤子线", "signal": 1, "weight": 1}, 1)
         if (candlestick.match(stock, df, trending, direction)
-            and not stock['direction'] == Direction.DOWN):
+            and trend_up
+        ):
             if (low_price <= prev_sma20_price * 1.001 and prev_sma20_price < close_price) \
                 or (
                 low_price <= prev_sma50_price * 1.001 and prev_sma50_price < close_price):
@@ -56,7 +63,8 @@ class HammerTradingModel(TradingModel):
         # ---- Hangingman (空头) ----
         candlestick = Candlestick({"name": "hangingman", "description": "上吊线", "signal": -1, "weight": 0}, -1)
         if (candlestick.match(stock, df, trending, direction)
-            and not stock['direction'] == Direction.UP):
+            and trend_down
+        ):
             if (high_price >= prev_sma20_price * 0.999 and prev_sma20_price > close_price) \
                 or (high_price >= prev_sma50_price * 0.999 > close_price):
                 if latest_sma120_price < prev_sma120_price:  # 长期趋势向下
@@ -81,16 +89,21 @@ class HammerTradingModel(TradingModel):
 
         # ---- ATR 动态止盈止损 ----
         atr = ta.atr(df['high'], df['low'], df['close'], length=14).iloc[-1]
-
+        swing_highs = df[df['turning'] == -1]
+        swing_lows = df[df['turning'] == 1]
         if signal == 1:  # 多头
-            stop_loss = df.iloc[-1]['low']
-            entry_price = last_close
-            take_profit = entry_price + 2 * atr  # 目标利润 = 2 ATR
+            stop_loss = swing_lows.iloc[-1]['low']
+            entry_price = last_close * 0.995
+            target_high = swing_highs['high'].iloc[-1] if len(swing_highs) >= 1 else None
+            atr_target_high = entry_price + 2 * atr
+            take_profit = target_high if target_high is not None and target_high < atr_target_high else atr_target_high
 
         elif signal == -1:  # 空头
-            stop_loss = df.iloc[-1]['high']
-            entry_price = last_close
-            take_profit = entry_price - 2 * atr  # 目标利润 = 2 ATR
+            stop_loss = swing_highs.iloc[-1]['high']
+            entry_price = last_close * 1.005
+            target_low = swing_lows['low'].iloc[-1] if len(swing_lows) >= 1 else None
+            atr_target_low = entry_price - 2 * atr
+            take_profit = target_low if target_low is not None and target_low > atr_target_low else atr_target_low
 
         else:
             return None
