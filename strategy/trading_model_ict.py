@@ -40,8 +40,9 @@ class ICTTradingModel(TradingModel):
 
         # 最近一次突破
         last_close = df['close'].iloc[-1]
-        bos_up = last_swing_high and (last_close > last_swing_high)
-        bos_down = last_swing_low and (last_close < last_swing_low)
+        prev_close = df['close'].iloc[-2]
+        bos_up = last_swing_high and (last_close > last_swing_high) and (prev_close < last_swing_high)
+        bos_down = last_swing_low and (last_close < last_swing_low) and (prev_close > last_swing_low)
 
         # 4️⃣ 公平价值缺口 (FVG) 判断 + 有效性过滤
         fvg_threshold = 0.3 if stock['stock_type'] == 'Fund' else 0.1
