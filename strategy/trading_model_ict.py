@@ -80,9 +80,11 @@ class ICTTradingModel(TradingModel):
         last_swing_high = swing_highs['high'].iloc[-1] if not swing_highs.empty else None
         last_swing_low = swing_lows['low'].iloc[-1] if not swing_lows.empty else None
 
-        # 取前一个 swing 作为对侧流动性目标
-        target_high = swing_highs['high'].iloc[-2] if len(swing_highs) >= 2 else None
-        target_low = swing_lows['low'].iloc[-2] if len(swing_lows) >= 2 else None
+        # 取大于当前价的前一个 swing 作为对侧流动性目标
+        prev_swing_highs = swing_highs[swing_highs['high'] > last_close]
+        prev_swing_lows = swing_lows[swing_lows['low'] < last_close]
+        target_high = prev_swing_highs['high'].iloc[-1] if len(prev_swing_highs) >= 1 else None
+        target_low = prev_swing_lows['low'].iloc[-1] if len(prev_swing_lows) >= 1 else None
 
         if signal == 1:  # 多头
             stop_loss = last_swing_high * 0.995
