@@ -138,8 +138,14 @@ class ICTTradingModel(TradingModel):
 
         # Helper to test touch (any overlap with zone)
         def touched_zone(low, high):
-            return (low <= cur_low <= high) or (low <= cur_high <= high) or (cur_low <= low <= cur_high) or (
-                cur_low <= high <= cur_high)
+            midpoint = (low + high) / 2
+
+            touch_condition = (cur_low <= midpoint) and (cur_low >= low)
+
+            # 收盘必须突破 zone 上界
+            close_condition = cur_close >= high
+
+            return touch_condition and close_condition
 
         ob_type, ob_idx, ob_low, ob_high = ob_info
         # OB preferred
