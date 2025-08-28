@@ -50,18 +50,36 @@ class AntiTradingModel(TradingModel):
 
         vol_now, vol_pre = df['volume'].iloc[-1], df['volume'].iloc[-2]
 
+        # OBV (能量潮) - 资金流向
+        obv_series = ta.obv(df['close'], df['volume'])
+        obv_now, obv_prev = obv_series.iloc[-1], obv_series.iloc[-2]
+
+        # CMF (Chaikin Money Flow) - 资金流强度
+        cmf_series = ta.cmf(df['high'], df['low'], df['close'], df['volume'], length=20)
+        cmf_now = cmf_series.iloc[-1]
+
         # ========== 2. 多头信号 ==========
         bullish_kdj = (d_now > d_prev > d_prev_prev) and (k_prev_prev > k_prev < k_now) and (k_now >= d_now)
-        bullish_trend = trending == 'UP'  # 均线多头排列
-        bullish_volume = (vol_now < vol_pre)  # 缩量
+        bullish_trend = (
+            ema20.iloc[-1] > ema50.iloc[-1] > ema50.iloc[-2] and
+            ema20.iloc[-1] > ema20.iloc[-2]
+        )
+        # 多头：OBV 在上升或保持，CMF > 0（净流入）
+        bullish_flow = (obv_now > obv_prev) and (cmf_now > 0)
+        bullish_volume = (vol_now < vol_pre) and bullish_flow  # 缩量
 
         if bullish_kdj and bullish_trend and bullish_volume:
             return 1
 
         # ========== 3. 空头信号 ==========
         bearish_kdj = (d_now < d_prev < d_prev_prev) and (k_prev_prev < k_prev > k_now) and (k_now <= d_now)
-        bearish_trend = trending == 'DOWN'  # 均线空头排列
-        bearish_volume = (vol_now > vol_pre)  # 放量下跌
+        bearish_trend = (
+            ema20.iloc[-1] < ema50.iloc[-1] < ema50.iloc[-2] and
+            ema20.iloc[-1] < ema20.iloc[-2]
+        )  # 均线空头排列
+        # 空头：OBV 在下降或保持，CMF < 0（净流出）
+        bearish_flow = (obv_now < obv_prev) and (cmf_now < 0)
+        bearish_volume = (vol_now > vol_pre) and bearish_flow  # 放量下跌
 
         if bearish_kdj and bearish_trend and bearish_volume:
             return -1
@@ -85,15 +103,15 @@ class AntiTradingModel(TradingModel):
 
         if signal == 1:
             # 📈 多头策略
-            entry_price = last_close
+            entry_price = last_close * 0.998
             stop_loss = round(entry_price - 1.5 * atr_now, n_digits)
-            take_profit = round(entry_price + 2.5 * atr_now, n_digits)
+            take_profit = round(entry_price + 3 * atr_now, n_digits)
 
         elif signal == -1:
             # 📉 空头策略
-            entry_price = last_close
+            entry_price = last_close * 1.002
             stop_loss = round(entry_price + 1.5 * atr_now, n_digits)
-            take_profit = round(entry_price - 2.5 * atr_now, n_digits)
+            take_profit = round(entry_price - 3 * atr_now, n_digits)
 
         else:
             return None
