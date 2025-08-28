@@ -192,13 +192,6 @@ class MultiIndicatorTradingModel(TradingModel):
             signal=signal
         )
 
-    def get_trading_strategy(self, stock, df):
-        signal = self.get_trading_signal(stock, df, stock['trending'], stock['direction'])
-        if signal == 0:
-            return None
-        strategy = self.create_trading_strategy(stock, df, signal)
-        return strategy
-
 
 def get_patterns(signal):
     """

@@ -127,19 +127,3 @@ class HammerTradingModel(TradingModel):
             signal=signal
         )
         return strategy
-
-    def get_trading_strategy(self, stock, df):
-        """
-        获取完整的交易策略，包括信号判断和策略生成。
-
-        参数:
-            stock (dict): 股票信息字典。
-            df (pandas.DataFrame): 包含历史价格数据的 DataFrame。
-
-        返回:
-            TradingStrategy: 完整的交易策略对象，若无有效信号则返回 None。
-        """
-        trading_signal = self.get_trading_signal(stock, df, stock.get('trending', ''), stock.get('direction', ''))
-        if trading_signal == 0:
-            return None
-        return self.create_trading_strategy(stock, df, trading_signal)

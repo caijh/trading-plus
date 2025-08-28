@@ -73,5 +73,7 @@ class TradingModel:
         返回值:
             交易策略对象，如果无交易信号则返回None
         """
-
-        return None
+        trading_signal = self.get_trading_signal(stock, df, stock.get('trending', ''), stock.get('direction', ''))
+        if trading_signal == 0:
+            return None
+        return self.create_trading_strategy(stock, df, trading_signal)

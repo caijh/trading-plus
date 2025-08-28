@@ -282,8 +282,3 @@ class ICTTradingModel(TradingModel):
         )
         return strategy
 
-    def get_trading_strategy(self, stock, df):
-        trading_signal = self.get_trading_signal(stock, df, stock.get('trending', ''), stock.get('direction', ''))
-        if trading_signal == 0:
-            return None
-        return self.create_trading_strategy(stock, df, trading_signal)
