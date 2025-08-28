@@ -36,7 +36,6 @@ class AntiTradingModel(TradingModel):
         k_series, d_series = kdj_df['K'], kdj_df['D']
 
         # EMA 均线
-        ema10 = ta.ema(df['close'], length=10)
         ema20 = ta.ema(df['close'], length=20)
         ema50 = ta.ema(df['close'], length=50)
 
@@ -48,7 +47,7 @@ class AntiTradingModel(TradingModel):
         k_prev, d_prev = k_series.iloc[-2], d_series.iloc[-2]
         k_prev_prev, d_prev_prev = k_series.iloc[-3], d_series.iloc[-3]
 
-        vol_now, vol_pre = df['volume'].iloc[-1], df['volume'].iloc[-2]
+        vol_now, vol_pre, vol_pre_prev = df['volume'].iloc[-1], df['volume'].iloc[-2], df['volume'].iloc[-3]
 
         # OBV (能量潮) - 资金流向
         obv_series = ta.obv(df['close'], df['volume'])
@@ -66,7 +65,7 @@ class AntiTradingModel(TradingModel):
         )
         # 多头：OBV 在上升或保持，CMF > 0（净流入）
         bullish_flow = (obv_now > obv_prev) and (cmf_now > 0)
-        bullish_volume = (vol_now < vol_pre) and bullish_flow  # 缩量
+        bullish_volume = (vol_now < vol_pre > vol_pre_prev) and bullish_flow  # 缩量
 
         if bullish_kdj and bullish_trend and bullish_volume:
             return 1
@@ -79,7 +78,7 @@ class AntiTradingModel(TradingModel):
         )  # 均线空头排列
         # 空头：OBV 在下降或保持，CMF < 0（净流出）
         bearish_flow = (obv_now < obv_prev) and (cmf_now < 0)
-        bearish_volume = (vol_now > vol_pre) and bearish_flow  # 放量下跌
+        bearish_volume = (vol_now > vol_pre < vol_pre_prev) and bearish_flow  # 放量下跌
 
         if bearish_kdj and bearish_trend and bearish_volume:
             return -1
@@ -121,7 +120,7 @@ class AntiTradingModel(TradingModel):
             strategy_name=self.name,
             stock_code=stock['code'],
             stock_name=stock['name'],
-            entry_patterns=['ANTI', 'KDJ', 'EMA', 'VOL', 'ATR'],
+            entry_patterns=['ANTI', 'KDJ', 'EMA', 'VOL'],
             exit_patterns=[],
             exchange=stock['exchange'],
             entry_price=float(entry_price),
