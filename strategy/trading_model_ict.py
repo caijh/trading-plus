@@ -212,7 +212,7 @@ class ICTTradingModel(TradingModel):
             (ob_type, ob_idx, ob_low, ob_high),
             fvg_info,
             len(df) - 1,
-            prefer='OB'
+            prefer='ANY'
         )
         # 5️⃣ 交易逻辑：必须符合趋势 + FVG + MSS
         # 📈 多头信号
