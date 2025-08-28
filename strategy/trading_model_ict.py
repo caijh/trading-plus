@@ -10,7 +10,7 @@ class ICTTradingModel(TradingModel):
                  lookback_bos: int = 10,
                  lookback_ob: int = 10,
                  lookahead_fvg: int = 5,
-                 fvg_atr_mult: float = 0.1,
+                 fvg_atr_mult: float = 0.2,
                  ob_min_body_pct: float = 0.2,
                  ob_buffer_pct: float = 0.005,
                  ):
