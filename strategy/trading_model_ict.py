@@ -11,7 +11,7 @@ class ICTTradingModel(TradingModel):
                  lookback_ob: int = 10,
                  lookahead_fvg: int = 5,
                  fvg_atr_mult: float = 0.2,
-                 ob_min_body_pct: float = 0.2,
+                 ob_min_body_pct: float = 0.25,
                  ob_buffer_pct: float = 0.005,
                  ):
         super().__init__('ICTTradingModel')
@@ -191,10 +191,14 @@ class ICTTradingModel(TradingModel):
         # 3️⃣ MSS（市场结构转变）检测，改用 turning
         # 最近一次突破
         bos_found, bos_idx, bos_dir, prev_swing_pos = self.find_recent_bos(df)
+        # print(f"BOS found: {bos_found}, idx: {bos_idx}, dir: {bos_dir}, prev_swing_pos: {prev_swing_pos}")
+        # print(f'bos index date: {df.iloc[bos_idx].name.strftime('%Y-%m-%d')}')
         if not bos_found:
             return 0
 
         ob_type, ob_idx, ob_low, ob_high = self.identify_strict_ob_before_bos(df, bos_idx, bos_dir)
+        # print(f"OB found: {ob_type}, idx: {ob_idx}, low: {ob_low}, high: {ob_high}")
+        # print(f'ob index date: {df.iloc[ob_idx].name.strftime("%Y-%m-%d")}')
         if ob_type is None:
             return 0
 
@@ -207,6 +211,7 @@ class ICTTradingModel(TradingModel):
             return 0
 
         fvg_info = self.find_fvg_after_bos(df, bos_idx)
+        # print(f"FVG found: {fvg_info}")
         entry_signal = self.check_entry_touch_and_confirm(
             df,
             (ob_type, ob_idx, ob_low, ob_high),
