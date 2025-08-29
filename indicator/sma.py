@@ -1,7 +1,7 @@
 import pandas_ta as ta
 
 from indicator.base import Indicator
-from indicator.ma_volume_registry import volume_registry
+from indicator.volume_registry import volume_registry
 
 
 class SMA(Indicator):

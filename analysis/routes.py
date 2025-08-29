@@ -47,15 +47,7 @@ def analysis_index():
         # 如果没有提供code参数，返回错误信息和400状态码
         return jsonify({'msg': 'Param code is required'}), 400
 
-    stock_code = code
-    if code == 'NDX.NS':
-        # NDX 没有成交量
-        stock_code = 'QQQ.NS'
-    if code == 'SPX.NS':
-        # NDX 没有成交量
-        stock_code = 'SPY.NS'
-
-    stock = get_stock(stock_code)
+    stock = get_stock(code)
 
     # 检查股票信息是否找到
     if stock is None:

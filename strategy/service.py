@@ -12,7 +12,7 @@ from strategy.trading_model import TradingModel
 from strategy.trading_model_anti import AntiTradingModel
 from strategy.trading_model_hammer import HammerTradingModel
 from strategy.trading_model_ict import ICTTradingModel
-from strategy.trading_model_multi_indicator import MultiIndicatorTradingModel
+from strategy.trading_model_index import IndexTradingModel
 
 
 def add_update_strategy(stock):
@@ -220,9 +220,7 @@ def run_generate_strategy():
 
 
 def analyze_stock(stock, k_type=KType.DAY, strategy_name=None,
-                  buy_candlestick_weight=1, sell_candlestick_weight=0,
-                  buy_ma_weight=2, sell_ma_weight=1,
-                  buy_volume_weight=1, sell_volume_weight=1):
+                  candlestick_weight=1, ma_weight=2, volume_weight=1):
     print("=====================================================")
     prices = get_stock_prices(stock['code'], k_type)
     if prices is None or len(prices) == 0:
@@ -230,21 +228,16 @@ def analyze_stock(stock, k_type=KType.DAY, strategy_name=None,
         return None
 
     df = create_dataframe(stock, prices)
-    return analyze_stock_prices(stock, df, strategy_name, buy_candlestick_weight, sell_candlestick_weight,
-                                buy_ma_weight, sell_ma_weight,
-                                buy_volume_weight, sell_volume_weight)
+    return analyze_stock_prices(stock, df, strategy_name, candlestick_weight, ma_weight, volume_weight)
 
 
 def analyze_stock_prices(stock, df, strategy_name=None,
-                         buy_candlestick_weight=1, sell_candlestick_weight=0,
-                         buy_ma_weight=1, sell_ma_weight=1,
-                         buy_volume_weight=1, sell_volume_weight=1):
+                         buy_candlestick_weight=1, buy_ma_weight=1, buy_volume_weight=1):
     print("=====================================================")
     stock['patterns'] = []
     print(f'Analyzing Stock, code = {stock['code']}, name = {stock['name']}')
 
-    trading_models = get_trading_models(buy_candlestick_weight, buy_ma_weight, buy_volume_weight,
-                                        sell_candlestick_weight, sell_ma_weight, sell_volume_weight)
+    trading_models = get_trading_models(stock, buy_candlestick_weight, buy_ma_weight, buy_volume_weight)
 
     if strategy_name is not None:
         trading_models = [model for model in trading_models if model.name == strategy_name]
@@ -272,12 +265,12 @@ def analyze_stock_prices(stock, df, strategy_name=None,
     return strategy
 
 
-def get_trading_models(buy_candlestick_weight, buy_ma_weight, buy_volume_weight,
-                       sell_candlestick_weight, sell_ma_weight, sell_volume_weight):
+def get_trading_models(stock, candlestick_weight, ma_weight, volume_weight):
+    if stock['stock_type'] == 'Index':
+        return [IndexTradingModel(candlestick_weight, ma_weight, volume_weight)]
     return [
         AntiTradingModel(),
         ICTTradingModel(),
         HammerTradingModel(),
-        MultiIndicatorTradingModel(buy_candlestick_weight, buy_ma_weight, buy_volume_weight,
-                                   sell_candlestick_weight, sell_ma_weight, sell_volume_weight)
+        # MultiIndicatorTradingModel(candlestick_weight, ma_weight, volume_weight)
     ]

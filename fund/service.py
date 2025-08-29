@@ -57,7 +57,7 @@ def analyze_funds(exchange):
 
         # 调用函数分析股票，专注于日K线图中的模式
         try:
-            strategy = analyze_stock(stock, k_type=KType.DAY, buy_ma_weight=2, buy_volume_weight=2)
+            strategy = analyze_stock(stock, k_type=KType.DAY, ma_weight=2, volume_weight=2)
             if strategy is not None and strategy.signal == 1:
                 funds.append(stock)
         except Exception as e:

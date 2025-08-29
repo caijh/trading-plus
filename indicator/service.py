@@ -8,44 +8,6 @@ from indicator.sma import SMA
 from indicator.wr import WR
 
 
-def get_bullish_all_volume_patterns():
-    return [
-        # ADX(1),
-        # ADOSC(1),
-        # AR(1),
-        # AROON(1),
-        # Chaikin(1),
-        # CMF(1),
-        # KVO(1),
-        # MFI(1),
-        # NVI(1),
-        # OBV(1),
-        # PVI(1),
-        # RSI(1),
-        # MACD(1),
-        # VPT(1)
-    ]
-
-
-def get_bearish_all_volume_patterns():
-    return [
-        # ADX(-1),
-        # ADOSC(-1),
-        # AR(-1),
-        # AROON(-1),
-        # Chaikin(-1),
-        # CMF(-1),
-        # KVO(-1),
-        # MFI(-1),
-        # NVI(-1),
-        # OBV(-1),
-        # PVI(-1),
-        # RSI(-1),
-        # MACD(-1),
-        # VPT(-1)
-    ]
-
-
 def get_candlestick_signal(stock, df, candlestick_weight):
     candlestick_patterns = get_bearish_candlestick_patterns()
     matched_patterns = []

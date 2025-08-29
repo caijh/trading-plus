@@ -111,7 +111,7 @@ def run_backtest(strategy: TradingStrategy):
                 strategy.signal = 1
                 continue
 
-            analyze_stock(stock, k_type=KType.DAY, strategy_name=strategy.strategy_name, sell_volume_weight=0)
+            analyze_stock(stock, k_type=KType.DAY, strategy_name=strategy.strategy_name)
             if len(stock['patterns']) > 0:
                 strategy.signal = -1
 
