@@ -46,12 +46,15 @@ class ICTTradingModel(TradingModel):
             prev_low_pos = prev_low_idxes[-1] if len(prev_low_idxes) > 0 else None
 
             # UP BOS: close > prev swing high and bullish candle
-            if prev_high_pos is not None and prev_close_i < df['high'].iloc[
-                prev_high_pos] < close_i and close_i > open_i:
+            if (prev_high_pos is not None
+                and prev_close_i < df['high'].iloc[prev_high_pos] < close_i
+                and close_i > open_i):
                 return True, i, 'UP', prev_high_pos
 
             # DOWN BOS: close < prev swing low and bearish candle
-            if prev_low_pos is not None and close_i < df['low'].iloc[prev_low_pos] < prev_close_i and close_i < open_i:
+            if (prev_low_pos is not None
+                and close_i < df['low'].iloc[prev_low_pos] < prev_close_i
+                and close_i < open_i):
                 return True, i, 'DOWN', prev_low_pos
 
         return False, None, None, None
