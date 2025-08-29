@@ -15,6 +15,7 @@ from indicator.mfi import MFI
 from indicator.obv import OBV
 from indicator.rsi import RSI
 from indicator.sar import SAR
+from indicator.service import get_match_ma_patterns
 from indicator.sma import SMA
 from indicator.vol import VOL
 from indicator.vpt import VPT
@@ -22,7 +23,6 @@ from indicator.wr import WR
 from stock.service import get_stock_prices, get_stock, KType
 from strategy.model import TradingStrategy
 from strategy.service import analyze_stock, analyze_stock_prices
-from strategy.trading_model_multi_indicator import get_match_ma_patterns
 
 
 def build_pattern_objects(pattern_names, signal=1):

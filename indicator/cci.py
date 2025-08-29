@@ -1,5 +1,5 @@
 from indicator.base import Indicator
-from indicator.service import volume_registry
+from indicator.ma_volume_registry import volume_registry
 
 
 class CCI(Indicator):
