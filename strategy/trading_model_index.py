@@ -1,7 +1,7 @@
 import pandas as pd
+import pandas_ta as ta
 
 from dataset.service import create_dataframe
-from indicator.service import get_candlestick_signal, get_indicator_signal
 from stock.service import get_stock_prices, KType
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
@@ -47,31 +47,35 @@ class IndexTradingModel(TradingModel):
 
             index_fund_df = create_dataframe(index_fund, prices)
 
-        candlestick_signal, candlestick_patterns = get_candlestick_signal(index_fund, index_fund_df,
-                                                                          self.candlestick_weight)
-        if candlestick_signal == 1:
-            indicator_signal, ma_patterns, volume_patterns = get_indicator_signal(index_fund, index_fund_df, trending,
-                                                                                  direction,
-                                                                                  1, self.ma_weight,
-                                                                                  self.volume_weight)
-            if indicator_signal == 1:
-                # 将所有匹配的K线形态、均线和量能模式的标签添加到股票的模式列表中
-                add_matched_pattern_label(candlestick_patterns, self.patterns)
-                add_matched_pattern_label(ma_patterns, self.patterns)
-                add_matched_pattern_label(volume_patterns, self.patterns)
-                return 1
-        else:
-            indicator_signal, ma_patterns, volume_patterns = get_indicator_signal(stock, index_fund_df, trending,
-                                                                                  direction, -1,
-                                                                                  self.ma_weight,
-                                                                                  self.volume_weight)
-            if indicator_signal == -1:
-                # 将所有匹配的K线形态、均线和量能模式的标签添加到股票的模式列表中
-                add_matched_pattern_label(candlestick_patterns, self.patterns)
-                add_matched_pattern_label(ma_patterns, self.patterns)
-                add_matched_pattern_label(volume_patterns, self.patterns)
-                return -1
+        kdj_df = index_fund_df.ta.stoch(high='high', low='low', close='close', k=9, d=3, smooth_d=3)
+        kdj_df.rename(columns={'STOCHk_9_3_3': 'K', 'STOCHd_9_3_3': 'D'}, inplace=True)
+        rsi_df = ta.rsi(index_fund_df['close'], length=14, signal_indicators=True)  # type: ignore
+        rsi_df.rename(columns={'RSI_14': 'RSI'}, inplace=True)  # type: ignore
+        wr_df = ta.willr(high=index_fund_df['high'], low=index_fund_df['low'], close=index_fund_df['close'], length=14)
 
+        last_k = kdj_df['K'].iloc[-1]
+        last_d = kdj_df['D'].iloc[-1]
+        last_rsi = rsi_df['RSI'].iloc[-1]
+        last_wr = wr_df.iloc[-1]
+        # 超卖
+        if last_k < 20 and last_d < 20:
+            self.patterns.append('KDJ')
+        if last_rsi < 30:
+            self.patterns.append('RSI')
+        if last_wr < -80:
+            self.patterns.append('WR')
+        if len(self.patterns):
+            return 1
+
+        # 超买
+        if last_k > 80 and last_d > 80:
+            self.patterns.append('KDJ')
+        if last_rsi > 70:
+            self.patterns.append('RSI')
+        if last_wr > -20:
+            self.patterns.append('WR')
+        if len(self.patterns):
+            return -1
         return 0
 
     def get_trading_strategy(self, stock, df):
@@ -124,23 +128,3 @@ class IndexTradingModel(TradingModel):
             exit_patterns=[],
             signal=signal
         )
-
-
-def add_matched_pattern_label(matched_patterns, patterns):
-    """
-    将匹配到的模式标签添加到股票信息中。
-
-    遍历匹配到的模式列表，将每个模式的标签添加到指定的股票信息字典中的 'patterns' 键下。
-
-    参数:
-    matched_patterns: 匹配到的模式对象列表，每个模式对象包含一个 'label' 属性，用于表示模式的标签。
-    stock: 包含股票信息的字典，必须包含一个 'patterns' 键，用于存储模式标签的列表。
-
-    返回:
-    无返回值。此函数直接修改传入的股票信息字典。
-    """
-    # 遍历匹配到的模式列表
-    for matched_pattern in matched_patterns:
-        print(matched_pattern)
-        # 将模式的标签添加到股票信息的 'patterns' 列表中
-        patterns.append(matched_pattern.label)
