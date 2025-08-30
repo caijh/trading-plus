@@ -137,18 +137,13 @@ def check_strategy_reverse_task():
 
         # 遍历每个策略进行更新
         for strategy in strategies:
-            # 打印正在更新的策略信息
-            print(f'更新股票策略, 股票名称: {strategy.stock_name}, 股票代码: {strategy.stock_code}')
-
             signal, remark, patterns = get_exit_signal(strategy)
             if signal == -1:
                 strategy.signal = -1
                 strategy.exit_patterns = patterns
-                strategy.remark = '有卖出信号'
+                strategy.remark = remark
                 strategy.updated_at = datetime.now()
-
-            # 打印更新策略的日志信息
-            print(f"🔄 更新交易策略：{strategy.stock_code}")
+                print(f'🔄 更新交易策略, 股票名称: {strategy.stock_name}, 股票代码: {strategy.stock_code}')
 
         # 提交数据库会话，保存所有更新
         db.session.commit()
