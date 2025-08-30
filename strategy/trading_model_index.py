@@ -8,12 +8,8 @@ from strategy.trading_model import TradingModel
 
 
 class IndexTradingModel(TradingModel):
-    def __init__(self,
-                 candlestick_weight=1, ma_weight=2, volume_weight=1):
+    def __init__(self):
         super().__init__('IndexTradingModel')
-        self.candlestick_weight = candlestick_weight
-        self.ma_weight = ma_weight
-        self.volume_weight = volume_weight
         self.patterns = []
 
     def get_trading_signal(self, stock, df, trending, direction):

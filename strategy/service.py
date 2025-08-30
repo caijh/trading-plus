@@ -270,7 +270,7 @@ def analyze_stock_prices(stock, df, strategy_name=None,
 
 def get_trading_models(stock, candlestick_weight, ma_weight, volume_weight):
     if stock['stock_type'] == 'Index':
-        return [IndexTradingModel(candlestick_weight, ma_weight, volume_weight)]
+        return [IndexTradingModel()]
     return [
         AntiTradingModel(),
         ICTTradingModel(),
