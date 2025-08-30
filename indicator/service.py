@@ -195,3 +195,7 @@ def get_match_patterns(patterns, stock, df, trending, direction, pattern_type=''
     except Exception as e:
         print(e)
     return matched_patterns, weight
+
+
+def get_exit_patterns():
+    return [KDJ(-1), RSI(-1), WR(-1)]

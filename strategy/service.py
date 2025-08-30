@@ -1,13 +1,13 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from analysis.model import AnalyzedStock
 from calculate.service import calculate_trending_direction
 from dataset.service import create_dataframe
-from environment.service import env_vars
 from extensions import db
 from holdings.service import get_holdings
-from stock.service import get_stock, KType, get_stock_prices
+from stock.service import KType, get_stock_prices
 from strategy.model import TradingStrategy
+from strategy.trading_exit import get_exit_signal
 from strategy.trading_model import TradingModel
 from strategy.trading_model_anti import AntiTradingModel
 from strategy.trading_model_hammer import HammerTradingModel
@@ -139,54 +139,16 @@ def check_strategy_reverse_task():
         for strategy in strategies:
             # 打印正在更新的策略信息
             print(f'更新股票策略, 股票名称: {strategy.stock_name}, 股票代码: {strategy.stock_code}')
-            # 获取策略关联的股票代码
-            code = strategy.stock_code
-            # 根据代码获取股票的最新数据
-            stock = get_stock(code)
-            # 如果获取失败，则跳过当前策略
-            if stock is None:
-                continue
 
-            # 分析股票数据，k_type为DAY表示日线图
-            new_strategy = analyze_stock(stock, k_type=KType.DAY, strategy_name=strategy.strategy_name)
-            # 检查分析结果中是否有卖出信号
-            if new_strategy is not None and new_strategy.signal == -1:
-                # 有卖出信号，更新策略的买入价、卖出价、止损价、信号和更新时间
+            signal, remark, patterns = get_exit_signal(strategy)
+            if signal == -1:
                 strategy.signal = -1
-                strategy.exit_patterns = stock['patterns']
+                strategy.exit_patterns = patterns
                 strategy.remark = '有卖出信号'
                 strategy.updated_at = datetime.now()
-            else:
-                # 如果没有卖出信号，获取股票的持仓信息
-                holdings = get_holdings(code)
-                # 如果没有持仓信息
-                if holdings is None:
-                    # 更新太旧策略signal = -1
-                    if datetime.now() - strategy.created_at > timedelta(
-                        days=env_vars.STRATEGY_RETENTION_DAY):
-                        strategy.updated_at = datetime.now()
-                        strategy.signal = -1
-                else:
-                    price = stock['price']
-                    if price > float(holdings.price):
-                        if datetime.now() - strategy.created_at > timedelta(days=14):
-                            # 避免持仓太久
-                            strategy.updated_at = datetime.now()
-                            strategy.signal = -1
-                            strategy.remark = '持仓太久卖出'
 
-                # else:
-                #     # 如果有持仓信息，仅更新卖出价
-                #     new_take_profit = float(stock['resistance'])
-                #     take_profit = float(strategy.take_profit)
-                #     entry_price = float(strategy.entry_price)
-                #     stop_loss = float(strategy.stop_loss)
-                #     if (take_profit > new_take_profit > entry_price) and (
-                #         (new_take_profit - entry_price) / (entry_price - stop_loss) > 0):
-                #         strategy.take_profit = new_take_profit
-                #         strategy.updated_at = datetime.now()
             # 打印更新策略的日志信息
-            print(f"🔄 更新交易策略：{code}")
+            print(f"🔄 更新交易策略：{strategy.stock_code}")
 
         # 提交数据库会话，保存所有更新
         db.session.commit()
