@@ -235,7 +235,6 @@ def analyze_stock(stock, k_type=KType.DAY, strategy_name=None,
 def analyze_stock_prices(stock, df, strategy_name=None,
                          buy_candlestick_weight=1, buy_ma_weight=1, buy_volume_weight=1):
     print("=====================================================")
-    stock['patterns'] = []
     print(f'Analyzing Stock, code = {stock['code']}, name = {stock['name']}')
 
     trading_models = get_trading_models(stock, buy_candlestick_weight, buy_ma_weight, buy_volume_weight)
@@ -251,18 +250,21 @@ def analyze_stock_prices(stock, df, strategy_name=None,
     stock['support'] = support
     stock['resistance'] = resistance
     stock['price'] = float(df.iloc[-1]['close'])
-    stock['signal'] = 0
     strategy = None
     for model in trading_models:
         strategy = model.get_trading_strategy(stock, df)
         if strategy is not None:
-            stock['signal'] = strategy.signal
             stock['strategy'] = strategy.to_dict()
-            stock['patterns'].extend(strategy.entry_patterns)
             break
-
+    signal = 0
+    patterns = []
+    if strategy is None:
+        stock['signal'] = signal
+    else:
+        signal = strategy.signal
+        patterns.extend(strategy.entry_patterns)
     print(
-        f'Analyzing Complete code = {stock['code']}, name = {stock['name']}, trending = {stock["trending"]}, direction = {stock["direction"]}, signal= {stock["signal"]}, patterns = {stock["patterns"]}, support = {stock["support"]} resistance = {stock["resistance"]} price = {stock["price"]}')
+        f'Analyzing Complete code = {stock['code']}, name = {stock['name']}, trending = {stock["trending"]}, direction = {stock["direction"]}, signal= {signal}, patterns = {patterns}, support = {stock["support"]} resistance = {stock["resistance"]} price = {stock["price"]}')
     return strategy
 
 
