@@ -103,7 +103,8 @@ class ICTTradingModel(TradingModel):
             return None, None, None, None, None, None, None
 
         start = bos_idx + 1
-        end = min(n - 2, bos_idx + 1 + self.lookahead_fvg)
+        # end = min(n - 2, bos_idx + 1 + self.lookahead_fvg)
+        end = n - 2
         for i in range(start, end):
             left_high = df['high'].iloc[i]
             left_low = df['low'].iloc[i]
