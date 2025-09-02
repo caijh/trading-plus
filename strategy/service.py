@@ -64,7 +64,7 @@ def add_update_strategy(stock):
                 existing_strategy.entry_price = strategy.entry_price
                 existing_strategy.take_profit = strategy.take_profit
                 existing_strategy.stop_loss = strategy.stop_loss
-                existing_strategy.signal = 1
+                existing_strategy.signal = strategy.signal
                 existing_strategy.updated_at = datetime.now()
                 print(f"🔄 更新交易策略：{stock_code} - {stock_name}")
         else:
