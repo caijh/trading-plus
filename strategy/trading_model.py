@@ -1,4 +1,5 @@
 from calculate.service import calculate_support_resistance, calculate_support_resistance_by_turning_points
+from environment.service import env_vars
 
 
 class TradingModel:
@@ -40,7 +41,7 @@ class TradingModel:
         pass
 
     @staticmethod
-    def check_trading_strategy(stock, strategy, max_loss_ratio=0.05):
+    def check_trading_strategy(stock, strategy, max_loss_ratio=0.03):
         entry_price = strategy.entry_price
         stop_loss = strategy.stop_loss
         take_profit = strategy.take_profit
@@ -58,7 +59,7 @@ class TradingModel:
                 print(f"{stock['code']} {stock['name']} 止损空间过大 ({loss_ratio:.2%})，跳过")
                 return False
 
-        if (take_profit - entry_price) / (entry_price - stop_loss) < 1:
+        if (take_profit - entry_price) / (entry_price - stop_loss) < env_vars.MIN_PROFIT_RATE:
             return False
         return True
 
