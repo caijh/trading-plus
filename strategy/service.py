@@ -13,7 +13,6 @@ from strategy.trading_model_anti import AntiTradingModel
 from strategy.trading_model_hammer import HammerTradingModel
 from strategy.trading_model_ict import ICTTradingModel
 from strategy.trading_model_index import IndexTradingModel
-from strategy.trading_model_multi_indicator import MultiIndicatorTradingModel
 
 
 def add_update_strategy(stock):
@@ -232,5 +231,5 @@ def get_trading_models(stock, candlestick_weight, ma_weight, volume_weight):
         AntiTradingModel(),
         ICTTradingModel(),
         HammerTradingModel(),
-        MultiIndicatorTradingModel(candlestick_weight, ma_weight, volume_weight)
+        # MultiIndicatorTradingModel(candlestick_weight, ma_weight, volume_weight)
     ]
