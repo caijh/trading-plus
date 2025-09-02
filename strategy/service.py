@@ -58,18 +58,15 @@ def add_update_strategy(stock):
             holdings = get_holdings(stock_code)
             if holdings is None:
                 # 没有持仓, 更新已有策略
+                existing_strategy.strategy_name = strategy.strategy_name,
                 existing_strategy.entry_patterns = strategy.entry_patterns
                 existing_strategy.exit_patterns = []
                 existing_strategy.entry_price = strategy.entry_price
                 existing_strategy.take_profit = strategy.take_profit
                 existing_strategy.stop_loss = strategy.stop_loss
-            else:
-                # 如果有持仓信息，则更新卖出信息
-                if strategy.take_profit < float(existing_strategy.take_profit):
-                    existing_strategy.take_profit = strategy.take_profit
-            existing_strategy.signal = 1
-            existing_strategy.updated_at = datetime.now()
-            print(f"🔄 更新交易策略：{stock_code} - {stock_name}")
+                existing_strategy.signal = 1
+                existing_strategy.updated_at = datetime.now()
+                print(f"🔄 更新交易策略：{stock_code} - {stock_name}")
         else:
             db.session.add(strategy)
             print(f"✅ 插入新交易策略：{stock_code} - {stock_name}")
