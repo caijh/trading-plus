@@ -54,11 +54,16 @@ class HammerTradingModel(TradingModel):
         if (candlestick.match(stock, df, trending, direction)
             and trend_up
         ):
-            if (low_price <= prev_sma20_price * 1.001 and prev_sma20_price < close_price) \
-                or (
-                low_price <= prev_sma50_price * 1.001 and prev_sma50_price < close_price):
-                if latest_sma120_price > prev_sma120_price:  # 长期趋势向上
-                    return 1
+            latest_swing_high = swing_highs.iloc[-1] if len(swing_highs) >= 1 else None
+            if latest_swing_high is not None:
+                match_loc = candlestick.match_indexes[-1].get_loc()
+                l = abs(match_loc - latest_swing_high.index.get_loc())
+                if l >= 4:
+                    if (low_price <= prev_sma20_price * 1.001 and prev_sma20_price < close_price) \
+                        or (
+                        low_price <= prev_sma50_price * 1.001 and prev_sma50_price < close_price):
+                        if latest_sma120_price > prev_sma120_price:  # 长期趋势向上
+                            return 1
 
         # ---- Hangingman (空头) ----
         candlestick = Candlestick({"name": "hangingman", "description": "上吊线", "signal": -1, "weight": 0}, -1)

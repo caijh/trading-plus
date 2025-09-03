@@ -81,6 +81,7 @@ class Candlestick(Indicator):
         self.label = pattern['name']
         self.column = f'CDL_{self.name.upper()}'
         self.description = pattern['description']
+        self.match_indexes = []
 
     def match(self, stock, df, trending, direction):
         """
@@ -110,6 +111,7 @@ class Candlestick(Indicator):
 
         # 提取匹配日期，并写入 stock 中
         if not matched.empty:
+            self.match_indexes.extend(matched.index.tolist())
             return True
         else:
             return False
