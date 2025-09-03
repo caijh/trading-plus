@@ -96,14 +96,14 @@ class HammerTradingModel(TradingModel):
             entry_price = last_close * 0.995
             target_high = swing_highs['high'].iloc[-1] if len(swing_highs) >= 1 else None
             atr_target_high = entry_price + 2 * atr
-            take_profit = target_high if target_high is not None and target_high < atr_target_high else atr_target_high
+            take_profit = target_high * 0.995 if target_high is not None and target_high < atr_target_high else atr_target_high
 
         elif signal == -1:  # 空头
             stop_loss = swing_highs.iloc[-1]['high']
             entry_price = last_close * 1.005
             target_low = swing_lows['low'].iloc[-1] if len(swing_lows) >= 1 else None
             atr_target_low = entry_price - 2 * atr
-            take_profit = target_low if target_low is not None and target_low > atr_target_low else atr_target_low
+            take_profit = target_low * 1.005 if target_low is not None and target_low > atr_target_low else atr_target_low
 
         else:
             return None
