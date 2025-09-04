@@ -15,7 +15,7 @@ from indicator.mfi import MFI
 from indicator.obv import OBV
 from indicator.rsi import RSI
 from indicator.sar import SAR
-from indicator.service import get_match_ma_patterns
+from indicator.service import get_match_ma_patterns, get_exit_patterns
 from indicator.sma import SMA
 from indicator.vol import VOL
 from indicator.vpt import VPT
@@ -166,7 +166,6 @@ def alpha_run_backtest(stock_code, strategy_name, start=61):
     if df is None or df.empty:
         return records, win_patterns, loss_patterns, trending_list, direction_list
 
-
     strategy = None
     holding = False
     entry_price, entry_time = None, None
@@ -237,9 +236,13 @@ def alpha_run_backtest(stock_code, strategy_name, start=61):
             strategy = None
             continue
 
-        # 更新策略信号
-        _strategy = analyze_stock_prices(stock, df.iloc[:i + 1], strategy_name)
-        if _strategy and _strategy.signal == -1:
-            strategy.signal = -1
+        # 是否有提前退出信号
+        exit_patterns = get_exit_patterns()
+        matched_patterns = []
+        for pattern in exit_patterns:
+            if pattern.match(stock, df.iloc[:i + 1], None, None):
+                matched_patterns.append(pattern)
+            if len(matched_patterns) > 0:
+                strategy.signal = -1
 
     return records, win_patterns, loss_patterns, trending_list, direction_list
