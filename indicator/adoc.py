@@ -1,6 +1,5 @@
 import pandas_ta as ta
 
-from calculate.service import upping_trending, downing_trending
 from indicator.base import Indicator
 
 
@@ -39,9 +38,11 @@ class ADOSC(Indicator):
 
         # 计算 ADOSC 指标
         adosc = ta.adosc(df['high'], df['low'], df['close'], df['volume'])
+        latest = adosc.iloc[-1]
+        prev = adosc.iloc[-2]
 
         if self.signal == 1:
-            return upping_trending(adosc)
+            return latest > prev
         elif self.signal == -1:
-            return downing_trending(adosc)
+            return latest < prev
         return False

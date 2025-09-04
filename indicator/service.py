@@ -1,10 +1,23 @@
+from indicator.adl import ADL
+from indicator.adoc import ADOSC
+from indicator.adx import ADX
+from indicator.ar import AR
+from indicator.aroon import AROON
 from indicator.bias import BIAS
 from indicator.candlestick import get_bullish_candlestick_patterns, get_bearish_candlestick_patterns
+from indicator.chaikin import Chaikin
+from indicator.cmf import CMF
 from indicator.kdj import KDJ
+from indicator.kvo import KVO
 from indicator.macd import MACD
+from indicator.mfi import MFI
+from indicator.nvi import NVI
+from indicator.obv import OBV
+from indicator.pvi import PVI
 from indicator.rsi import RSI
 from indicator.sar import SAR
 from indicator.sma import SMA
+from indicator.vpt import VPT
 from indicator.wr import WR
 
 
@@ -35,24 +48,29 @@ def get_candlestick_signal(stock, df, candlestick_weight):
 
 
 def get_indicator_signal(stock, df, trending, direction, ma_weight_limit, volume_weight_limit):
-    patterns = get_down_ma_patterns()
-    matched_ma_patterns, ma_weight, matched_volume_patterns = get_match_ma_patterns(patterns, stock, df,
-                                                                                    trending, direction,
-                                                                                    volume_weight_limit)
-    if ma_weight >= ma_weight_limit:
-        return -1, matched_ma_patterns, matched_volume_patterns
+    patterns = get_down_primary_patterns()
 
-    patterns = get_up_ma_patterns()
-    matched_ma_patterns, ma_weight, matched_volume_patterns = get_match_ma_patterns(patterns, stock, df,
-                                                                                    trending, direction,
-                                                                                    volume_weight_limit)
-    if ma_weight >= ma_weight_limit:
-        return 1, matched_ma_patterns, matched_volume_patterns
+    matched_patterns, weight = get_match_patterns(patterns, stock, df, trending, direction)
+    matched_secondary_patterns = []
+    if weight >= ma_weight_limit:
+        patterns = get_down_secondary_patterns()
+        matched_secondary_patterns, weight = get_match_patterns(patterns, stock, df, trending, direction)
+        if weight >= volume_weight_limit:
+            return -1, matched_patterns, matched_secondary_patterns
 
-    return 0, matched_ma_patterns, matched_volume_patterns
+    patterns = get_up_primary_patterns()
+    matched_patterns, weight = get_match_patterns(patterns, stock, df, trending, direction)
+
+    if weight >= ma_weight_limit:
+        patterns = get_up_secondary_patterns()
+        matched_secondary_patterns, weight = get_match_patterns(patterns, stock, df, trending, direction)
+        if weight >= volume_weight_limit:
+            return 1, matched_patterns, matched_secondary_patterns
+
+    return 0, matched_patterns, matched_secondary_patterns
 
 
-def get_up_ma_patterns():
+def get_up_primary_patterns():
     """
     创建并返回一个包含常用均线和偏差率模式的列表。
 
@@ -60,7 +78,7 @@ def get_up_ma_patterns():
     以及一个特定参数的偏差率模式。这些模式用于在金融数据分析中计算和应用各种移动平均线和偏差率指标。
     """
     # 初始化均线和偏差率模式列表
-    ma_patterns = [
+    patterns = [
         SMA(10, 1),
         SMA(21, 1),
         SMA(50, 1),
@@ -71,10 +89,10 @@ def get_up_ma_patterns():
         RSI(1),
         WR(1)
     ]
-    return ma_patterns
+    return patterns
 
 
-def get_down_ma_patterns():
+def get_down_primary_patterns():
     """
     创建并返回一个包含常用均线和偏差率模式的列表。
 
@@ -82,7 +100,7 @@ def get_down_ma_patterns():
     以及一个特定参数的偏差率模式。这些模式用于在金融数据分析中计算和应用各种移动平均线和偏差率指标。
     """
     # 初始化均线和偏差率
-    ma_patterns = [
+    patterns = [
         SMA(10, -1),
         SMA(21, -1),
         SMA(50, -1),
@@ -93,7 +111,43 @@ def get_down_ma_patterns():
         RSI(-1),
         WR(-1)
     ]
-    return ma_patterns
+    return patterns
+
+
+def get_up_secondary_patterns():
+    return [
+        ADL(1),
+        ADOSC(1),
+        ADX(1),
+        AR(1),
+        AROON(1),
+        Chaikin(1),
+        CMF(1),
+        MFI(1),
+        KVO(1),
+        NVI(1),
+        OBV(1),
+        PVI(1),
+        VPT(1),
+    ]
+
+
+def get_down_secondary_patterns():
+    return [
+        ADL(-1),
+        ADOSC(-1),
+        ADX(-1),
+        AR(-1),
+        AROON(-1),
+        Chaikin(-1),
+        CMF(-1),
+        MFI(-1),
+        KVO(-1),
+        NVI(-1),
+        OBV(-1),
+        PVI(-1),
+        VPT(-1),
+    ]
 
 
 def get_match_ma_patterns(patterns, stock, df, trending, direction, volume_weight_limit=1):
@@ -145,8 +199,7 @@ def get_match_ma_patterns(patterns, stock, df, trending, direction, volume_weigh
 
                 # 检查成交量模式是否匹配，并获取匹配的模式和权重
                 volume_matched_patterns, volume_weight = get_match_patterns(volume_patterns, stock, df, trending,
-                                                                            direction,
-                                                                            'volume')
+                                                                            direction)
                 for volume_pattern in volume_matched_patterns:
                     if volume_pattern.label not in exec_matched_volume_pattern_labels:
                         exec_matched_volume_pattern_labels.add(volume_pattern.label)
@@ -177,7 +230,7 @@ def get_match_ma_patterns(patterns, stock, df, trending, direction, volume_weigh
     return matched_ma_patterns, ma_weight, list(matched_volume_patterns)
 
 
-def get_match_patterns(patterns, stock, df, trending, direction, pattern_type=''):
+def get_match_patterns(patterns, stock, df, trending, direction):
     code = stock['code']
     name = stock['name']
     weight = 0
@@ -185,8 +238,7 @@ def get_match_patterns(patterns, stock, df, trending, direction, pattern_type=''
     try:
         for pattern in patterns:
             if pattern.match(stock, df, trending, direction):
-                if pattern_type != 'volume':
-                    print(f'{code} {name} Match {pattern.label}')
+                print(f'{code} {name} Match {pattern.label}')
                 weight += pattern.weight
                 matched_patterns.append(pattern)
     except Exception as e:
