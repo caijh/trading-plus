@@ -34,23 +34,20 @@ def get_candlestick_signal(stock, df, candlestick_weight):
     return 0, []
 
 
-def get_indicator_signal(stock, df, trending, direction, signal, ma_weight_limit, volume_weight_limit):
-    if signal == 1:
-        patterns = get_up_ma_patterns()
-
-    elif signal == -1:
-        patterns = get_down_ma_patterns()
-    else:
-        patterns = []
-
+def get_indicator_signal(stock, df, trending, direction, ma_weight_limit, volume_weight_limit):
+    patterns = get_down_ma_patterns()
     matched_ma_patterns, ma_weight, matched_volume_patterns = get_match_ma_patterns(patterns, stock, df,
                                                                                     trending, direction,
                                                                                     volume_weight_limit)
-
-    if signal == 1 and ma_weight >= ma_weight_limit:
-        return 1, matched_ma_patterns, matched_volume_patterns
-    elif signal == -1 and ma_weight >= ma_weight_limit:
+    if ma_weight >= ma_weight_limit:
         return -1, matched_ma_patterns, matched_volume_patterns
+
+    patterns = get_up_ma_patterns()
+    matched_ma_patterns, ma_weight, matched_volume_patterns = get_match_ma_patterns(patterns, stock, df,
+                                                                                    trending, direction,
+                                                                                    volume_weight_limit)
+    if ma_weight >= ma_weight_limit:
+        return 1, matched_ma_patterns, matched_volume_patterns
 
     return 0, matched_ma_patterns, matched_volume_patterns
 

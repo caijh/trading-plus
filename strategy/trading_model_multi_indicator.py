@@ -21,7 +21,7 @@ class MultiIndicatorTradingModel(TradingModel):
         candlestick_signal, candlestick_patterns = get_candlestick_signal(stock, df, self.candlestick_weight)
         if candlestick_signal == 1:
             indicator_signal, ma_patterns, volume_patterns = get_indicator_signal(stock, df, trending, direction,
-                                                                                  1, self.ma_weight,
+                                                                                  self.ma_weight,
                                                                                   self.volume_weight)
             if indicator_signal == 1:
                 # 将所有匹配的K线形态、均线和量能模式的标签添加到股票的模式列表中
@@ -30,7 +30,7 @@ class MultiIndicatorTradingModel(TradingModel):
                 append_matched_pattern_label(volume_patterns, self.patterns)
                 return 1
         elif candlestick_signal == -1:
-            indicator_signal, ma_patterns, volume_patterns = get_indicator_signal(stock, df, trending, direction, -1,
+            indicator_signal, ma_patterns, volume_patterns = get_indicator_signal(stock, df, trending, direction,
                                                                                   self.ma_weight,
                                                                                   self.volume_weight)
             if indicator_signal == -1:
@@ -193,5 +193,3 @@ def append_matched_pattern_label(matched_patterns, patterns):
     for matched_pattern in matched_patterns:
         # 将模式的标签添加到股票信息的 'patterns' 列表中
         patterns.append(matched_pattern.label)
-
-

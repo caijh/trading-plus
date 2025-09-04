@@ -5,6 +5,7 @@ from calculate.service import calculate_trending_direction
 from dataset.service import create_dataframe
 from extensions import db
 from holdings.service import get_holdings
+from indicator.service import get_candlestick_signal, get_indicator_signal
 from stock.service import KType, get_stock_prices
 from strategy.model import TradingStrategy
 from strategy.trading_exit import get_exit_signal
@@ -186,11 +187,11 @@ def analyze_stock(stock, k_type=KType.DAY, strategy_name=None,
 
 
 def analyze_stock_prices(stock, df, strategy_name=None,
-                         buy_candlestick_weight=1, buy_ma_weight=1, buy_volume_weight=1):
+                         candlestick_weight=1, ma_weight=1, volume_weight=1):
     print("=====================================================")
     print(f'Analyzing Stock, code = {stock['code']}, name = {stock['name']}')
 
-    trading_models = get_trading_models(stock, buy_candlestick_weight, buy_ma_weight, buy_volume_weight)
+    trading_models = get_trading_models(stock, candlestick_weight, ma_weight, volume_weight)
 
     if strategy_name is not None:
         trading_models = [model for model in trading_models if model.name == strategy_name]
@@ -203,6 +204,17 @@ def analyze_stock_prices(stock, df, strategy_name=None,
     stock['support'] = support
     stock['resistance'] = resistance
     stock['price'] = float(df.iloc[-1]['close'])
+
+    candlestick_signal, candlestick_patterns = get_candlestick_signal(stock, df, candlestick_weight)
+    stock['candlestick_signal'] = candlestick_signal
+    stock['candlestick_patterns'] = [pattern.label for pattern in candlestick_patterns]
+
+    indicator_signal, ma_patterns, volume_patterns = get_indicator_signal(stock, df, trending, direction, ma_weight,
+                                                                          volume_weight)
+    stock['indicator_signal'] = indicator_signal
+    stock['ma_patterns'] = [pattern.label for pattern in ma_patterns]
+    stock['volume_patterns'] = [pattern.label for pattern in volume_patterns]
+
     strategy = None
     for model in trading_models:
         strategy = model.get_trading_strategy(stock, df)
