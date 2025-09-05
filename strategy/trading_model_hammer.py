@@ -70,7 +70,7 @@ class HammerTradingModel(TradingModel):
                             return 1
 
         # ---- Hangingman (空头) ----
-        candlestick = Candlestick({"name": "hangingman", "description": "上吊线", "signal": -1, "weight": 0}, -1)
+        candlestick = Candlestick({"name": "invertedhammer", "description": "倒锤头线", "signal": -1, "weight": 0}, -1)
         if (candlestick.match(stock, df, trending, direction)
             and trend_down
         ):
