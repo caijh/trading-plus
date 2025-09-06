@@ -84,7 +84,7 @@ def get_strategy_by_stock_code(stock_code):
 def generate_strategies(stocks):
     analyzed_stocks = []
     for stock in stocks:
-        if stock['strategy'] is not None:
+        if stock['strategy'] is not None and stock['strategy']['signal'] == 1:
             analyzed_stocks.append(stock)
 
     if len(analyzed_stocks) == 0:
@@ -182,8 +182,12 @@ def analyze_stock(stock, k_type=KType.DAY, strategy_name=None,
         print(f'No prices get for  stock {stock['code']}')
         return None
 
-    df = create_dataframe(stock, prices)
-    return analyze_stock_prices(stock, df, strategy_name, candlestick_weight, ma_weight, volume_weight)
+    try:
+        df = create_dataframe(stock, prices)
+        return analyze_stock_prices(stock, df, strategy_name, candlestick_weight, ma_weight, volume_weight)
+    except Exception as e:
+        print(e)
+        return None
 
 
 def analyze_stock_prices(stock, df, strategy_name=None,
@@ -211,7 +215,7 @@ def analyze_stock_prices(stock, df, strategy_name=None,
 
     indicator_signal, primary_patterns, secondary_patterns = get_indicator_signal(stock, df, trending, direction,
                                                                                   ma_weight,
-                                                                          volume_weight)
+                                                                                  volume_weight)
     stock['indicator_signal'] = indicator_signal
     stock['primary_patterns'] = [pattern.label for pattern in primary_patterns]
     stock['secondary_patterns'] = [pattern.label for pattern in secondary_patterns]
@@ -220,7 +224,7 @@ def analyze_stock_prices(stock, df, strategy_name=None,
     strategy = None
     for model in trading_models:
         strategy = model.get_trading_strategy(stock, df)
-        if strategy is not None and (candlestick_signal == 1 or indicator_signal == 1):
+        if strategy is not None and (candlestick_signal == strategy.signal or indicator_signal == strategy.signal):
             stock['strategy'] = strategy.to_dict()
             break
     signal = 0
