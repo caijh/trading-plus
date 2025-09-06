@@ -219,7 +219,7 @@ def analyze_stock_prices(stock, df, strategy_name=None,
     strategy = None
     for model in trading_models:
         strategy = model.get_trading_strategy(stock, df)
-        if strategy is not None:
+        if strategy is not None and (candlestick_signal == 1 or indicator_signal == 1):
             stock['strategy'] = strategy.to_dict()
             break
     signal = 0
