@@ -1,5 +1,4 @@
 import pandas_ta as ta
-from pandas_ta.candle.cdl_pattern import ALL_PATTERNS
 
 from indicator.base import Indicator
 
@@ -158,7 +157,7 @@ def get_bullish_candlestick_patterns():
     这些形态实例包括锤头、十字星、看涨吞没、刺透和上升窗口等形态。
     """
     patterns = []
-    for PATTERN in ALL_PATTERNS:
+    for PATTERN in BULLISH_PATTERNS:
         patterns.append(Candlestick(PATTERN, 1))
 
     return patterns
