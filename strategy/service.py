@@ -175,7 +175,7 @@ def run_generate_strategy():
 
 
 def analyze_stock(stock, k_type=KType.DAY, strategy_name=None,
-                  candlestick_weight=1, ma_weight=2, volume_weight=1):
+                  candlestick_weight=1, ma_weight=1, volume_weight=1):
     print("=====================================================")
     prices = get_stock_prices(stock['code'], k_type)
     if prices is None or len(prices) == 0:
