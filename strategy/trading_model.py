@@ -58,8 +58,9 @@ class TradingModel:
             if loss_ratio > max_loss_ratio:
                 print(f"{stock['code']} {stock['name']} 止损空间过大 ({loss_ratio:.2%})，跳过")
                 return False
-
-        if (take_profit - entry_price) / (entry_price - stop_loss) < env_vars.MIN_PROFIT_RATE:
+        profit_rate = (take_profit - entry_price) / (entry_price - stop_loss)
+        if profit_rate < env_vars.MIN_PROFIT_RATE:
+            print(f"{stock['code']} {stock['name']} 盈亏比过小 ({profit_rate:.2%})，跳过")
             return False
         return True
 
