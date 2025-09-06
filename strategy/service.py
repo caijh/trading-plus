@@ -216,6 +216,7 @@ def analyze_stock_prices(stock, df, strategy_name=None,
     stock['primary_patterns'] = [pattern.label for pattern in primary_patterns]
     stock['secondary_patterns'] = [pattern.label for pattern in secondary_patterns]
 
+    print(f'code = {stock['code']} candlestick_signal = {candlestick_signal}, indicator_signal = {indicator_signal}')
     strategy = None
     for model in trading_models:
         strategy = model.get_trading_strategy(stock, df)
