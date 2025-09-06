@@ -1,69 +1,102 @@
 import pandas_ta as ta
+from pandas_ta.candle.cdl_pattern import ALL_PATTERNS
 
 from indicator.base import Indicator
 
-ALL_PATTERNS = [
-    {"name": "2crows", "description": "两只乌鸦", "signal": -1, "weight": 0},
-    {"name": "3blackcrows", "description": "三只乌鸦", "signal": -1, "weight": 0},
-    {"name": "3inside", "description": "三内升/三内降", "signal": 0, "weight": 0},
-    {"name": "3linestrike", "description": "三线打击", "signal": 1, "weight": 0},
-    {"name": "3outside", "description": "三外升/三外降", "signal": 1, "weight": 0},
-    {"name": "3starsinsouth", "description": "南方三星", "signal": 1, "weight": 0},
-    {"name": "3whitesoldiers", "description": "三白兵", "signal": 1, "weight": 1},
-    {"name": "abandonedbaby", "description": "弃婴形态", "signal": 1, "weight": 1},
-    {"name": "advanceblock", "description": "上升受阻", "signal": -1, "weight": 0},
-    {"name": "belthold", "description": "腰带线", "signal": 0, "weight": 0},
-    {"name": "breakaway", "description": "脱离形态", "signal": 0, "weight": 0},
-    {"name": "closingmarubozu", "description": "收盘光头光脚阳线/阴线", "signal": 0, "weight": 0},
-    {"name": "concealbabyswall", "description": "隐藏吞没婴儿", "signal": 1, "weight": 0},
-    {"name": "counterattack", "description": "反击线", "signal": 0, "weight": 1},
-    {"name": "darkcloudcover", "description": "乌云盖顶", "signal": -1, "weight": 0},
-    {"name": "dojistar", "description": "十字星", "signal": 0, "weight": 0},
-    {"name": "dragonflydoji", "description": "蜻蜓十字/T字线", "signal": 1, "weight": 0},
-    {"name": "engulfing", "description": "吞没形态", "signal": 0, "weight": 1},
-    {"name": "eveningdojistar", "description": "黄昏十字星", "signal": -1, "weight": 0},
-    {"name": "eveningstar", "description": "黄昏星", "signal": -1, "weight": 0},
-    {"name": "gapsidesidewhite", "description": "向上/向下并列阳线", "signal": 1, "weight": 0},
-    {"name": "gravestonedoji", "description": "墓碑十字", "signal": -1, "weight": 0},
-    {"name": "hammer", "description": "锤子线", "signal": 1, "weight": 1},
-    {"name": "hangingman", "description": "上吊线", "signal": -1, "weight": 0},
-    {"name": "harami", "description": "母子线", "signal": 0, "weight": 0},
-    {"name": "haramicross", "description": "十字孕线", "signal": 0, "weight": 0},
-    {"name": "highwave", "description": "高浪线", "signal": 0, "weight": 0},
-    {"name": "hikkake", "description": "陷阱形态", "signal": 1, "weight": 0},
-    {"name": "hikkakemod", "description": "修正陷阱形态", "signal": 1, "weight": 0},
-    {"name": "homingpigeon", "description": "归巢鸽", "signal": 1, "weight": 0},
-    {"name": "identical3crows", "description": "等长三鸦", "signal": -1, "weight": 0},
-    {"name": "inneck", "description": "颈内线", "signal": -1, "weight": 0},
-    {"name": "inside", "description": "内包线", "signal": 0, "weight": 0},
-    {"name": "invertedhammer", "description": "倒锤头线", "signal": 0, "weight": 0},
-    {"name": "kicking", "description": "反冲形态", "signal": 0, "weight": 0},
-    {"name": "kickingbylength", "description": "按长度判断的反冲形态", "signal": 0, "weight": 0},
-    {"name": "ladderbottom", "description": "梯底形态", "signal": 1, "weight": 0},
-    {"name": "longleggeddoji", "description": "长脚十字", "signal": 0, "weight": 0},
-    {"name": "longline", "description": "长蜡烛线", "signal": 0, "weight": 0},
-    {"name": "marubozu", "description": "光头光脚阳线/阴线", "signal": 0, "weight": 0},
-    {"name": "matchinglow", "description": "等低线", "signal": 1, "weight": 0},
-    {"name": "mathold", "description": "保持形态", "signal": 1, "weight": 0},
-    {"name": "morningdojistar", "description": "晨星十字星", "signal": 1, "weight": 1},
-    {"name": "morningstar", "description": "晨星", "signal": 1, "weight": 1},
-    {"name": "onneck", "description": "颈上线", "signal": -1, "weight": 0},
-    {"name": "piercing", "description": "刺透线", "signal": 1, "weight": 1},
-    {"name": "rickshawman", "description": "黄包车夫线（长脚十字）", "signal": 0, "weight": 0},
-    {"name": "risefall3methods", "description": "三方法（上升/下降）", "signal": 0, "weight": 0},
-    {"name": "separatinglines", "description": "分离线", "signal": 1, "weight": 0},
-    {"name": "shootingstar", "description": "流星线", "signal": -1, "weight": 0},
-    {"name": "shortline", "description": "短蜡烛线", "signal": 0, "weight": 0},
-    {"name": "spinningtop", "description": "纺锤线", "signal": 0, "weight": 0},
-    {"name": "stalledpattern", "description": "停顿形态", "signal": -1, "weight": 0},
-    {"name": "sticksandwich", "description": "条形三明治", "signal": 1, "weight": 0},
-    {"name": "takuri", "description": "探水线", "signal": 1, "weight": 1},
-    {"name": "tasukigap", "description": "切入缺口", "signal": 1, "weight": 0},
-    {"name": "thrusting", "description": "插入线", "signal": -1, "weight": 0},
-    {"name": "tristar", "description": "三星形态", "signal": 0, "weight": 1},
-    {"name": "unique3river", "description": "奇特三河床", "signal": 1, "weight": 0},
-    {"name": "upsidegap2crows", "description": "上升缺口两鸦", "signal": -1, "weight": 0},
-    {"name": "xsidegap3methods", "description": "横向缺口三方法", "signal": 0, "weight": 0}
+BULLISH_PATTERNS = [
+    {'name': '3inside', 'description': '三日内线：一个三日反转形态，可以是看涨或看跌。'},
+    {'name': '3linestrike', 'description': '三线打击：一个四日的看涨持续形态。'},
+    {'name': '3outside', 'description': '三日外线：一个三日反转形态，可以是看涨或看跌。'},
+    {'name': '3starsinsouth', 'description': '南方三星：一个三日的看涨反转形态。'},
+    {'name': '3whitesoldiers', 'description': '三个白武士：一个三日的看涨反转形态。'},
+    {'name': 'abandonedbaby', 'description': '弃婴：一个三日反转形态，可以是看涨或看跌。'},
+    {'name': 'belthold', 'description': '捉腰带线：一个一日反转形态，可以是看涨或看跌。'},
+    {'name': 'breakaway', 'description': '脱离：一个五日持续形态，可以是看涨或看跌。'},
+    {'name': 'counterattack', 'description': '反击线：一个两日反转形态，可以是看涨或看跌。'},
+    {'name': 'dojistar', 'description': '十字星：一个两日反转形态，通常在长实体蜡烛线后出现。'},
+    {'name': 'dragonflydoji', 'description': '蜻蜓十字星：开盘、最高和收盘价接近，表示潜在的看涨反转。'},
+    {'name': 'engulfing', 'description': '吞噬形态：一个两日反转形态，可以是看涨或看跌。'},
+    {'name': 'gapsidesidewhite', 'description': '上下并列双阳线：一个两日的看涨持续形态。'},
+    {'name': 'hammer', 'description': '锤子线：一个单根蜡烛线的看涨反转形态。'},
+    {'name': 'harami', 'description': '怀抱线：一个两日反转形态，可以是看涨或看跌。'},
+    {'name': 'haramicross', 'description': '十字怀抱线：一个两日反转形态，其中包含一个十字星。'},
+    {'name': 'hikkake', 'description': '圈套：一个两日反转形态，可以是看涨或看跌。'},
+    {'name': 'hikkakemod', 'description': '修正圈套：圈套形态的变体。'},
+    {'name': 'homingpigeon', 'description': '家鸽：一个两日的看涨反转形态。'},
+    {'name': 'invertedhammer', 'description': '倒锤子线：一个单根蜡烛线的看涨反转形态。'},
+    {'name': 'kicking', 'description': '踢脚线：一个两日反转形态，可以是看涨或看跌。'},
+    {'name': 'ladderbottom', 'description': '梯底：一个五日的看涨反转形态。'},
+    {'name': 'matchinglow', 'description': '匹敌低价：一个两日的看涨反转形态。'},
+    {'name': 'mathold', 'description': '铺垫：一个五日的看涨持续形态。'},
+    {'name': 'morningdojistar', 'description': '启明星十字星：一个三日的看涨反转形态。'},
+    {'name': 'morningstar', 'description': '启明星：一个三日的看涨反转形态。'},
+    {'name': 'piercing', 'description': '刺透线：一个两日的看涨反转形态。'},
+    {'name': 'risefall3methods', 'description': '三升三降：一个五日持续形态，可以是看涨或看跌。'},
+    {'name': 'separatinglines', 'description': '分离线：一个两日持续形态，可以是看涨或看跌。'},
+    {'name': 'sticksandwich', 'description': '夹心三明治：一个三日的看涨反转形态。'},
+    {'name': 'takuri', 'description': '捉腰带线：一种蜻蜓十字星或捉腰带线。'},
+    {'name': 'tasukigap', 'description': '跳空并列：一个两日持续形态，可以是看涨或看跌。'},
+    {'name': 'thrusting', 'description': '插入线：一个两日的看跌持续形态。'},
+    {'name': 'tristar', 'description': '三星：由三个十字星组成的三日反转形态。'},
+    {'name': 'unique3river', 'description': '独有三河：一个三日的看涨反转形态。'},
+    {'name': 'xsidegap3methods', 'description': '跳空三法：一个五日持续形态，可以是看涨或看跌。'}
+]
+
+BEARISH_PATTERNS = [
+    {'name': '2crows', 'description': '两只乌鸦：一个两日的看跌反转形态。'},
+    {'name': '3blackcrows', 'description': '三只乌鸦：一个三日的看跌反转形态。'},
+    {'name': '3inside', 'description': '三日内线：一个三日反转形态，可以是看涨或看跌。'},
+    {'name': '3outside', 'description': '三日外线：一个三日反转形态，可以是看涨或看跌。'},
+    {'name': 'abandonedbaby', 'description': '弃婴：一个三日反转形态，可以是看涨或看跌。'},
+    {'name': 'advanceblock', 'description': '推进之区：一个三日的看跌反转形态。'},
+    {'name': 'belthold', 'description': '捉腰带线：一个一日反转形态，可以是看涨或看跌。'},
+    {'name': 'breakaway', 'description': '脱离：一个五日持续形态，可以是看涨或看跌。'},
+    {'name': 'closingmarubozu', 'description': '收盘光头光脚：表示趋势强劲的单根蜡烛线。'},
+    {'name': 'concealbabyswall', 'description': '藏婴墙：一个四日的看跌反转形态。'},
+    {'name': 'counterattack', 'description': '反击线：一个两日反转形态，可以是看涨或看跌。'},
+    {'name': 'darkcloudcover', 'description': '乌云盖顶：一个两日的看跌反转形态。'},
+    {'name': 'doji', 'description': '十字星：开盘价和收盘价几乎相同，表示市场犹豫不决。'},
+    {'name': 'dojistar', 'description': '十字星：一个两日反转形态，通常在长实体蜡烛线后出现。'},
+    {'name': 'dragonflydoji', 'description': '蜻蜓十字星：开盘、最高和收盘价接近，表示潜在的看涨反转。'},
+    {'name': 'engulfing', 'description': '吞噬形态：一个两日反转形态，可以是看涨或看跌。'},
+    {'name': 'eveningdojistar', 'description': '黄昏十字星：一个三日的看跌反转形态。'},
+    {'name': 'eveningstar', 'description': '黄昏之星：一个三日的看跌反转形态。'},
+    {'name': 'gravestonedoji', 'description': '墓碑十字星：开盘、最低和收盘价接近，表示潜在的看跌反转。'},
+    {'name': 'hangingman', 'description': '上吊线：一个单根蜡烛线的看跌反转形态。'},
+    {'name': 'harami', 'description': '怀抱线：一个两日反转形态，可以是看涨或看跌。'},
+    {'name': 'haramicross', 'description': '十字怀抱线：一个两日反转形态，其中包含一个十字星。'},
+    {'name': 'highwave', 'description': '高浪线：影线很长，表示市场极度犹豫不决。'},
+    {'name': 'hikkake', 'description': '圈套：一个两日反转形态，可以是看涨或看跌。'},
+    {'name': 'hikkakemod', 'description': '修正圈套：圈套形态的变体。'},
+    {'name': 'homingpigeon', 'description': '家鸽：一个两日的看涨反转形态。'},
+    {'name': 'identical3crows', 'description': '三同鸦：一个三日的看跌反转形态。'},
+    {'name': 'inneck', 'description': '颈内线：一个两日的看跌持续形态。'},
+    {'name': 'inside', 'description': '内线形态：第二个蜡烛线完全包含在第一个蜡烛线内。'},
+    {'name': 'invertedhammer', 'description': '倒锤子线：一个单根蜡烛线的看涨反转形态。'},
+    {'name': 'kicking', 'description': '踢脚线：一个两日反转形态，可以是看涨或看跌。'},
+    {'name': 'kickingbylength', 'description': '较长踢脚线：由较长蜡烛线组成的踢脚线形态。'},
+    {'name': 'longleggeddoji', 'description': '长脚十字星：影线很长的十字星，表示高度犹豫不决。'},
+    {'name': 'longline', 'description': '长蜡烛线：实体很长，表示强劲的趋势。'},
+    {'name': 'marubozu', 'description': '光头光脚：没有影线，表示非常强烈的看涨或看跌情绪。'},
+    {'name': 'matchinglow', 'description': '匹敌低价：一个两日的看涨反转形态。'},
+    {'name': 'mathold', 'description': '铺垫：一个五日的看涨持续形态。'},
+    {'name': 'morningdojistar', 'description': '启明星十字星：一个三日的看涨反转形态。'},
+    {'name': 'morningstar', 'description': '启明星：一个三日的看涨反转形态。'},
+    {'name': 'onneck', 'description': '颈上线：一个两日的看跌持续形态。'},
+    {'name': 'rickshawman', 'description': '黄包车夫：一种长脚十字星形态。'},
+    {'name': 'risefall3methods', 'description': '三升三降：一个五日持续形态，可以是看涨或看跌。'},
+    {'name': 'separatinglines', 'description': '分离线：一个两日持续形态，可以是看涨或看跌。'},
+    {'name': 'shootingstar', 'description': '射击之星：一个单根蜡烛线的看跌反转形态。'},
+    {'name': 'shortline', 'description': '短蜡烛线：实体很小，表示价格波动不大。'},
+    {'name': 'spinningtop', 'description': '纺锤线：实体小，影线短，表示犹豫不决。'},
+    {'name': 'stalledpattern', 'description': '停顿形态：一个三日的看跌反转形态。'},
+    {'name': 'takuri', 'description': '捉腰带线：一种蜻蜓十字星或捉腰带线。'},
+    {'name': 'tasukigap', 'description': '跳空并列：一个两日持续形态，可以是看涨或看跌。'},
+    {'name': 'thrusting', 'description': '插入线：一个两日的看跌持续形态。'},
+    {'name': 'tristar', 'description': '三星：由三个十字星组成的三日反转形态。'},
+    {'name': 'unique3river', 'description': '独有三河：一个三日的看涨反转形态。'},
+    {'name': 'upsidegap2crows', 'description': '向上跳空两只乌鸦：一个三日的看跌反转形态。'},
+    {'name': 'xsidegap3methods', 'description': '跳空三法：一个五日持续形态，可以是看涨或看跌。'}
 ]
 
 
@@ -126,8 +159,7 @@ def get_bullish_candlestick_patterns():
     """
     patterns = []
     for PATTERN in ALL_PATTERNS:
-        if (PATTERN['signal'] == 1 or PATTERN['signal'] == 0) and PATTERN['weight'] > 0:
-            patterns.append(Candlestick(PATTERN, 1))
+        patterns.append(Candlestick(PATTERN, 1))
 
     return patterns
 
@@ -139,8 +171,7 @@ def get_bearish_candlestick_patterns():
     这个函数负责初始化并返回一个列表，列表中包含了看跌形态的蜡烛图形态实例。
     """
     patterns = []
-    for PATTERN in ALL_PATTERNS:
-        if PATTERN['signal'] == -1 or PATTERN['signal'] == 0:
-            patterns.append(Candlestick(PATTERN, -1))
+    for PATTERN in BEARISH_PATTERNS:
+        patterns.append(Candlestick(PATTERN, -1))
 
     return patterns
