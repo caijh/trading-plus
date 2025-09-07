@@ -32,8 +32,8 @@ class HammerTradingModel(TradingModel):
         sma20_series = df['SMA20']
         sma50_series = df['SMA50']
         sma120_series = df['SMA120']
-        prev_sma20_price = sma20_series.iloc[-2]
-        prev_sma50_price = sma50_series.iloc[-3]
+        latest_sma20_price = sma20_series.iloc[-1]
+        latest_sma50_price = sma50_series.iloc[-1]
         latest_sma120_price = sma120_series.iloc[-1]
         prev_sma120_price = sma120_series.iloc[-2]
 
@@ -52,32 +52,51 @@ class HammerTradingModel(TradingModel):
         # ---- Hammer (多头) ----
         candlestick = Candlestick({"name": "hammer", "description": "锤子线", "signal": 1, "weight": 1}, 1)
         if (candlestick.match(stock, df, trending, direction)
-            and trend_up
+            # and trend_up
         ):
             latest_swing_high = swing_highs.iloc[-1] if len(swing_highs) >= 1 else None
             if latest_swing_high is not None:
+                # 获取最后一个匹配的K线标签及其在数据框中的位置
                 last_label = candlestick.match_indexes[-1]
                 match_loc = int(df.index.get_indexer([last_label])[0])
 
+                # 获取最新摆动高点的标签及其在数据框中的位置
                 swing_label = latest_swing_high.name
                 swing_loc = int(df.index.get_indexer([swing_label])[0])
+                # 计算两个位置之间的距离
                 l = abs(match_loc - swing_loc)
-                if l >= 4:
-                    if (low_price <= prev_sma20_price * 1.001 and prev_sma20_price < close_price) \
+                # 如果距离大于等于3，则进行后续判断
+                if l >= 3:
+                    # 判断低点价格是否接近SMA20或SMA50均线，并且均线价格小于收盘价
+                    if (low_price <= latest_sma20_price * 1.001 and latest_sma20_price < close_price) \
                         or (
-                        low_price <= prev_sma50_price * 1.001 and prev_sma50_price < close_price):
+                        low_price <= latest_sma50_price * 1.001 and latest_sma50_price < close_price):
+                        # 判断长期趋势是否向上（SMA120均线呈上升趋势）
                         if latest_sma120_price > prev_sma120_price:  # 长期趋势向上
                             return 1
+
 
         # ---- Hangingman (空头) ----
         candlestick = Candlestick({"name": "invertedhammer", "description": "倒锤头线", "signal": -1, "weight": 0}, -1)
         if (candlestick.match(stock, df, trending, direction)
-            and trend_down
+            # and trend_down
         ):
-            if (high_price >= prev_sma20_price * 0.999 and prev_sma20_price > close_price) \
-                or (high_price >= prev_sma50_price * 0.999 > close_price):
-                if latest_sma120_price < prev_sma120_price:  # 长期趋势向下
-                    return -1
+            latest_swing_low = swing_lows.iloc[-1] if len(swing_lows) >= 1 else None
+            last_label = candlestick.match_indexes[-1]
+            match_loc = int(df.index.get_indexer([last_label])[0])
+            if latest_swing_low is not None:
+                # 获取最后一个匹配的K线标签及其在数据框中的位置
+                # 获取最新摆动低点的标签及其在数据框中的位置
+                swing_label = latest_swing_low.name
+                swing_loc = int(df.index.get_indexer([swing_label])[0])
+                # 计算两个位置之间的距离
+                l = abs(match_loc - swing_loc)
+                # 如果距离大于等于3，则进行后续判断
+                if l >= 3:
+                    if (high_price >= latest_sma20_price * 0.999 and latest_sma20_price > close_price) \
+                        or (high_price >= latest_sma50_price * 0.999 > close_price):
+                        if latest_sma120_price < prev_sma120_price:  # 长期趋势向下
+                            return -1
 
         return 0
 
