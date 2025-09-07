@@ -227,6 +227,8 @@ def analyze_stock_prices(stock, df, strategy_name=None,
         if strategy is not None and (candlestick_signal == strategy.signal or indicator_signal == strategy.signal):
             stock['strategy'] = strategy.to_dict()
             break
+        else:
+            strategy = None
     signal = 0
     patterns = []
     if strategy is None:
