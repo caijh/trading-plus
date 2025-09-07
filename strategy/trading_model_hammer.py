@@ -1,5 +1,3 @@
-import pandas_ta as ta
-
 from indicator.candlestick import Candlestick
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
@@ -115,24 +113,18 @@ class HammerTradingModel(TradingModel):
         last_close = df['close'].iloc[-1]
         n_digits = 3 if stock['stock_type'] == 'Fund' else 2
 
-        # ---- ATR 动态止盈止损 ----
-        atr = ta.atr(df['high'], df['low'], df['close'], length=14).iloc[-1]
         swing_highs = df[df['turning'] == -1]
         swing_lows = df[df['turning'] == 1]
         if signal == 1:  # 多头
             stop_loss = swing_lows.iloc[-1]['low']
-            entry_price = last_close * 0.994
-            target_high = swing_highs['high'].iloc[-1] if len(swing_highs) >= 1 else None
-            atr_target_high = entry_price + 2.5 * atr
-            take_profit = target_high * 0.994 if target_high is not None and target_high < atr_target_high else atr_target_high
-
+            entry_price = last_close * 0.998
+            target_high = stock['resistance']
+            take_profit = target_high * 0.998
         elif signal == -1:  # 空头
             stop_loss = swing_highs.iloc[-1]['high']
-            entry_price = last_close * 1.006
-            target_low = swing_lows['low'].iloc[-1] if len(swing_lows) >= 1 else None
-            atr_target_low = entry_price - 2.5 * atr
-            take_profit = target_low * 1.006 if target_low is not None and target_low > atr_target_low else atr_target_low
-
+            entry_price = last_close * 1.002
+            target_low = stock['support']
+            take_profit = target_low * 1.002
         else:
             return None
 
