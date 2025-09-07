@@ -219,14 +219,12 @@ def get_match_ma_patterns(patterns, stock, df, trending, direction, volume_weigh
 
 
 def get_match_patterns(patterns, stock, df, trending, direction):
-    code = stock['code']
-    name = stock['name']
     weight = 0
     matched_patterns = []
     try:
         for pattern in patterns:
             if pattern.match(stock, df, trending, direction):
-                print(f'{code} {name} Match {pattern.label}')
+                print(f'{stock['code']} {stock['name']} Match {pattern.label}')
                 weight += pattern.weight
                 matched_patterns.append(pattern)
     except Exception as e:
