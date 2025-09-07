@@ -23,24 +23,12 @@ from indicator.wr import WR
 
 def get_candlestick_signal(stock, df, candlestick_weight):
     candlestick_patterns = get_bearish_candlestick_patterns()
-    matched_patterns = []
-    weight = 0
-    for candlestick_pattern in candlestick_patterns:
-        if candlestick_pattern.match(stock, df, trending=None, direction=None):
-            matched_patterns.append(candlestick_pattern)
-            weight += candlestick_pattern.weight
-
+    matched_patterns, weight = get_match_patterns(candlestick_patterns, stock, df, trending=None, direction=None)
     if weight >= candlestick_weight:
         return -1, matched_patterns
 
     candlestick_patterns = get_bullish_candlestick_patterns()
-    matched_patterns = []
-    weight = 0
-    for candlestick_pattern in candlestick_patterns:
-        if candlestick_pattern.match(stock, df, trending=None, direction=None):
-            matched_patterns.append(candlestick_pattern)
-            weight += candlestick_pattern.weight
-
+    matched_patterns, weight = get_match_patterns(candlestick_patterns, stock, df, trending=None, direction=None)
     if weight >= candlestick_weight:
         return 1, matched_patterns
 
@@ -80,7 +68,7 @@ def get_up_primary_patterns():
     # 初始化均线和偏差率模式列表
     patterns = [
         SMA(10, 1),
-        SMA(21, 1),
+        SMA(20, 1),
         SMA(50, 1),
         MACD(1),
         SAR(1),
@@ -102,7 +90,7 @@ def get_down_primary_patterns():
     # 初始化均线和偏差率
     patterns = [
         SMA(10, -1),
-        SMA(21, -1),
+        SMA(20, -1),
         SMA(50, -1),
         MACD(-1),
         SAR(-1),
