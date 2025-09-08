@@ -36,9 +36,9 @@ class HammerTradingModel(TradingModel):
         prev_sma120_price = sma120_series.iloc[-2]
 
         # ---- 当日价格 ----
-        close_price = df.iloc[-2]['close']
-        low_price = df.iloc[-2]['low']
-        high_price = df.iloc[-2]['high']
+        close_price = df.iloc[-1]['close']
+        low_price = df.iloc[-1]['low']
+        high_price = df.iloc[-1]['high']
 
         swing_highs = df[df['turning'] == -1]
         swing_lows = df[df['turning'] == 1]
