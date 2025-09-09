@@ -88,7 +88,7 @@ def generate_strategies(stocks):
             analyzed_stocks.append(stock)
 
     if len(analyzed_stocks) == 0:
-        print("🚀 没有已经分析的股票")
+        print("🚀 没有有买入策略的股票")
         return
 
     print("================================================")
