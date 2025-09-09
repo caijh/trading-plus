@@ -39,9 +39,6 @@ class AntiTradingModel(TradingModel):
         ema20 = ta.ema(df['close'], length=20)
         ema50 = ta.ema(df['close'], length=50)
 
-        # 成交量均线
-        vol_ma5 = ta.sma(df['volume'], length=5)
-
         # 最新值
         k_now, d_now = k_series.iloc[-1], d_series.iloc[-1]
         k_prev, d_prev = k_series.iloc[-2], d_series.iloc[-2]
