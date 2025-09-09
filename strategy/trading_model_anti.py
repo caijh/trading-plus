@@ -47,28 +47,14 @@ class AntiTradingModel(TradingModel):
         k_prev, d_prev = k_series.iloc[-2], d_series.iloc[-2]
         k_prev_prev, d_prev_prev = k_series.iloc[-3], d_series.iloc[-3]
 
-        vol_now, vol_pre, vol_pre_prev = df['volume'].iloc[-1], df['volume'].iloc[-2], df['volume'].iloc[-3]
-
-        # OBV (能量潮) - 资金流向
-        obv_series = ta.obv(df['close'], df['volume'])
-        obv_now, obv_prev = obv_series.iloc[-1], obv_series.iloc[-2]
-
-        # CMF (Chaikin Money Flow) - 资金流强度
-        cmf_series = ta.cmf(df['high'], df['low'], df['close'], df['volume'], length=20)
-        cmf_now = cmf_series.iloc[-1]
-        cmf_prev = cmf_series.iloc[-2]
-
         # ========== 2. 多头信号 ==========
         bullish_kdj = (d_now > d_prev > d_prev_prev) and (k_prev_prev > k_prev < k_now) and (k_now >= d_now)
         bullish_trend = (
             ema20.iloc[-1] > ema50.iloc[-1] > ema50.iloc[-2] and
             ema20.iloc[-1] > ema20.iloc[-2]
         )
-        # 多头：OBV 在上升或保持，CMF > 0（净流入）
-        bullish_flow = (obv_now > obv_prev) and (cmf_now > cmf_prev)
-        bullish_volume = (vol_now < vol_pre > vol_pre_prev) and bullish_flow  # 缩量
 
-        if bullish_kdj and bullish_trend and bullish_volume:
+        if bullish_kdj and bullish_trend:
             return 1
 
         # ========== 3. 空头信号 ==========
@@ -77,11 +63,8 @@ class AntiTradingModel(TradingModel):
             ema20.iloc[-1] < ema50.iloc[-1] < ema50.iloc[-2] and
             ema20.iloc[-1] < ema20.iloc[-2]
         )  # 均线空头排列
-        # 空头：OBV 在下降或保持，CMF < 0（净流出）
-        bearish_flow = (obv_now < obv_prev) and (cmf_now < cmf_prev)
-        bearish_volume = (vol_now > vol_pre < vol_pre_prev) and bearish_flow  # 放量下跌
 
-        if bearish_kdj and bearish_trend and bearish_volume:
+        if bearish_kdj and bearish_trend:
             return -1
 
         return 0
