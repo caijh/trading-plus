@@ -157,11 +157,11 @@ class ICTTradingModel(TradingModel):
             # 根据目标类型判断不同的触及条件和收盘条件
             if target_type == 'bullish':
                 # 看涨情况：最低价触及区域下半部分且收盘价突破上轨
-                touch_condition = (cur_low >= low) and (cur_low <= midpoint)
+                touch_condition = cur_low <= midpoint
                 close_condition = cur_close >= high
             elif target_type == 'bearish':
                 # 看跌情况：最高价触及区域上半部分且收盘价跌破下轨
-                touch_condition = (cur_high <= high) and (cur_high >= midpoint)
+                touch_condition = cur_high >= midpoint
                 close_condition = cur_close <= low
 
             return touch_condition and close_condition
