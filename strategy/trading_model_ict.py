@@ -7,7 +7,7 @@ from strategy.trading_model import TradingModel
 
 class ICTTradingModel(TradingModel):
     def __init__(self,
-                 lookback_bos: int = 10,
+                 lookback_bos: int = 15,
                  lookback_ob: int = 10,
                  lookahead_fvg: int = 5,
                  fvg_atr_mult: float = 0.2,
@@ -141,25 +141,41 @@ class ICTTradingModel(TradingModel):
         cur_low = df['low'].iloc[last_idx]
 
         # Helper to test touch (any overlap with zone)
-        def touched_zone(low, high):
+        def touched_zone(target_type, low, high):
+            """
+            判断当前K线是否满足特定类型的触及区域条件
+
+            :param target_type: 目标类型，'bullish' 表示看涨，'bearish' 表示看跌
+            :param low: 区域下限值
+            :param high: 区域上限值
+            :return: 布尔值，表示是否满足触及区域条件
+            """
             midpoint = (low + high) / 2
+            touch_condition = False
+            close_condition = False
 
-            touch_condition = (cur_low <= midpoint) and (cur_low >= low)
-
-            # 收盘必须突破 zone 上界
-            close_condition = cur_close >= high
+            # 根据目标类型判断不同的触及条件和收盘条件
+            if target_type == 'bullish':
+                # 看涨情况：最低价触及区域下半部分且收盘价突破上轨
+                touch_condition = (cur_low >= low) and (cur_low <= midpoint)
+                close_condition = cur_close >= high
+            elif target_type == 'bearish':
+                # 看跌情况：最高价触及区域上半部分且收盘价跌破下轨
+                touch_condition = (cur_high <= high) and (cur_high >= midpoint)
+                close_condition = cur_close <= low
 
             return touch_condition and close_condition
+
 
         ob_type, ob_idx, ob_low, ob_high = ob_info
         # OB preferred
         if prefer in ('OB', 'ANY') and ob_type is not None:
             if ob_type == 'BULL_OB':
-                touched = touched_zone(ob_low, ob_high)
+                touched = touched_zone('bullish', ob_low, ob_high)
                 if touched and cur_close > cur_open:
                     return 1
             if ob_type == 'BEAR_OB':
-                touched = touched_zone(ob_low, ob_high)
+                touched = touched_zone('bearish', ob_low, ob_high)
                 if touched and cur_close < cur_open:
                     return -1
 
@@ -170,12 +186,12 @@ class ICTTradingModel(TradingModel):
                 # gap interval = [left_high, right_low]
                 gap_low = fvg_info[3]  # left_high
                 gap_high = fvg_info[6]  # right_low
-                if touched_zone(gap_low, gap_high) and cur_close > cur_open:
+                if touched_zone('bullish', gap_low, gap_high) and cur_close > cur_open:
                     return 1
             if fvg_type == 'BEAR':
                 gap_low = fvg_info[5]  # right_high
                 gap_high = fvg_info[4]  # left_low
-                if touched_zone(gap_low, gap_high) and cur_close < cur_open:
+                if touched_zone('bearish', gap_low, gap_high) and cur_close < cur_open:
                     return -1
 
         return 0
@@ -291,4 +307,3 @@ class ICTTradingModel(TradingModel):
             signal=signal
         )
         return strategy
-
