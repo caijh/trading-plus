@@ -52,6 +52,22 @@ def get_candlestick_signal(stock, df, candlestick_weight):
 
 
 def get_indicator_signal(stock, df, trending, direction, ma_weight_limit, volume_weight_limit):
+    """
+    获取股票技术指标信号
+
+    参数:
+        stock: 股票代码
+        df: 股票数据DataFrame
+        trending: 趋势状态
+        direction: 方向参数
+        ma_weight_limit: 移动平均权重限制
+        volume_weight_limit: 成交量权重限制
+
+    返回值:
+        tuple: (信号值, 匹配的主要模式列表, 匹配的次要模式列表)
+               信号值：-1表示卖出信号，1表示买入信号，0表示无信号
+    """
+    # 检查下跌模式信号
     patterns = get_down_primary_patterns()
 
     matched_patterns, weight = get_match_patterns(patterns, stock, df, trending, direction)
@@ -62,6 +78,7 @@ def get_indicator_signal(stock, df, trending, direction, ma_weight_limit, volume
         if weight >= volume_weight_limit:
             return -1, matched_patterns, matched_secondary_patterns
 
+    # 检查上涨模式信号
     patterns = get_up_primary_patterns()
     matched_patterns, weight = get_match_patterns(patterns, stock, df, trending, direction)
 
