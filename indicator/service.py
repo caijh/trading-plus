@@ -22,16 +22,32 @@ from indicator.wr import WR
 
 
 def get_candlestick_signal(stock, df, candlestick_weight):
+    """
+    根据K线形态匹配结果生成交易信号
+
+    参数:
+        stock: 股票代码
+        df: 包含K线数据的DataFrame
+        candlestick_weight: K线形态权重阈值
+
+    返回值:
+        tuple: (信号值, 匹配的形态列表)
+               信号值：-1表示看跌信号，1表示看涨信号，0表示无信号
+               匹配的形态列表：符合权重阈值的K线形态名称列表
+    """
+    # 检查是否存在看跌K线形态
     candlestick_patterns = get_bearish_candlestick_patterns()
     matched_patterns, weight = get_match_patterns(candlestick_patterns, stock, df, trending=None, direction=None)
     if weight >= candlestick_weight:
         return -1, matched_patterns
 
+    # 检查是否存在看涨K线形态
     candlestick_patterns = get_bullish_candlestick_patterns()
     matched_patterns, weight = get_match_patterns(candlestick_patterns, stock, df, trending=None, direction=None)
     if weight >= candlestick_weight:
         return 1, matched_patterns
 
+    # 无明显信号时返回默认值
     return 0, []
 
 
