@@ -1,5 +1,6 @@
 import pandas_ta as ta
 
+from calculate.service import detect_turning_points
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
 
@@ -43,9 +44,12 @@ class AntiTradingModel(TradingModel):
         k_now, d_now = k_series.iloc[-1], d_series.iloc[-1]
         k_prev, d_prev = k_series.iloc[-2], d_series.iloc[-2]
         k_prev_prev, d_prev_prev = k_series.iloc[-3], d_series.iloc[-3]
+        d_turning_points, _, _ = detect_turning_points(d_series)
+        if len(d_turning_points) < 1:
+            return 0
 
         # ========== 2. 多头信号 ==========
-        bullish_kdj = (d_now > d_prev > d_prev_prev) and (k_prev_prev > k_prev < k_now) and (k_now >= d_now)
+        bullish_kdj = (d_now > d_turning_points.iloc[-1]) and (k_prev_prev > k_prev < k_now) and (k_now >= d_now)
         bullish_trend = (
             ema20.iloc[-1] > ema50.iloc[-1] > ema50.iloc[-2] and
             ema20.iloc[-1] > ema20.iloc[-2]
@@ -55,7 +59,7 @@ class AntiTradingModel(TradingModel):
             return 1
 
         # ========== 3. 空头信号 ==========
-        bearish_kdj = (d_now < d_prev < d_prev_prev) and (k_prev_prev < k_prev > k_now) and (k_now <= d_now)
+        bearish_kdj = (d_now < d_turning_points.iloc[-1]) and (k_prev_prev < k_prev > k_now) and (k_now <= d_now)
         bearish_trend = (
             ema20.iloc[-1] < ema50.iloc[-1] < ema50.iloc[-2] and
             ema20.iloc[-1] < ema20.iloc[-2]
