@@ -105,7 +105,7 @@ class AntiTradingModel(TradingModel):
             strategy_name=self.name,
             stock_code=stock['code'],
             stock_name=stock['name'],
-            entry_patterns=['ANTI', 'KDJ', 'EMA', 'VOL'],
+            entry_patterns=['ANTI', 'KDJ', 'EMA'],
             exit_patterns=[],
             exchange=stock['exchange'],
             entry_price=float(entry_price),
