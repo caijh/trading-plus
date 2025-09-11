@@ -1,3 +1,4 @@
+from calculate.service import get_recent_price
 from indicator.candlestick import Candlestick
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
@@ -113,15 +114,15 @@ class HammerTradingModel(TradingModel):
         last_close = df['close'].iloc[-1]
         n_digits = 3 if stock['stock_type'] == 'Fund' else 2
 
-        swing_highs = df[df['turning'] == -1]
-        swing_lows = df[df['turning'] == 1]
+        low_price = get_recent_price(stock, df, 3, 'low')
+        high_price = get_recent_price(stock, df, 3, 'high')
         if signal == 1:  # 多头
-            stop_loss = swing_lows.iloc[-1]['low']
+            stop_loss = low_price
             entry_price = last_close * 0.998
             target_high = stock['resistance']
             take_profit = target_high * 0.998
         elif signal == -1:  # 空头
-            stop_loss = swing_highs.iloc[-1]['high']
+            stop_loss = high_price
             entry_price = last_close * 1.002
             target_low = stock['support']
             take_profit = target_low * 1.002
