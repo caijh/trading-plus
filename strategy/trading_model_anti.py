@@ -88,14 +88,14 @@ class AntiTradingModel(TradingModel):
         if signal == 1:
             # 📈 多头策略
             entry_price = last_close * 0.998
-            stop_loss = round(entry_price - 1.5 * atr_now, n_digits)
-            take_profit = round(entry_price + 2.5 * atr_now, n_digits)
+            stop_loss = round(entry_price - 1.0 * atr_now, n_digits)
+            take_profit = round(entry_price + 2.0 * atr_now, n_digits)
 
         elif signal == -1:
             # 📉 空头策略
             entry_price = last_close * 1.002
-            stop_loss = round(entry_price + 1.5 * atr_now, n_digits)
-            take_profit = round(entry_price - 2.5 * atr_now, n_digits)
+            stop_loss = round(entry_price + 1.0 * atr_now, n_digits)
+            take_profit = round(entry_price - 2.0 * atr_now, n_digits)
 
         else:
             return None
