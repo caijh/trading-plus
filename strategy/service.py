@@ -195,7 +195,7 @@ def analyze_stock_prices(stock, df, strategy_name=None,
     print("=====================================================")
     print(f'Analyzing Stock, code = {stock['code']}, name = {stock['name']}')
 
-    trading_models = get_trading_models(stock, candlestick_weight, ma_weight, volume_weight)
+    trading_models = get_trading_models(stock)
 
     if strategy_name is not None:
         trading_models = [model for model in trading_models if model.name == strategy_name]
@@ -241,12 +241,11 @@ def analyze_stock_prices(stock, df, strategy_name=None,
     return strategy
 
 
-def get_trading_models(stock, candlestick_weight, ma_weight, volume_weight):
+def get_trading_models(stock):
     if stock['stock_type'] == 'Index':
         return [IndexTradingModel()]
     return [
         AntiTradingModel(),
         ICTTradingModel(),
         HammerTradingModel(),
-        # MultiIndicatorTradingModel(candlestick_weight, ma_weight, volume_weight)
     ]
