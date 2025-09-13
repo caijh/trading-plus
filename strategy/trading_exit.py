@@ -43,7 +43,7 @@ def get_exit_signal(strategy):
 
         price = float(prices[-1])
         if price > float(holdings.price):
-            if datetime.now(timezone.utc) - strategy.created_at > timedelta(days=14):
+            if datetime.now(CN_TZ) - strategy.created_at > timedelta(days=14):
                 return -1, '持仓太久卖出', []
 
     return 0, '继续持有', []
