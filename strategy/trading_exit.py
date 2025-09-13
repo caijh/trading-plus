@@ -6,6 +6,7 @@ from holdings.service import get_holdings
 from indicator.service import get_exit_patterns
 from stock.service import get_stock, get_stock_prices, KType
 
+CN_TZ = timezone(timedelta(hours=8))  # 中国时区（UTC+8）
 
 def get_exit_signal(strategy):
     code = strategy.stock_code
@@ -19,7 +20,7 @@ def get_exit_signal(strategy):
     # 如果没有持仓信息
     if holdings is None:
         # 更新太旧策略signal = -1
-        if datetime.now(timezone.utc) - strategy.created_at > timedelta(days=env_vars.STRATEGY_RETENTION_DAY):
+        if datetime.now(CN_TZ) - strategy.created_at > timedelta(days=env_vars.STRATEGY_RETENTION_DAY):
             return -1, '策略太久未执行', []
     else:
         prices = get_stock_prices(code, KType.DAY)
