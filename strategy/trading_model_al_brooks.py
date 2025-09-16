@@ -34,19 +34,19 @@ class AlBrooksProTradingModel(TradingModel):
         high = df['high'].iloc[-1]
         low = df['low'].iloc[-1]
 
-        is_bull_trend = close > ema20 > prev_ema20
-        is_bear_trend = close < ema20 < prev_ema20
+        ema50_series = ta.ema(close=df['close'], length=50)
+        ema50 = ema50_series.iloc[-1]
+        is_bull_trend = close > ema20 > prev_ema20 and ema20 > ema50
+        is_bear_trend = close < ema20 < prev_ema20 and ema20 < ema50
 
         # --- Multi-leg pullback detection ---
         if is_bull_trend:
             # 扫描最近 N 根K线寻找两腿回撤
             lows = df['low'].iloc[-self.pullback_lookback:]
             highs = df['high'].iloc[-self.pullback_lookback:]
-            closes = df['close'].iloc[-self.pullback_lookback:]
 
             first_leg_low = lows.iloc[0]
             second_leg_low = lows.iloc[1:].min()  # 第二腿最底点
-            second_leg_idx = lows.iloc[1:].idxmin()
             if second_leg_low > first_leg_low:
                 # 第二腿回撤浅
                 leg_range = highs.iloc[0] - first_leg_low
@@ -59,11 +59,9 @@ class AlBrooksProTradingModel(TradingModel):
         if is_bear_trend:
             highs = df['high'].iloc[-self.pullback_lookback:]
             lows = df['low'].iloc[-self.pullback_lookback:]
-            closes = df['close'].iloc[-self.pullback_lookback:]
 
             first_leg_high = highs.iloc[0]
             second_leg_high = highs.iloc[1:].max()
-            second_leg_idx = highs.iloc[1:].idxmax()
             if second_leg_high < first_leg_high:
                 leg_range = first_leg_high - lows.iloc[0]
                 second_leg_depth = first_leg_high - second_leg_high
@@ -139,9 +137,9 @@ class AlBrooksProTradingModel(TradingModel):
             entry_patterns=self.patterns.copy(),
             exit_patterns=[],
             exchange=stock['exchange'],
-            entry_price=entry_price,
-            take_profit=take_profit,
-            stop_loss=stop_loss,
+            entry_price=float(entry_price),
+            take_profit=float(take_profit),
+            stop_loss=float(stop_loss),
             signal=signal
         )
         return strategy
