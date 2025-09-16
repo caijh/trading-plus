@@ -10,6 +10,7 @@ from stock.service import KType, get_stock_prices
 from strategy.model import TradingStrategy
 from strategy.trading_exit import get_exit_signal
 from strategy.trading_model import TradingModel
+from strategy.trading_model_al_brooks import AlBrooksProTradingModel
 from strategy.trading_model_anti import AntiTradingModel
 from strategy.trading_model_hammer import HammerTradingModel
 from strategy.trading_model_ict import ICTTradingModel
@@ -248,4 +249,6 @@ def get_trading_models(stock):
         AntiTradingModel(),
         ICTTradingModel(),
         HammerTradingModel(),
+        # ZenTradingModel(),
+        AlBrooksProTradingModel(),
     ]
