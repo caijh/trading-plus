@@ -47,7 +47,7 @@ def detect_turning_point_indexes(series, df=None):
         if prev > curr and curr < next_:
             idx_next_next = idx_next + 2
             if idx_next_next < series_len:
-                if (latest_up_point_idx is None or (i - latest_up_point_idx) > 2) and series.iloc[
+                if (latest_up_point_idx is None or (i - latest_up_point_idx) > 3) and series.iloc[
                     idx_next_next] > next_:
                     latest_up_point_idx = i
                     if df is not None:
@@ -64,7 +64,7 @@ def detect_turning_point_indexes(series, df=None):
         if prev < curr and curr > next_:
             idx_prev_prev = idx_prev - 2
             if idx_prev_prev >= 0:
-                if (latest_down_point_idx is None or (i - latest_down_point_idx) > 2) and series.iloc[
+                if (latest_down_point_idx is None or (i - latest_down_point_idx) > 3) and series.iloc[
                     idx_prev_prev] < prev:
                     latest_down_point_idx = i
                     if df is not None:
@@ -684,7 +684,7 @@ def _get_recent_price_base_index(df, index, price_type):
         float: 指定范围内的最高价或最低价。
     """
     # 确定要切片的范围，确保不超出DataFrame边界
-    start_idx = max(0, index - 2)
+    start_idx = max(0, index - 3)
     end_idx = min(len(df), index + 3)
 
     idx = index
