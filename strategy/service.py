@@ -225,14 +225,15 @@ def analyze_stock_prices(stock, df, strategy_name=None,
     strategy = None
     for model in trading_models:
         strategy = model.get_trading_strategy(stock, df)
-        if (strategy is not None
-            and (candlestick_signal == strategy.signal or indicator_signal == strategy.signal)):
-            if (strategy.signal == 1 and (stock['price'] < ((stock['support'] + stock['resistance']) / 2))
-                or (strategy.signal == -1 and (stock['price'] > ((stock['support'] + stock['resistance']) / 2)))):
+        if strategy is not None and (candlestick_signal == strategy.signal or indicator_signal == strategy.signal):
+            if strategy.signal == 1 and (stock['price'] < ((stock['support'] + stock['resistance']) / 2)):
                 stock['strategy'] = strategy.to_dict()
                 break
-        else:
-            strategy = None
+            elif strategy.signal == -1 and (stock['price'] > ((stock['support'] + stock['resistance']) / 2)):
+                stock['strategy'] = strategy.to_dict()
+                break
+
+        strategy = None
     signal = 0
     patterns = []
     if strategy is None:
