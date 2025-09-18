@@ -1,5 +1,3 @@
-import pandas_ta as ta
-
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
 
@@ -27,17 +25,21 @@ class AlBrooksProTradingModel(TradingModel):
         self.optimal_entry = None
 
         # --- EMA trend ---
-        ema20_series = ta.ema(close=df['close'], length=20)
-        ema20 = ema20_series.iloc[-1]
-        prev_ema20 = ema20_series.iloc[-2]
+        sma20_series = df['SMA20']
+        sma20 = sma20_series.iloc[-1]
+        prev_sma20 = sma20_series.iloc[-2]
         close = df['close'].iloc[-1]
         high = df['high'].iloc[-1]
         low = df['low'].iloc[-1]
 
-        ema50_series = ta.ema(close=df['close'], length=50)
-        ema50 = ema50_series.iloc[-1]
-        is_bull_trend = close > ema20 > prev_ema20 and ema20 > ema50
-        is_bear_trend = close < ema20 < prev_ema20 and ema20 < ema50
+        sma50_series = df['SMA50']
+        sma50 = sma50_series.iloc[-1]
+        prev_sma50 = sma50_series.iloc[-2]
+        sma120_series = df['SMA120']
+        is_bull_trend = close > sma20 > prev_sma20 and sma20 > sma50 > prev_sma50 and sma120_series.iloc[-1] > \
+                        sma120_series.iloc[-2]
+        is_bear_trend = close < sma20 < prev_sma20 and sma20 < sma50 < prev_sma50 and sma120_series.iloc[-1] < \
+                        sma120_series.iloc[-2]
 
         # --- Multi-leg pullback detection ---
         if is_bull_trend:
