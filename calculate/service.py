@@ -698,3 +698,17 @@ def _get_recent_price_base_index(df, index, price_type):
                 idx = i
     price = df.iloc[idx]['close']
     return idx, price
+
+
+def get_total_volume_around(df, index, around=3):
+    idx = df.index.get_loc(index)
+    volume_total = df['volume'].iloc[max(0, idx - around): idx + around].sum()
+    return volume_total
+
+
+def get_avg_volume_around(df, index, around=3):
+    return get_total_volume_around(df, index, around) / (2 * around + 1)
+
+
+def get_distance(df, point, other_point):
+    return abs(df.index.get_loc(point.name) - df.index.get_loc(other_point.name))

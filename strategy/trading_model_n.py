@@ -1,4 +1,4 @@
-from stock.constant import Direction
+from calculate.service import get_total_volume_around, get_distance
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
 
@@ -12,22 +12,27 @@ class NTradingModel(TradingModel):
 
     def get_trading_signal(self, stock, df, trending, direction):
         turning_points = df[df['turning'] != 0]
+        if len(turning_points) < 4:
+            return 0
         point_1 = turning_points.iloc[-1]
         point_2 = turning_points.iloc[-2]
         point_3 = turning_points.iloc[-3]
-        close = df['close'].iloc[-1]
-        volume = df['volume'].iloc[-1]
-        prev_volume = df['volume'].iloc[-2]
-        if point_1['low'] < close < point_2['high'] and point_2['high'] > point_3['low']:
-            if prev_volume > volume:
-                return 0
-            if direction == Direction.DOWN:
+        point_4 = turning_points.iloc[-4]
+        point = df.iloc[-1]
+        close = point['close']
+        if get_distance(df, point_1, point) > 3:
+            return 0
+
+        if point_1['low'] < close < point_2['high'] and point_2['high'] > point_3['low'] and point_3['low'] < point_4[
+            'high']:
+            # 比较 point1 与 point3 处前后 3 天的成交量均值
+            if get_total_volume_around(df, point_1.name, 3) < get_total_volume_around(df, point_3.name, 3):
                 return 0
             return 1
-        elif point_2['low'] < close < point_1['high'] and point_2['low'] < point_3['high']:
-            if prev_volume > volume:
-                return 0
-            if direction == Direction.UP:
+        elif point_2['low'] < close < point_1['high'] and point_2['low'] < point_3['high'] and point_3['high'] > \
+            point_4['low']:
+            # 比较 point1 与 point3 处前后 5 天的成交量均值
+            if get_total_volume_around(df, point_1.name, 3) < get_total_volume_around(df, point_3.name, 3):
                 return 0
             return -1
 
