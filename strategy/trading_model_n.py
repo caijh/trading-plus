@@ -23,14 +23,18 @@ class NTradingModel(TradingModel):
         if get_distance(df, point_1, point) > 3:
             return 0
 
-        if point_1['low'] < close < point_2['high'] and point_2['high'] > point_3['low'] and point_3['low'] < point_4[
-            'high']:
+        if (point_1['low'] < close < point_2['high']
+            and point_2['high'] > point_3['low'] and point_3['low'] < point_4['high'] < point_2['high']
+        ):
             # 比较 point1 与 point3 处前后 3 天的成交量均值
             if get_total_volume_around(df, point_1.name, 3) < get_total_volume_around(df, point_3.name, 3):
                 return 0
             return 1
-        elif point_2['low'] < close < point_1['high'] and point_2['low'] < point_3['high'] and point_3['high'] > \
-            point_4['low']:
+        elif (point_2['low'] < close < point_1['high']
+              and point_2['low'] < point_3['high']
+              and point_3['high'] > point_4['low']
+              and point_1['high'] < point_3['high']
+        ):
             # 比较 point1 与 point3 处前后 5 天的成交量均值
             if get_total_volume_around(df, point_1.name, 3) < get_total_volume_around(df, point_3.name, 3):
                 return 0
