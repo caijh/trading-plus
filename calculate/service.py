@@ -47,14 +47,23 @@ def detect_turning_point_indexes(series, df=None):
         if prev > curr and curr < next_:
             idx_next_next = idx_next + 2
             if idx_next_next < series_len:
-                if (latest_up_point_idx is None or (i - latest_up_point_idx) > 3) and series.iloc[
-                    idx_next_next] > next_:
+                if latest_up_point_idx is None or (i - latest_up_point_idx) > 3:
                     latest_up_point_idx = i
                     if df is not None:
-                        idx, price = _get_recent_price_base_index(df, latest_up_point_idx, 'low')
+                        idx, price = _get_recent_price_base_idx(df, latest_up_point_idx, 'low')
                         latest_up_point_idx = idx
                     turning_up_points.append(latest_up_point_idx)
                     turning_points.append(latest_up_point_idx)
+                elif i - latest_up_point_idx < 3:
+                    if curr <= series.iloc[latest_up_point_idx]:
+                        turning_up_points.remove(latest_up_point_idx)
+                        turning_points.remove(latest_up_point_idx)
+                        latest_up_point_idx = i
+                        if df is not None:
+                            idx, price = _get_recent_price_base_idx(df, latest_up_point_idx, 'low')
+                            latest_up_point_idx = idx
+                        turning_up_points.append(latest_up_point_idx)
+                        turning_points.append(latest_up_point_idx)
             else:
                 latest_up_point_idx = i
                 turning_up_points.append(i)
@@ -64,14 +73,23 @@ def detect_turning_point_indexes(series, df=None):
         if prev < curr and curr > next_:
             idx_prev_prev = idx_prev - 2
             if idx_prev_prev >= 0:
-                if (latest_down_point_idx is None or (i - latest_down_point_idx) > 3) and series.iloc[
-                    idx_prev_prev] < prev:
+                if latest_down_point_idx is None or (i - latest_down_point_idx) > 3:
                     latest_down_point_idx = i
                     if df is not None:
-                        idx, price = _get_recent_price_base_index(df, latest_down_point_idx, 'high')
+                        idx, price = _get_recent_price_base_idx(df, latest_down_point_idx, 'high')
                         latest_down_point_idx = idx
                     turning_down_points.append(latest_down_point_idx)
                     turning_points.append(latest_down_point_idx)
+                elif i - latest_down_point_idx < 3:
+                    if curr >= series.iloc[latest_down_point_idx]:
+                        turning_down_points.remove(latest_down_point_idx)
+                        turning_points.remove(latest_down_point_idx)
+                        latest_down_point_idx = i
+                        if df is not None:
+                            idx, price = _get_recent_price_base_idx(df, latest_down_point_idx, 'high')
+                            latest_down_point_idx = idx
+                        turning_down_points.append(latest_down_point_idx)
+                        turning_points.append(latest_down_point_idx)
             else:
                 latest_down_point_idx = i
                 turning_down_points.append(i)
@@ -670,24 +688,24 @@ def get_recent_price_base_index(df, index, price_type):
     return _get_recent_price(recent_df, price_type)
 
 
-def _get_recent_price_base_index(df, index, price_type):
+def _get_recent_price_base_idx(df, idx, price_type):
     """
     在给定索引前后2个位置（共5个）的K线数据中，
     找出最高价或最低价。
 
     Args:
         df (pd.DataFrame): 包含'high'和'low'列的股票数据DataFrame。
-        index (int): 目标K线的索引。
+        idx (int): 目标K线的索引。
         price_type (str): 'high' 或 'low'，指定要查找的价格类型。
 
     Returns:
         float: 指定范围内的最高价或最低价。
     """
     # 确定要切片的范围，确保不超出DataFrame边界
-    start_idx = max(0, index - 3)
-    end_idx = min(len(df), index + 3)
+    start_idx = max(0, idx - 3)
+    end_idx = min(len(df), idx + 3)
 
-    idx = index
+    idx = idx
     if price_type == 'low':
         for i in range(start_idx, end_idx):
             if df.iloc[i]['low'] < df.iloc[idx]['low']:
