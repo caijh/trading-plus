@@ -47,14 +47,14 @@ def detect_turning_point_indexes(series, df=None):
         if prev > curr and curr < next_:
             idx_next_next = idx_next + 1
             if idx_next_next < series_len:
-                if latest_up_point_idx is None or (i - latest_up_point_idx) > 3:
+                if latest_up_point_idx is None or (i - latest_up_point_idx) > 4:
                     latest_up_point_idx = i
                     if df is not None:
                         idx, price = get_recent_price_base_idx(df, latest_up_point_idx, 'low')
                         latest_up_point_idx = idx
                     turning_up_points.append(latest_up_point_idx)
                     turning_points.append(latest_up_point_idx)
-                elif i - latest_up_point_idx < 3:
+                elif i - latest_up_point_idx <= 4:
                     if df is not None:
                         idx, price = get_recent_price_base_idx(df, i, 'low')
                         if df.iloc[idx]['low'] < df.iloc[latest_up_point_idx]['low']:
@@ -78,14 +78,14 @@ def detect_turning_point_indexes(series, df=None):
         if prev < curr and curr > next_:
             idx_prev_prev = idx_prev - 1
             if idx_prev_prev >= 0:
-                if latest_down_point_idx is None or (i - latest_down_point_idx) > 3:
+                if latest_down_point_idx is None or (i - latest_down_point_idx) > 4:
                     latest_down_point_idx = i
                     if df is not None:
                         idx, price = get_recent_price_base_idx(df, latest_down_point_idx, 'high')
                         latest_down_point_idx = idx
                     turning_down_points.append(latest_down_point_idx)
                     turning_points.append(latest_down_point_idx)
-                elif i - latest_down_point_idx < 3:
+                elif i - latest_down_point_idx <= 4:
                     if df is not None:
                         idx, price = get_recent_price_base_idx(df, i, 'high')
                         if df.iloc[idx]['high'] > df.iloc[latest_down_point_idx]['high']:
