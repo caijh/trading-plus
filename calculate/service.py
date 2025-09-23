@@ -50,13 +50,13 @@ def detect_turning_point_indexes(series, df=None):
                 if latest_up_point_idx is None or (i - latest_up_point_idx) > 4:
                     latest_up_point_idx = i
                     if df is not None:
-                        idx, price = get_recent_price_base_index(df, latest_up_point_idx, 'low', recent=3)
+                        idx, price = get_recent_price_base_idx(df, latest_up_point_idx, 'low', recent=3)
                         latest_up_point_idx = idx
                     turning_up_points.append(latest_up_point_idx)
                     turning_points.append(latest_up_point_idx)
                 elif i - latest_up_point_idx <= 4:
                     if df is not None:
-                        idx, price = get_recent_price_base_index(df, i, 'low', recent=3)
+                        idx, price = get_recent_price_base_idx(df, i, 'low', recent=3)
                         if df.iloc[idx]['low'] <= df.iloc[latest_up_point_idx]['low']:
                             turning_up_points.remove(latest_up_point_idx)
                             turning_points.remove(latest_up_point_idx)
@@ -81,13 +81,13 @@ def detect_turning_point_indexes(series, df=None):
                 if latest_down_point_idx is None or (i - latest_down_point_idx) > 4:
                     latest_down_point_idx = i
                     if df is not None:
-                        idx, price = get_recent_price_base_index(df, latest_down_point_idx, 'high', recent=3)
+                        idx, price = get_recent_price_base_idx(df, latest_down_point_idx, 'high', recent=3)
                         latest_down_point_idx = idx
                     turning_down_points.append(latest_down_point_idx)
                     turning_points.append(latest_down_point_idx)
                 elif i - latest_down_point_idx <= 4:
                     if df is not None:
-                        idx, price = get_recent_price_base_index(df, i, 'high', recent=3)
+                        idx, price = get_recent_price_base_idx(df, i, 'high', recent=3)
                         if df.iloc[idx]['high'] >= df.iloc[latest_down_point_idx]['high']:
                             turning_down_points.remove(latest_down_point_idx)
                             turning_points.remove(latest_down_point_idx)
@@ -696,6 +696,37 @@ def get_recent_price_base_index(df, index, price_type, recent=2):
     recent_df = df.iloc[start_idx:end_idx]
 
     return _get_recent_price(recent_df, price_type)
+
+
+def get_recent_price_base_idx(df, index, price_type, recent=2):
+    """
+    在给定索引前后2个位置（共5个）的K线数据中，
+    找出最高价或最低价。
+
+    Args:
+        df (pd.DataFrame): 包含 'high' 和 'low' 列的股票数据DataFrame。
+        index (int): 目标K线的索引。
+        price_type (str): 'high' 或 'low'，指定要查找的价格类型。
+        recent(int): 最近
+
+    Returns:
+        float: 指定范围内的最高价或最低价。
+    """
+    # 确定要切片的范围，确保不超出DataFrame边界
+    start_idx = max(0, index - recent)
+    end_idx = min(len(df), index + recent + 1)
+
+    idx = start_idx
+    if price_type == 'low':
+        for i in range(start_idx + 1, end_idx):
+            if df.iloc[i]['low'] < df.iloc[idx]['low']:
+                idx = i
+    elif price_type == 'high':
+        for i in range(start_idx + 1, end_idx):
+            if df.iloc[i]['high'] > df.iloc[idx]['high']:
+                idx = i
+    price = df.iloc[idx]['close']
+    return idx, price
 
 
 def get_total_volume_around(df, index, around=3):
