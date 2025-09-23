@@ -212,7 +212,7 @@ def analyze_stock_prices(stock, df, strategy_name=None,
 
     candlestick_signal, candlestick_patterns = get_candlestick_signal(stock, df, candlestick_weight)
     stock['candlestick_signal'] = candlestick_signal
-    stock['candlestick_patterns'] = [pattern.label for pattern in candlestick_patterns]
+    stock['candlestick_patterns'] = [pattern.to_dict() for pattern in candlestick_patterns]
 
     indicator_signal, primary_patterns, secondary_patterns = get_indicator_signal(stock, df, trending, direction,
                                                                                   ma_weight,

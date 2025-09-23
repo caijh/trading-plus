@@ -86,7 +86,7 @@ BEARISH_PATTERNS = [
     {'name': 'risefall3methods', 'description': '三升三降：一个五日持续形态，可以是看涨或看跌。'},
     {'name': 'separatinglines', 'description': '分离线：一个两日持续形态，可以是看涨或看跌。'},
     {'name': 'shootingstar', 'description': '射击之星：一个单根蜡烛线的看跌反转形态。'},
-    {'name': 'shortline', 'description': '短蜡烛线：实体很小，表示价格波动不大。'},
+    # {'name': 'shortline', 'description': '短蜡烛线：实体很小，表示价格波动不大。'},
     {'name': 'spinningtop', 'description': '纺锤线：实体小，影线短，表示犹豫不决。'},
     {'name': 'stalledpattern', 'description': '停顿形态：一个三日的看跌反转形态。'},
     {'name': 'takuri', 'description': '捉腰带线：一种蜻蜓十字星或捉腰带线。'},
@@ -114,6 +114,18 @@ class Candlestick(Indicator):
         self.column = f'CDL_{self.name.upper()}'
         self.description = pattern['description']
         self.match_indexes = []
+
+    def to_dict(self):
+        match_indexes = []
+        for match_index in self.match_indexes:
+            print(match_index)
+            match_indexes.append(match_index.strftime('%Y-%m-%d %H:%M:%S'))
+        return {
+            'name': self.name,
+            'label': self.label,
+            'description': self.description,
+            'match_indexes': match_indexes
+        }
 
     def match(self, stock, df, trending, direction):
         """
