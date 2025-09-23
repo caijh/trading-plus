@@ -293,13 +293,16 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     resistance = None
 
     if not supports.empty and support is None:
-        support = select_nearest_point(stock, recent_df, supports, current_price, field=ma_name,
+        support = select_nearest_point(stock, recent_df, supports[-min(5, len(supports)):], current_price,
+                                       field=ma_name,
                                        is_support=True)  # 时间上最靠近当前的支撑点
     # else:
     #     support = cal_price_from_ma(stock, recent_df, current_price, is_support=True)
 
     if not resistances.empty and resistance is None:
-        resistance = select_nearest_point(stock, recent_df, resistances, current_price, field=ma_name, is_support=False)
+        resistance = select_score_point(stock, recent_df, resistances[-min(5, len(resistances)):], current_price,
+                                        ma_name,
+                                        is_support=False)
     # else:
     #     resistance = cal_price_from_ma(stock, recent_df, current_price, is_support=False)
 
