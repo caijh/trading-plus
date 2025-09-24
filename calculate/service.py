@@ -67,8 +67,8 @@ def detect_turning_point_indexes(series, df=None, merge_window=4):
 
     # 精炼
     if df is not None:
-        up_points = group_and_refine(up_points, df, "low", merge_window, recent=4)
-        down_points = group_and_refine(down_points, df, "high", merge_window, recent=4)
+        up_points = group_and_refine(up_points, df, "low", merge_window, recent=3)
+        down_points = group_and_refine(down_points, df, "high", merge_window, recent=3)
 
     all_points = sorted(set(up_points + down_points))
     return all_points, up_points, down_points
