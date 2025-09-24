@@ -83,9 +83,9 @@ def get_round_price(stock, price):
 
 def detect_turning_points(series):
     turning_point_idxes, turning_up_point_idxes, turning_down_point_idxes = detect_turning_point_indexes(series)
-    turning_points = series.iloc[turning_point_idxes]
-    turning_up_points = series.iloc[turning_up_point_idxes]
-    turning_down_points = series.iloc[turning_down_point_idxes]
+    turning_points = series.loc[turning_point_idxes]
+    turning_up_points = series.loc[turning_up_point_idxes]
+    turning_down_points = series.loc[turning_down_point_idxes]
     return turning_points, turning_up_points, turning_down_points
 
 

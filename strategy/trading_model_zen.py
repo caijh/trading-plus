@@ -25,12 +25,12 @@ class ZenTradingModel(TradingModel):
                  pullback_window: int = 10,
                  backlash_volume_lookback: int = 20):
         super().__init__(name)
-        self.min_bars_between_fractals = int(min_bars_between_fractals)
-        self.min_pen_bars = int(min_pen_bars)
-        self.ema_short = int(ema_short)
-        self.ema_long = int(ema_long)
-        self.pullback_window = int(pullback_window)
-        self.backlash_volume_lookback = int(backlash_volume_lookback)
+        self.min_bars_between_fractals = min_bars_between_fractals
+        self.min_pen_bars = min_pen_bars
+        self.ema_short = ema_short
+        self.ema_long = ema_long
+        self.pullback_window = pullback_window
+        self.backlash_volume_lookback = backlash_volume_lookback
 
     # ---------------- 笔 ----------------
     def build_pens(self, df: pd.DataFrame, fractals: pd.Series) -> list:
