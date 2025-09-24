@@ -4,109 +4,74 @@ import pandas_ta as ta
 from stock.constant import Direction, Trend
 
 
-def detect_turning_point_indexes(series, df=None):
+def get_recent_extreme_idx(df, index, price_type, recent=2):
     """
-    Detect turning points in a given series with improved accuracy.
+    在指定 index 附近窗口内找到极值索引（最高或最低）。
+    """
+    start_idx = max(0, index - recent)
+    end_idx = min(len(df), index + recent + 1)
+    window_slice = df.iloc[start_idx:end_idx]
 
-    This function identifies both upward and downward turning points by analyzing the slope changes
-    in the smoothed version of the series.
+    if price_type == "low":
+        return window_slice["low"].idxmin()
+    elif price_type == "high":
+        return window_slice["high"].idxmax()
+    return None
 
-    Parameters:
-    series (pd.Series): The input series, assumed to be a pandas series.
-    window (int): The window size for smoothing the series.
-    angle_threshold_degrees_min (float): Minimum angle threshold for acute angles.
-    angle_threshold_degrees_max (float): Maximum angle threshold for acute angles.
+
+def group_and_refine(points, df, price_type, merge_window=4, recent=3):
+    """
+    将相邻的拐点按窗口分组，并精炼为真正的极值点。
+
+    Args:
+        points (list[int]): 初步检测的拐点索引。
+        df (pd.DataFrame): K线数据。
+        price_type (str): 'low' or 'high'。
+        merge_window (int): 分组合并的最大间隔。
+        recent (int): 搜索极值的窗口范围。
 
     Returns:
-    tuple: A tuple containing three lists, the first list contains all turning points (upward and downward),
-           the second list contains only upward turning points, and the third list contains only downward turning points.
+        list[int]: 精炼后的极值点索引。
     """
-    # Initialize lists to store all turning points, upward turning points, and downward turning points
-    turning_points = []
-    turning_up_points = []
-    turning_down_points = []
+    if not points:
+        return []
 
-    # Iterate through the series, excluding the first and last elements
-    start = 1
-    step = 1
-    series_len = len(series)
-    latest_up_point_idx = None
-    latest_down_point_idx = None
-    for i in range(start, series_len - step):
-        # Get the previous, current, and next values
-        idx_prev, idx_cur, idx_next = i - step, i, i + step
-        prev, curr, next_ = series.iloc[idx_prev], series.iloc[idx_cur], series.iloc[
-            idx_next]
+    groups = [[points[0]]]
+    for i in range(1, len(points)):
+        if points[i] - points[i - 1] <= merge_window:
+            groups[-1].append(points[i])
+        else:
+            groups.append([points[i]])
 
-        # if curr != 0:
-        #     diff = min(abs(prev - curr), abs(next_ - curr)) / curr
-        #     if diff < 0.0002:
-        #         continue
+    refined = [get_recent_extreme_idx(df, g[-1], price_type, recent) for g in groups]
+    return refined
 
-        # Determine if the current point is an upward turning point
-        if prev > curr and curr < next_:
-            idx_next_next = idx_next + 1
-            if idx_next_next < series_len:
-                if latest_up_point_idx is None or (i - latest_up_point_idx) > 4:
-                    latest_up_point_idx = i
-                    if df is not None:
-                        idx, price = get_recent_price_base_idx(df, latest_up_point_idx, 'low', recent=3)
-                        latest_up_point_idx = idx
-                    turning_up_points.append(latest_up_point_idx)
-                    turning_points.append(latest_up_point_idx)
-                elif i - latest_up_point_idx <= 4:
-                    if df is not None:
-                        idx, price = get_recent_price_base_idx(df, i, 'low', recent=3)
-                        if df.iloc[idx]['low'] <= df.iloc[latest_up_point_idx]['low']:
-                            turning_up_points.remove(latest_up_point_idx)
-                            turning_points.remove(latest_up_point_idx)
-                            latest_up_point_idx = idx
-                            turning_up_points.append(latest_up_point_idx)
-                            turning_points.append(latest_up_point_idx)
-                    elif curr <= series.iloc[latest_up_point_idx]:
-                        turning_up_points.remove(latest_up_point_idx)
-                        turning_points.remove(latest_up_point_idx)
-                        latest_up_point_idx = i
-                        turning_up_points.append(latest_up_point_idx)
-                        turning_points.append(latest_up_point_idx)
-            else:
-                latest_up_point_idx = i
-                turning_up_points.append(i)
-                turning_points.append(i)
 
-        # Determine if the current point is a downward turning point
-        if prev < curr and curr > next_:
-            idx_prev_prev = idx_prev - 1
-            if idx_prev_prev >= 0:
-                if latest_down_point_idx is None or (i - latest_down_point_idx) > 4:
-                    latest_down_point_idx = i
-                    if df is not None:
-                        idx, price = get_recent_price_base_idx(df, latest_down_point_idx, 'high', recent=3)
-                        latest_down_point_idx = idx
-                    turning_down_points.append(latest_down_point_idx)
-                    turning_points.append(latest_down_point_idx)
-                elif i - latest_down_point_idx <= 4:
-                    if df is not None:
-                        idx, price = get_recent_price_base_idx(df, i, 'high', recent=3)
-                        if df.iloc[idx]['high'] >= df.iloc[latest_down_point_idx]['high']:
-                            turning_down_points.remove(latest_down_point_idx)
-                            turning_points.remove(latest_down_point_idx)
-                            latest_down_point_idx = i
-                            turning_down_points.append(latest_down_point_idx)
-                            turning_points.append(latest_down_point_idx)
-                    elif curr >= series.iloc[latest_down_point_idx]:
-                        turning_down_points.remove(latest_down_point_idx)
-                        turning_points.remove(latest_down_point_idx)
-                        latest_down_point_idx = i
-                        turning_down_points.append(latest_down_point_idx)
-                        turning_points.append(latest_down_point_idx)
-            else:
-                latest_down_point_idx = i
-                turning_down_points.append(i)
-                turning_points.append(i)
+def detect_turning_point_indexes(series, df=None, merge_window=4):
+    """
+    检测时间序列的转折点（局部高/低点），并支持用 K 线数据精炼。
 
-    # Return all turning points and the respective upward and downward turning points
-    return turning_points, turning_up_points, turning_down_points
+    Args:
+        series (pd.Series): 输入序列。
+        df (pd.DataFrame, optional): K线数据，包含 'high' 和 'low'。
+        merge_window (int): 分组合并窗口。
+
+    Returns:
+        tuple: (all_points, up_points, down_points)
+    """
+    prev, next_ = series.shift(1), series.shift(-1)
+
+    # 初步转折点
+    up_points = series[(prev > series) & (series < next_)].index.tolist()
+    down_points = series[(prev < series) & (series > next_)].index.tolist()
+
+    # 精炼
+    if df is not None:
+        up_points = group_and_refine(up_points, df, "low", merge_window, recent=4)
+        down_points = group_and_refine(down_points, df, "high", merge_window, recent=3)
+
+    all_points = sorted(set(up_points + down_points))
+    return all_points, up_points, down_points
 
 
 def get_round_price(stock, price):

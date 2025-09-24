@@ -118,7 +118,6 @@ class Candlestick(Indicator):
     def to_dict(self):
         match_indexes = []
         for match_index in self.match_indexes:
-            print(match_index)
             match_indexes.append(match_index.strftime('%Y-%m-%d %H:%M:%S'))
         return {
             'name': self.name,
