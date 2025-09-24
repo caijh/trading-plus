@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 from dataset.service import create_dataframe
 from environment.service import env_vars
 from holdings.service import get_holdings
-from indicator.service import get_exit_patterns
+from indicator.service import get_exit_patterns, get_candlestick_signal, get_indicator_signal
 from stock.service import get_stock, get_stock_prices, KType
 
 CN_TZ = timezone(timedelta(hours=8))  # 中国时区（UTC+8）
@@ -40,6 +40,18 @@ def get_exit_signal(strategy):
             for matched_pattern in matched_patterns:
                 labels.append(matched_pattern.label)
             return -1, '策略有退出信号', labels
+
+        candlestick_signal, candlestick_patterns = get_candlestick_signal(stock, df, 1)
+
+        indicator_signal, primary_patterns, secondary_patterns = get_indicator_signal(stock, df, None, None,
+                                                                                      1,
+                                                                                      1)
+        if candlestick_signal == -1 and indicator_signal == -1:
+            labels = []
+            labels.extend([pattern.label for pattern in candlestick_patterns])
+            labels.extend([pattern.label for pattern in primary_patterns])
+            labels.extend([pattern.label for pattern in secondary_patterns])
+            return -1, '策略有退出信号', primary_patterns + secondary_patterns
 
         price = float(prices[-1])
         if price > float(holdings.price):
