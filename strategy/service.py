@@ -193,6 +193,23 @@ def analyze_stock(stock, k_type=KType.DAY, strategy_name=None,
 
 def analyze_stock_prices(stock, df, strategy_name=None,
                          candlestick_weight=1, ma_weight=1, volume_weight=1):
+    """
+    分析股票价格并生成交易策略信号
+    
+    该函数综合多种技术指标和形态分析，为特定股票生成交易信号和策略。它会计算趋势方向、
+    支撑阻力位，并结合K线形态和指标信号来确定交易策略。
+    
+    Args:
+        stock (dict): 股票信息字典，包含股票代码、名称等基本信息
+        df (pandas.DataFrame): 股票历史价格数据，包含开盘价、收盘价、最高价、最低价和成交量等列
+        strategy_name (str, optional): 指定使用的交易模型名称，默认为None表示使用所有模型
+        candlestick_weight (int, optional): K线形态信号权重，默认为1
+        ma_weight (int, optional): 均线指标信号权重，默认为1
+        volume_weight (int, optional): 成交量指标信号权重，默认为1
+        
+    Returns:
+        TradingStrategy: 生成的交易策略对象，如果未找到合适的策略则返回None
+    """
     print("=====================================================")
     print(f'Analyzing Stock, code = {stock['code']}, name = {stock['name']}')
 
@@ -225,11 +242,13 @@ def analyze_stock_prices(stock, df, strategy_name=None,
     strategy = None
     for model in trading_models:
         strategy = model.get_trading_strategy(stock, df)
+        # 检查策略信号是否与K线信号或指标信号匹配
         if strategy is not None and (candlestick_signal == strategy.signal or indicator_signal == strategy.signal):
-            if strategy.signal == 1 and (stock['price'] < ((stock['support'] + stock['resistance']) / 2)):
+            # 根据买卖信号和价格位置判断是否符合策略条件
+            if strategy.signal == 1 and (stock['price'] < ((stock['support'] + stock['resistance']) / 3 * 1)):
                 stock['strategy'] = strategy.to_dict()
                 break
-            elif strategy.signal == -1 and (stock['price'] > ((stock['support'] + stock['resistance']) / 2)):
+            elif strategy.signal == -1 and (stock['price'] > ((stock['support'] + stock['resistance']) / 3 * 2)):
                 stock['strategy'] = strategy.to_dict()
                 break
 
