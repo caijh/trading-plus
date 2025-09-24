@@ -51,7 +51,7 @@ def get_exit_signal(strategy):
             labels.extend([pattern.label for pattern in candlestick_patterns])
             labels.extend([pattern.label for pattern in primary_patterns])
             labels.extend([pattern.label for pattern in secondary_patterns])
-            return -1, '策略有退出信号', primary_patterns + secondary_patterns
+            return -1, '策略有退出信号', labels
 
         price = float(prices[-1])
         if price > float(holdings.price):
