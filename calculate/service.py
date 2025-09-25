@@ -170,10 +170,12 @@ def calculate_trending_direction(stock, df):
     """
 
     # 从 df['turning'] 获取拐点索引
+    turning_idxes = df.index[df['turning'] != 0]
     turning_up_idxes = df.index[df['turning'] == 1]
     turning_down_idxes = df.index[df['turning'] == -1]
 
     # 获取拐点对应的价格
+    turning_points = df.loc[turning_idxes][['close', 'low', 'high', 'open']]
     turning_up_points = df.loc[turning_up_idxes][['close', 'low', 'high', 'open']]
     turning_down_points = df.loc[turning_down_idxes][['close', 'low', 'high', 'open']]
 
@@ -210,6 +212,9 @@ def calculate_trending_direction(stock, df):
         stock['turning_up_point_2'] = prev_up.name.strftime('%Y-%m-%d')
         stock['turning_down_point_1'] = last_down.name.strftime('%Y-%m-%d')
         stock['turning_down_point_2'] = prev_down.name.strftime('%Y-%m-%d')
+
+    # 最近6个turning_points，保存至stock['turning']
+    stock['turning'] = turning_points.iloc[-min(6, len(turning_points)):].index.strftime('%Y-%m-%d %H:%M:%S').tolist()
 
     return trending, direction
 
