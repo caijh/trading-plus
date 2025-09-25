@@ -71,7 +71,33 @@ def detect_turning_point_indexes(series, df=None, merge_window=4):
         down_points = group_and_refine(down_points, df, "high", merge_window, recent=3)
 
     all_points = sorted(set(up_points + down_points))
-    return all_points, up_points, down_points
+
+    # 初始化最终输出列表及状态变量
+    all_point_idxes = []
+    up_point_idxes = []
+    down_point_idxes = []
+    prev_point_type = None
+    # 遍历所有转折点索引，根据类型交替保留有效转折点以避免连续同向点
+    for point in all_points:
+        cur_point_type = 1 if point in up_points else -1
+        if prev_point_type is None:
+            all_point_idxes.append(point)
+            if cur_point_type == 1:
+                up_point_idxes.append(point)
+            if cur_point_type == -1:
+                down_point_idxes.append(point)
+            prev_point_type = cur_point_type
+        else:
+            if prev_point_type == 1 and prev_point_type != cur_point_type:
+                all_point_idxes.append(point)
+                down_point_idxes.append(point)
+                prev_point_type = cur_point_type
+            if prev_point_type == -1 and prev_point_type != cur_point_type:
+                all_point_idxes.append(point)
+                up_point_idxes.append(point)
+                prev_point_type = cur_point_type
+
+    return all_point_idxes, up_point_idxes, down_point_idxes
 
 
 def get_round_price(stock, price):
@@ -175,9 +201,9 @@ def calculate_trending_direction(stock, df):
     turning_down_idxes = df.index[df['turning'] == -1]
 
     # 获取拐点对应的价格
-    turning_points = df.loc[turning_idxes][['close', 'low', 'high', 'open']]
-    turning_up_points = df.loc[turning_up_idxes][['close', 'low', 'high', 'open']]
-    turning_down_points = df.loc[turning_down_idxes][['close', 'low', 'high', 'open']]
+    turning_points = df.loc[turning_idxes][['close', 'low', 'high', 'open', 'turning']]
+    turning_up_points = df.loc[turning_up_idxes][['close', 'low', 'high', 'open', 'turning']]
+    turning_down_points = df.loc[turning_down_idxes][['close', 'low', 'high', 'open', 'turning']]
 
     # 当前价格与均线
     latest_ma_price = df['EMA5'].iloc[-1]
@@ -214,7 +240,13 @@ def calculate_trending_direction(stock, df):
         stock['turning_down_point_2'] = prev_down.name.strftime('%Y-%m-%d')
 
     # 最近6个turning_points，保存至stock['turning']
-    stock['turning'] = turning_points.iloc[-min(6, len(turning_points)):].index.strftime('%Y-%m-%d %H:%M:%S').tolist()
+    latest_turning = []
+    for i in range(max(-1, len(turning_points) - 6), len(turning_points)):
+        latest_turning.append({
+            'time': turning_points.iloc[i].name.strftime('%Y-%m-%d %H:%M:%S'),
+            'type': 1 if turning_points.iloc[i]['turning'] == 1 else -1
+        })
+    stock['turning'] = latest_turning
 
     return trending, direction
 
