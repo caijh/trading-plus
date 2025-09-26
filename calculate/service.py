@@ -275,14 +275,16 @@ def calculate_trending_direction(stock, df):
         stock['turning_down_point_1'] = last_down.name.strftime('%Y-%m-%d')
         stock['turning_down_point_2'] = prev_down.name.strftime('%Y-%m-%d')
 
-    # 最近6个turning_points，保存至stock['turning']
-    latest_turning = []
-    for i in range(max(-1, len(turning_points) - 6), len(turning_points)):
-        latest_turning.append({
-            'time': turning_points.iloc[i].name.strftime('%Y-%m-%d %H:%M:%S'),
-            'type': 1 if turning_points.iloc[i]['turning'] == 1 else -1
-        })
-    stock['turning'] = latest_turning
+    # 最近n个turning_points，保存至stock['turning']
+    n = 9
+    latest_turning = [
+        {
+            "time": row.name.strftime("%Y-%m-%d %H:%M:%S"),
+            "type": 1 if row["turning"] == 1 else -1,
+        }
+        for _, row in turning_points.tail(min(n, len(turning_points))).iterrows()
+    ]
+    stock["turning"] = latest_turning
 
     return trending, direction
 
