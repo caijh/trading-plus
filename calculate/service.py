@@ -77,6 +77,7 @@ def detect_turning_point_indexes(series, df=None, merge_window=4):
     up_point_idxes = []
     down_point_idxes = []
     prev_point_type = None
+    prev_point = None
     # 遍历所有转折点索引，根据类型交替保留有效转折点以避免连续同向点
     for point in all_points:
         cur_point_type = 1 if point in up_points else -1
@@ -87,15 +88,50 @@ def detect_turning_point_indexes(series, df=None, merge_window=4):
             if cur_point_type == -1:
                 down_point_idxes.append(point)
             prev_point_type = cur_point_type
+            prev_point = point
         else:
-            if prev_point_type == 1 and prev_point_type != cur_point_type:
-                all_point_idxes.append(point)
-                down_point_idxes.append(point)
-                prev_point_type = cur_point_type
-            if prev_point_type == -1 and prev_point_type != cur_point_type:
-                all_point_idxes.append(point)
-                up_point_idxes.append(point)
-                prev_point_type = cur_point_type
+            if prev_point_type == 1:
+                if cur_point_type != prev_point_type:
+                    all_point_idxes.append(point)
+                    down_point_idxes.append(point)
+                    prev_point_type = cur_point_type
+                    prev_point = point
+                else:
+                    replace_prev = False
+                    if df is not None:
+                        if df.loc[point]['low'] < df.loc[prev_point]['low']:
+                            replace_prev = True
+                    else:
+                        if series.loc[point] < series.loc[prev_point]:
+                            replace_prev = True
+                    if replace_prev:
+                        all_point_idxes.remove(prev_point)
+                        all_point_idxes.append(point)
+                        up_point_idxes.remove(prev_point)
+                        up_point_idxes.append(point)
+                        prev_point_type = cur_point_type
+                        prev_point = point
+            if prev_point_type == -1:
+                if cur_point_type != prev_point_type:
+                    all_point_idxes.append(point)
+                    up_point_idxes.append(point)
+                    prev_point_type = cur_point_type
+                    prev_point = point
+                else:
+                    replace_prev = False
+                    if df is not None:
+                        if df.loc[point]['high'] > df.loc[prev_point]['high']:
+                            replace_prev = True
+                    else:
+                        if series.loc[point] > series.loc[prev_point]:
+                            replace_prev = True
+                    if replace_prev:
+                        all_point_idxes.remove(prev_point)
+                        all_point_idxes.append(point)
+                        down_point_idxes.remove(prev_point)
+                        down_point_idxes.append(point)
+                        prev_point_type = cur_point_type
+                        prev_point = point
 
     return all_point_idxes, up_point_idxes, down_point_idxes
 
