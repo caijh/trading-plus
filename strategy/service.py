@@ -242,13 +242,16 @@ def analyze_stock_prices(stock, df, strategy_name=None,
     strategy = None
     for model in trading_models:
         strategy = model.get_trading_strategy(stock, df)
+        if strategy is None:
+            continue
         # 检查策略信号是否与K线信号或指标信号匹配
-        if strategy is not None and (candlestick_signal == strategy.signal or indicator_signal == strategy.signal):
+        if candlestick_signal == strategy.signal or indicator_signal == strategy.signal:
             # 根据买卖信号和价格位置判断是否符合策略条件
-            if strategy.signal == 1 and (stock['price'] < ((stock['support'] + stock['resistance']) / 2)):
+            stop_loss = strategy.stop_loss
+            if strategy.signal == 1 and (stock['price'] < ((stop_loss + stock['resistance']) / 2) * 1.0):
                 stock['strategy'] = strategy.to_dict()
                 break
-            elif strategy.signal == -1 and (stock['price'] > ((stock['support'] + stock['resistance']) / 2)):
+            elif strategy.signal == -1 and (stock['price'] > ((stock['support'] + stop_loss) / 2) * 1.0):
                 stock['strategy'] = strategy.to_dict()
                 break
 
