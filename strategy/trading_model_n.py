@@ -1,7 +1,17 @@
-from calculate.service import get_distance
+from calculate.service import get_distance, get_total_volume_around
+from indicator.pvi import PVI
+from stock.constant import Trend
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
 
+
+def confirm_trend(stock, df, trending, direction, signal):
+    if PVI(signal).match(stock, df, trending, direction):
+        if signal == 1:
+            return Trend.UP
+        elif signal == -1:
+            return Trend.DOWN
+    return Trend.UNKNOWN
 
 class NTradingModel(TradingModel):
     def __init__(self):
@@ -22,19 +32,29 @@ class NTradingModel(TradingModel):
         close = point['close']
         if get_distance(df, point_1, point) > 3:
             return 0
-
-        # before_volume = get_total_volume_around(df, point_1.name, 3)
-        # cur_volume = get_total_volume_around(df, point_3.name, 3)
+        signal = 0
+        volume_before = get_total_volume_around(df, point_3.name, 3)
+        volume_cur = get_total_volume_around(df, point_1.name, 3)
+        # 最一个拐点前是上涨N
         if (point_3['low'] < point_1['low'] < close < point_2['high']
             and point_3['low'] < point_4['high'] < point_2['high']
+            # and (volume_before * 0.6) < volume_cur < (volume_before * 0.9)
         ):
-            return 1
+            signal = 1
+        # 最后一个拐点前是下跌N
         elif (point_2['low'] < close < point_1['high'] < point_3['high']
               and point_3['high'] > point_4['low'] > point_2['low']
+            # and (volume_before * 1.2) > volume_cur > (volume_before * 1.0)
         ):
-            return -1
+            signal = -1
 
-        return 0
+        # ---- 趋势指标确认 ----
+        if signal == 1 and confirm_trend(stock, df, trending, direction, signal) != Trend.UP:
+            return 0
+        if signal == -1 and confirm_trend(stock, df, trending, direction, signal) != Trend.DOWN:
+            return 0
+
+        return signal
 
     def create_trading_strategy(self, stock, df, signal):
         last_close = df['close'].iloc[-1]
