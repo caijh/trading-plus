@@ -25,14 +25,12 @@ class NTradingModel(TradingModel):
 
         # before_volume = get_total_volume_around(df, point_1.name, 3)
         # cur_volume = get_total_volume_around(df, point_3.name, 3)
-        if (point_1['low'] < close < point_2['high']
-            and point_2['high'] > point_3['low'] and point_3['low'] < point_4['high'] < point_2['high']
+        if (point_3['low'] < point_1['low'] < close < point_2['high']
+            and point_3['low'] < point_4['high'] < point_2['high']
         ):
             return 1
-        elif (point_2['low'] < close < point_1['high']
-              and point_2['low'] < point_3['high']
-              and point_3['high'] > point_4['low']
-              and point_1['high'] < point_3['high']
+        elif (point_2['low'] < close < point_1['high'] < point_3['high']
+              and point_3['high'] > point_4['low'] > point_2['low']
         ):
             return -1
 
