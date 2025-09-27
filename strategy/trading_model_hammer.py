@@ -1,4 +1,4 @@
-from calculate.service import get_recent_price
+from calculate.service import get_recent_price, get_distance
 from indicator.candlestick import Candlestick
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
@@ -51,19 +51,13 @@ class HammerTradingModel(TradingModel):
         # ---- Hammer (多头) ----
         candlestick = Candlestick({"name": "hammer", "description": "锤子线", "signal": 1, "weight": 1}, 1)
         if (candlestick.match(stock, df, trending, direction)
-            # and trend_up
+            and trend_up
         ):
             latest_swing_high = swing_highs.iloc[-1] if len(swing_highs) >= 1 else None
             if latest_swing_high is not None:
                 # 获取最后一个匹配的K线标签及其在数据框中的位置
-                last_label = candlestick.match_indexes[-1]
-                match_loc = int(df.index.get_indexer([last_label])[0])
-
-                # 获取最新摆动高点的标签及其在数据框中的位置
-                swing_label = latest_swing_high.name
-                swing_loc = int(df.index.get_indexer([swing_label])[0])
                 # 计算两个位置之间的距离
-                l = abs(match_loc - swing_loc)
+                l = get_distance(df, df.loc[candlestick.match_indexes[-1]], latest_swing_high)
                 # 如果距离大于等于3，则进行后续判断
                 if l >= 3:
                     # 判断低点价格是否接近SMA20或SMA50均线，并且均线价格小于收盘价
@@ -78,18 +72,12 @@ class HammerTradingModel(TradingModel):
         # ---- Hangingman (空头) ----
         candlestick = Candlestick({"name": "invertedhammer", "description": "倒锤头线", "signal": -1, "weight": 0}, -1)
         if (candlestick.match(stock, df, trending, direction)
-            # and trend_down
+            and trend_down
         ):
             latest_swing_low = swing_lows.iloc[-1] if len(swing_lows) >= 1 else None
-            last_label = candlestick.match_indexes[-1]
-            match_loc = int(df.index.get_indexer([last_label])[0])
             if latest_swing_low is not None:
-                # 获取最后一个匹配的K线标签及其在数据框中的位置
-                # 获取最新摆动低点的标签及其在数据框中的位置
-                swing_label = latest_swing_low.name
-                swing_loc = int(df.index.get_indexer([swing_label])[0])
                 # 计算两个位置之间的距离
-                l = abs(match_loc - swing_loc)
+                l = get_distance(df, df.loc[candlestick.match_indexes[-1]], latest_swing_low)
                 # 如果距离大于等于3，则进行后续判断
                 if l >= 3:
                     if (high_price >= latest_sma20_price * 0.999 and latest_sma20_price > close_price) \
