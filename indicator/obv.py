@@ -9,14 +9,12 @@ def _trend_confirmation(obv_series, trend, period=5):
     判断 OBV 的趋势确认信号
     通过计算OBV在周期内的线性回归斜率来判断趋势，更具鲁棒性。
     """
-    latest = obv_series.iloc[-1]
-    prev = obv_series.iloc[-2]
     if trend == 'bullish':
         # 预期 OBV 上涨，斜率应为正
-        return latest > prev
+        return upping_trending(obv_series)
     elif trend == 'bearish':
         # 预期 OBV 下跌，斜率应为负
-        return latest < prev
+        return downing_trending(obv_series)
 
     return False
 
