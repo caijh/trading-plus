@@ -43,7 +43,21 @@ def group_and_refine(points, df, price_type, merge_window=4, recent=3):
         else:
             groups.append([points[i]])
 
-    refined = [get_recent_extreme_idx(df, g[-1], price_type, recent) for g in groups]
+    refined = []
+    for g in groups:
+        last_idx = None
+        for e in g:
+            idx = get_recent_extreme_idx(df, e, price_type, recent)
+            if last_idx is None:
+                last_idx = idx
+            else:
+                if price_type == 'low':
+                    if df.loc[idx]['low'] < df.loc[last_idx]['low']:
+                        last_idx = idx
+                if price_type == 'high':
+                    if df.loc[idx]['high'] > df.loc[last_idx]['high']:
+                        last_idx = idx
+        refined.append(last_idx)
     return refined
 
 
@@ -333,14 +347,14 @@ def calculate_support_resistance_by_turning_points(stock, df, window=5):
     resistance = None
 
     if not supports.empty and support is None:
-        support = select_nearest_point(stock, recent_df, supports[-min(5, len(supports)):], current_price,
+        support = select_nearest_point(stock, recent_df, supports, current_price,
                                        field=ma_name,
-                                       is_support=True)  # 时间上最靠近当前的支撑点
+                                       is_support=True, recent_num=30)  # 时间上最靠近当前的支撑点
     # else:
     #     support = cal_price_from_ma(stock, recent_df, current_price, is_support=True)
 
     if not resistances.empty and resistance is None:
-        resistance = select_score_point(stock, recent_df, resistances[-min(5, len(resistances)):], current_price,
+        resistance = select_score_point(stock, recent_df, resistances, current_price,
                                         ma_name,
                                         is_support=False)
     # else:
