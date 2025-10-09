@@ -13,6 +13,7 @@ def confirm_trend(stock, df, trending, direction, signal):
             return Trend.DOWN
     return Trend.UNKNOWN
 
+
 class NTradingModel(TradingModel):
     def __init__(self):
         """
@@ -38,12 +39,14 @@ class NTradingModel(TradingModel):
         # 最一个拐点前是上涨N
         if (point_3['low'] < point_1['low'] < close < point_2['high']
             and point_3['low'] < point_4['high'] < point_2['high']
+            and (point_4['high'] + point_2['high']) / 2 >= point_1['low'] > point_4['high']
             # and (volume_before * 0.6) < volume_cur < (volume_before * 0.9)
         ):
             signal = 1
         # 最后一个拐点前是下跌N
         elif (point_2['low'] < close < point_1['high'] < point_3['high']
               and point_3['high'] > point_4['low'] > point_2['low']
+              and (point_4['low'] + point_3['high']) / 2 <= point_1['high'] < point_3['high']
             # and (volume_before * 1.2) > volume_cur > (volume_before * 1.0)
         ):
             signal = -1
