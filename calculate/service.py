@@ -831,3 +831,47 @@ def get_distance(df, point, other_point):
     """
     # 获取两个点在DataFrame索引中的位置差的绝对值
     return abs(df.index.get_loc(point.name) - df.index.get_loc(other_point.name))
+
+
+def get_lower_shadow(point):
+    """
+    计算K线图中某个交易点的下影线长度
+
+    参数:
+        point (dict): 包含交易数据的字典，必须包含 'close' 、'open'、'low' 三个键
+                     'close': 收盘价
+                     'open': 开盘价
+                     'low': 最低价
+
+    返回值:
+        float: 下影线的长度
+    """
+    # 根据K线类型（阳线或阴线）计算下影线长度
+    if point['close'] >= point['open']:
+        # 阳线：下影线 = 开盘价 - 最低价
+        return point['open'] - point['low']
+    else:
+        # 阴线：下影线 = 收盘价 - 最低价
+        return point['close'] - point['low']
+
+
+def get_price_range(point):
+    return point['high'] - point['low']
+
+
+def is_hammer_strict(point):
+    """
+    判断给定K线点是否为严格锤子线形态
+
+    参数:
+        point: K线数据点，包含开盘价、最高价、最低价、收盘价等信息
+
+    返回值:
+        bool: 如果是严格锤子线形态返回True，否则返回False
+    """
+    # 计算下影线长度
+    lower_shadow = get_lower_shadow(point)
+    # 计算K线整体波动范围
+    length = get_price_range(point)
+    # 判断下影线长度占整体波动范围的比例是否大于等于2/3
+    return (lower_shadow / length) >= (2 / 3)
