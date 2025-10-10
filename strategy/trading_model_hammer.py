@@ -62,9 +62,9 @@ class HammerTradingModel(TradingModel):
                 # 如果距离大于等于3，则进行后续判断
                 if l >= 3:
                     # 判断低点价格是否接近SMA20或SMA50均线，并且均线价格小于收盘价
-                    if (low_price <= latest_sma20_price * 1.001 and latest_sma20_price < close_price) \
+                    if (low_price <= latest_sma20_price * 1.001 and latest_sma20_price <= close_price) \
                         or (
-                        low_price <= latest_sma50_price * 1.001 and latest_sma50_price < close_price):
+                        low_price <= latest_sma50_price * 1.001 and latest_sma50_price <= close_price):
                         # 判断长期趋势是否向上（SMA120均线呈上升趋势）
                         if latest_sma120_price > prev_sma120_price:  # 长期趋势向上
                             return 1
@@ -81,8 +81,8 @@ class HammerTradingModel(TradingModel):
                 l = get_distance(df, df.loc[candlestick.match_indexes[-1]], latest_swing_low)
                 # 如果距离大于等于3，则进行后续判断
                 if l >= 3:
-                    if (high_price >= latest_sma20_price * 0.999 and latest_sma20_price > close_price) \
-                        or (high_price >= latest_sma50_price * 0.999 > close_price):
+                    if (high_price >= latest_sma20_price * 0.999 and latest_sma20_price >= close_price) \
+                        or (high_price >= latest_sma50_price * 0.999 >= close_price):
                         if latest_sma120_price < prev_sma120_price:  # 长期趋势向下
                             return -1
 
