@@ -271,8 +271,8 @@ def get_trading_models(stock):
     if stock['stock_type'] == 'Index':
         return [IndexTradingModel()]
     return [
-        # AntiTradingModel(),
         HammerTradingModel(),
+        # AntiTradingModel(),
         ICTTradingModel(),
         # ZenTradingModel(),
         # AlBrooksProTradingModel(),
