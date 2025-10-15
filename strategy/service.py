@@ -13,6 +13,7 @@ from strategy.trading_model import TradingModel
 from strategy.trading_model_hammer import HammerTradingModel
 from strategy.trading_model_ict import ICTTradingModel
 from strategy.trading_model_index import IndexTradingModel
+from strategy.trading_model_n import NTradingModel
 
 
 def add_update_strategy(stock):
@@ -276,5 +277,5 @@ def get_trading_models(stock):
         ICTTradingModel(),
         # ZenTradingModel(),
         # AlBrooksProTradingModel(),
-        # NTradingModel()
+        NTradingModel()
     ]

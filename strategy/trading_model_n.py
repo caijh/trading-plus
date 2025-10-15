@@ -1,12 +1,12 @@
 from calculate.service import get_distance, get_total_volume_around
-from indicator.pvi import PVI
+from indicator.wr import WR
 from stock.constant import Trend
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
 
 
 def confirm_trend(stock, df, trending, direction, signal):
-    if PVI(signal).match(stock, df, trending, direction):
+    if WR(signal).match(stock, df, trending, direction):
         if signal == 1:
             return Trend.UP
         elif signal == -1:
@@ -40,6 +40,7 @@ class NTradingModel(TradingModel):
         if (point_3['low'] < point_1['low'] < close < point_2['high']
             and point_3['low'] < point_4['high'] < point_2['high']
             and (point_4['high'] + point_2['high']) / 2 >= point_1['low'] > point_4['high']
+            and point_1['turning'] == 1
             # and (volume_before * 0.6) < volume_cur < (volume_before * 0.9)
         ):
             signal = 1
@@ -47,14 +48,19 @@ class NTradingModel(TradingModel):
         elif (point_2['low'] < close < point_1['high'] < point_3['high']
               and point_3['high'] > point_4['low'] > point_2['low']
               and (point_4['low'] + point_3['high']) / 2 <= point_1['high'] < point_3['high']
+              and point_1['turning'] == -1
             # and (volume_before * 1.2) > volume_cur > (volume_before * 1.0)
         ):
             signal = -1
 
         # ---- 趋势指标确认 ----
-        if signal == 1 and confirm_trend(stock, df, trending, direction, signal) != Trend.UP:
+        if (signal == 1
+            and confirm_trend(stock, df, trending, direction, signal) != Trend.UP
+        ):
             return 0
-        if signal == -1 and confirm_trend(stock, df, trending, direction, signal) != Trend.DOWN:
+        if (signal == -1
+            and confirm_trend(stock, df, trending, direction, signal) != Trend.DOWN
+        ):
             return 0
 
         return signal
