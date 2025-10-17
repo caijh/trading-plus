@@ -11,7 +11,6 @@ from strategy.model import TradingStrategy
 from strategy.trading_exit import get_exit_signal
 from strategy.trading_model import TradingModel
 from strategy.trading_model_hammer import HammerTradingModel
-from strategy.trading_model_ict import ICTTradingModel
 from strategy.trading_model_index import IndexTradingModel
 from strategy.trading_model_n import NTradingModel
 
@@ -274,7 +273,7 @@ def get_trading_models(stock):
     return [
         HammerTradingModel(),
         # AntiTradingModel(),
-        ICTTradingModel(),
+        # ICTTradingModel(),
         # ZenTradingModel(),
         # AlBrooksProTradingModel(),
         NTradingModel()

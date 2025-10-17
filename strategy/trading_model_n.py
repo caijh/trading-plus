@@ -1,4 +1,5 @@
 from calculate.service import get_distance, get_total_volume_around
+from indicator.pvi import PVI
 from indicator.wr import WR
 from stock.constant import Trend
 from strategy.model import TradingStrategy
@@ -6,7 +7,7 @@ from strategy.trading_model import TradingModel
 
 
 def confirm_trend(stock, df, trending, direction, signal):
-    if WR(signal).match(stock, df, trending, direction):
+    if WR(signal).match(stock, df, trending, direction) and PVI(signal).match(stock, df, trending, direction):
         if signal == 1:
             return Trend.UP
         elif signal == -1:
@@ -77,13 +78,13 @@ class NTradingModel(TradingModel):
             entry_price = last_close * 0.998
             target_high = point_2['high']
             take_profit = target_high * 0.998
-            patterns.extend(['N', 'UP', 'PVI'])
+            patterns.extend(['N', 'UP', 'WR', 'PVI'])
         elif signal == -1:  # 空头
             stop_loss = point_1['high']
             entry_price = last_close * 1.002
             target_low = point_2['low']
             take_profit = target_low * 1.002
-            patterns.extend(['N', 'DOWN', 'PVI'])
+            patterns.extend(['N', 'DOWN', 'WR', 'PVI'])
         else:
             return None
 
