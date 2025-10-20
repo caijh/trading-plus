@@ -79,15 +79,15 @@ class NTradingModel(TradingModel):
         patterns = []
         if signal == 1:  # 多头
             stop_loss = point_1['low']
-            entry_price = last_close * 0.998
+            entry_price = last_close * 0.995
             target_high = point_2['high']
-            take_profit = target_high * 0.998
+            take_profit = target_high * 0.995
             patterns.extend(['N', 'UP', 'WR', 'PVI'])
         elif signal == -1:  # 空头
             stop_loss = point_1['high']
-            entry_price = last_close * 1.002
+            entry_price = last_close * 1.005
             target_low = point_2['low']
-            take_profit = target_low * 1.002
+            take_profit = target_low * 1.005
             patterns.extend(['N', 'DOWN', 'WR', 'PVI'])
         else:
             return None
