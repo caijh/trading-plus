@@ -55,10 +55,12 @@ class PVI(Indicator):
         # 计算 PVI 指标
         # pandas-ta 的 pvi() 函数返回一个包含 PVI 和 PVI_SMA 的 DataFrame
         pvi_df = ta.pvi(close=df['close'], volume=df['volume'])
+
+        if pvi_df is None or pvi_df.empty:
+            return False
+
         pvi_series = pvi_df['PVI']
 
-        if pvi_series.empty:
-            return False
 
         # 根据信号类型和方向判断
         if self.signal == 1:
