@@ -45,18 +45,18 @@ class NTradingModel(TradingModel):
         volume_cur = get_total_volume_around(df, point_1.name, 3)
         # 最一个拐点前是上涨N
         if (point_3['low'] < point_1['low'] < close < point_2['high']
-            and point_3['low'] < point_4['high']
-            and point_1['low'] < (point_4['high'] + point_2['high']) / 2
+            and point_2['high'] > point_4['high'] > point_3['low']
+            and point_1['low'] < (point_3['low'] + point_2['high']) / 2
             and point_1['turning'] == 1
-            and volume_cur < volume_point4
+            # and volume_cur > volume_point4
         ):
             signal = 1
         # 最后一个拐点前是下跌N
         elif (point_2['low'] < close < point_1['high'] < point_3['high']
-              and point_3['high'] > point_4['low']
-              and point_1['high'] > (point_4['low'] + point_3['high']) / 2
+              and point_3['high'] > point_4['low'] > point_2['low']
+              and point_1['high'] > ((point_2['low'] + point_3['high']) / 2)
               and point_1['turning'] == -1
-              and volume_cur < volume_point3
+            # and volume_cur < volume_point3
         ):
             signal = -1
 
