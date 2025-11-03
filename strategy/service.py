@@ -276,5 +276,5 @@ def get_trading_models(stock):
         # ICTTradingModel(),
         # ZenTradingModel(),
         # AlBrooksProTradingModel(),
-        NTradingModel()
+        # NTradingModel()
     ]
