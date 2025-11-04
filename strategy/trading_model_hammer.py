@@ -30,11 +30,10 @@ class HammerTradingModel(TradingModel):
         # ---- 均线准备 ----
         sma20_series = df['SMA20']
         sma50_series = df['SMA50']
-        sma120_series = df['SMA120']
         latest_sma20_price = sma20_series.iloc[-1]
+        prev_sma20_price = sma20_series.iloc[-2]
         latest_sma50_price = sma50_series.iloc[-1]
-        latest_sma120_price = sma120_series.iloc[-1]
-        prev_sma120_price = sma120_series.iloc[-2]
+        prev_sma50_price = sma50_series.iloc[-2]
 
         # ---- 当日价格 ----
         close_price = df.iloc[-1]['close']
@@ -61,14 +60,12 @@ class HammerTradingModel(TradingModel):
                 l = get_distance(df, df.loc[candlestick.match_indexes[-1]], latest_swing_high)
                 # 如果距离大于等于3，则进行后续判断
                 if l >= 3:
-                    # 判断低点价格是否接近SMA20或SMA50均线，并且均线价格小于收盘价
-                    if (low_price <= latest_sma20_price * 1.001 and latest_sma20_price <= close_price) \
-                        or (
-                        low_price <= latest_sma50_price * 1.001 and latest_sma50_price <= close_price):
-                        # 判断长期趋势是否向上（SMA120均线呈上升趋势）
-                        if latest_sma120_price > prev_sma120_price:  # 长期趋势向上
-                            return 1
-
+                    # 检查是否满足20日均线突破条件：最低价接近20日均线且收盘价突破20日均线（当前大于前一个）
+                    if low_price <= latest_sma20_price * 1.001 and close_price >= latest_sma20_price > prev_sma20_price:
+                        return 1
+                    # 检查是否满足50日均线突破条件：最低价接近50日均线且收盘价突破50日均线（当前大于前一个）
+                    if low_price <= latest_sma50_price * 1.001 and close_price >= latest_sma50_price > prev_sma50_price:
+                        return 1
 
         # ---- Hangingman (空头) ----
         candlestick = Candlestick({"name": "hangingman", "description": "上吊线", "signal": -1, "weight": 0}, -1)
@@ -81,10 +78,10 @@ class HammerTradingModel(TradingModel):
                 l = get_distance(df, df.loc[candlestick.match_indexes[-1]], latest_swing_low)
                 # 如果距离大于等于3，则进行后续判断
                 if l >= 3:
-                    if (high_price >= latest_sma20_price * 0.999 and latest_sma20_price >= close_price) \
-                        or (high_price >= latest_sma50_price * 0.999 >= close_price):
-                        if latest_sma120_price < prev_sma120_price:  # 长期趋势向下
-                            return -1
+                    if high_price >= latest_sma20_price * 0.999 and close_price <= latest_sma20_price < prev_sma20_price:
+                        return -1
+                    if high_price >= latest_sma50_price * 0.999 and close_price <= latest_sma50_price < prev_sma50_price:
+                        return -1
 
         return 0
 
