@@ -873,5 +873,10 @@ def is_hammer_strict(point):
     lower_shadow = get_lower_shadow(point)
     # 计算K线整体波动范围
     length = get_price_range(point)
-    # 判断下影线长度占整体波动范围的比例是否大于等于2/3
-    return (lower_shadow / length) >= (2 / 3)
+    # 计算振幅（最高价 - 最低价）
+    amplitude = point['high'] - point['low']
+    # 计算振幅占开盘价的百分比
+    amplitude_percentage = (amplitude / point['open']) * 100
+
+    # 判断下影线长度占整体波动范围的比例是否大于等于2/3，并且振幅大于2%
+    return (lower_shadow / length) >= (2 / 3) and amplitude_percentage > 2
