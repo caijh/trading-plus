@@ -1,5 +1,6 @@
 import pandas_ta as ta
 
+from calculate.service import get_distance
 from indicator.base import Indicator
 
 BULLISH_PATTERNS = [
@@ -104,7 +105,7 @@ class Candlestick(Indicator):
     column = ''
     label = ''
     signal = 1
-    weight = 1
+    weight = 0
     recent = 3
 
     def __init__(self, pattern, signal):
@@ -155,6 +156,8 @@ class Candlestick(Indicator):
         # 提取匹配日期，并写入 stock 中
         if not matched.empty:
             self.match_indexes.extend(matched.index.tolist())
+            weight = get_distance(df, df.loc[self.match_indexes[-1]], df.iloc[-1])
+            self.weight = self.recent + 1 - weight
             return True
         else:
             return False

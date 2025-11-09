@@ -36,16 +36,23 @@ def get_candlestick_signal(stock, df, candlestick_weight):
                匹配的形态列表：符合权重阈值的K线形态名称列表
     """
     # 检查是否存在看跌K线形态
-    candlestick_patterns = get_bearish_candlestick_patterns()
-    matched_patterns, weight = get_match_patterns(candlestick_patterns, stock, df, trending=None, direction=None)
-    if weight >= candlestick_weight:
-        return -1, matched_patterns
+    bearish_matched_patterns, bearish_weight = get_match_patterns(get_bearish_candlestick_patterns(), stock, df,
+                                                                  trending=None, direction=None)
+    bullish_matched_patterns, bullish_weight = get_match_patterns(get_bullish_candlestick_patterns(), stock, df,
+                                                                  trending=None, direction=None)
+    if bearish_weight > bullish_weight >= candlestick_weight:
+        return -1, bearish_matched_patterns
 
-    # 检查是否存在看涨K线形态
-    candlestick_patterns = get_bullish_candlestick_patterns()
-    matched_patterns, weight = get_match_patterns(candlestick_patterns, stock, df, trending=None, direction=None)
-    if weight >= candlestick_weight:
-        return 1, matched_patterns
+    if bullish_weight > bearish_weight >= candlestick_weight:
+        return 1, bullish_matched_patterns
+
+    if bullish_weight == bearish_weight >= candlestick_weight:
+        bearish_matched_pattern = bearish_matched_patterns[-1]
+        bullish_matched_pattern = bullish_matched_patterns[-1]
+        if bearish_matched_pattern.weight > bullish_matched_pattern.weight:
+            return -1, bearish_matched_patterns
+        if bearish_matched_pattern.weight < bullish_matched_pattern.weight:
+            return 1, bullish_matched_patterns
 
     # 无明显信号时返回默认值
     return 0, []
