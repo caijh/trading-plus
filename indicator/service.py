@@ -47,8 +47,8 @@ def get_candlestick_signal(stock, df, candlestick_weight):
         return 1, bullish_matched_patterns
 
     if bullish_weight == bearish_weight >= candlestick_weight:
-        bearish_matched_pattern = bearish_matched_patterns[-1]
-        bullish_matched_pattern = bullish_matched_patterns[-1]
+        bearish_matched_pattern = max(bearish_matched_patterns, key=lambda x: x.weight)
+        bullish_matched_pattern = max(bullish_matched_patterns, key=lambda x: x.weight)
         if bearish_matched_pattern.weight > bullish_matched_pattern.weight:
             return -1, bearish_matched_patterns
         if bearish_matched_pattern.weight < bullish_matched_pattern.weight:

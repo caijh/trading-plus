@@ -879,4 +879,4 @@ def is_hammer_strict(point):
     amplitude_percentage = (amplitude / point['close']) * 100
 
     # 判断下影线长度占整体波动范围的比例是否大于等于2/3，并且振幅大于2%
-    return (lower_shadow / length) >= (2 / 3) and amplitude_percentage > 1
+    return (lower_shadow / length) > 0.666 and amplitude_percentage > 1
