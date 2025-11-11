@@ -42,8 +42,8 @@ class HammerTradingModel(TradingModel):
 
         swing_highs = df[df['turning'] == -1]
         swing_lows = df[df['turning'] == 1]
-        trend_up = True if len(swing_lows) > 2 and swing_lows.iloc[-1]['low'] > swing_lows.iloc[-2]['low'] else False
-        trend_down = True if len(swing_highs) > 2 and swing_highs.iloc[-1]['high'] < swing_highs.iloc[-2][
+        trend_up = True if len(swing_lows) > 1 and swing_lows.iloc[-1]['low'] > swing_lows.iloc[-2]['low'] else False
+        trend_down = True if len(swing_highs) > 1 and swing_highs.iloc[-1]['high'] < swing_highs.iloc[-2][
             'high'] else False
         # ---- Hammer (多头) ----
         candlestick = Candlestick({"name": "hammer", "description": "锤子线", "signal": 1, "weight": 1}, 1)
