@@ -859,7 +859,7 @@ def get_price_range(point):
     return point['high'] - point['low']
 
 
-def is_hammer_strict(point):
+def is_hammer_strict(point, df):
     """
     判断给定K线点是否为严格锤子线形态
 
@@ -875,8 +875,10 @@ def is_hammer_strict(point):
     length = get_price_range(point)
     # 计算振幅（最高价 - 最低价）
     amplitude = point['high'] - point['low']
+    # 获取point前天的数据点
+    prev_point = df.iloc[df.index.get_loc(point.name) - 1]
     # 计算振幅占开盘价的百分比
-    amplitude_percentage = (amplitude / point['close']) * 100
+    amplitude_percentage = (amplitude / prev_point['close']) * 100
 
     # 判断下影线长度占整体波动范围的比例是否大于等于2/3，并且振幅大于2%
-    return (lower_shadow / length) > 0.666 and amplitude_percentage > 1
+    return (lower_shadow / length) > 0.618 and amplitude_percentage > 1
