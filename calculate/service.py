@@ -855,11 +855,34 @@ def get_lower_shadow(point):
         return point['close'] - point['low']
 
 
+def get_upper_shadow(point):
+    """
+    计算K线图中某个交易点的上影线长度
+
+    参数:
+        point (dict): 包含交易数据的字典，必须包含 'close' 、'open'、'high' 三个键
+                     'close': 收盘价
+                     'open': 开盘价
+                     'high': 最高价
+
+    返回值:
+        float: 上影线的长度
+    """
+    # 根据K线类型（阳线或阴线）计算上影线长度
+    if point['close'] >= point['open']:
+        # 阳线：上影线 = 高价 - 收盘价
+        return point['high'] - point['close']
+    else:
+        # 阴线：上影线 = 高价 - 开盘价
+        return point['high'] - point['open']
+
+
+
 def get_price_range(point):
     return point['high'] - point['low']
 
 
-def is_hammer_strict(point, df):
+def is_hammer_strict(point):
     """
     判断给定K线点是否为严格锤子线形态
 
@@ -873,12 +896,51 @@ def is_hammer_strict(point, df):
     lower_shadow = get_lower_shadow(point)
     # 计算K线整体波动范围
     length = get_price_range(point)
-    # 计算振幅（最高价 - 最低价）
-    amplitude = point['high'] - point['low']
-    # 获取point前天的数据点
-    prev_point = df.iloc[df.index.get_loc(point.name) - 1]
-    # 计算振幅占开盘价的百分比
-    amplitude_percentage = (amplitude / prev_point['close']) * 100
 
-    # 判断下影线长度占整体波动范围的比例是否大于等于2/3，并且振幅大于2%
-    return (lower_shadow / length) > 0.618 and amplitude_percentage > 1
+    # 判断下影线长度占整体波动范围的比例是否大于等于2/3
+    return (lower_shadow / length) > 0.618
+
+
+def is_hangingman_strict(point):
+    """
+    判断给定K线点是否为严格的吊颈线形态
+
+    吊颈线是K线图中的一种反转形态，通常出现在上涨趋势的末端，预示着可能的下跌反转。
+    严格的吊颈线要求上影线长度占整个价格波动范围的比例超过0.618（黄金分割比例）。
+
+    参数:
+        point: K线数据点，包含开盘价、最高价、最低价、收盘价等信息
+
+    返回值:
+        bool: 如果是严格的吊颈线形态返回True，否则返回False
+    """
+    # 计算该K线的上影线长度
+    up_shadow = get_upper_shadow(point)
+
+    # 计算该K线的价格波动范围（最高价与最低价的差值）
+    length = get_price_range(point)
+
+    # 判断上影线长度占价格波动范围的比例是否超过0.618黄金分割比例
+    return (up_shadow / length) > 0.618
+
+
+def get_amplitude(point, df):
+    """
+    计算指定数据点的振幅占前一个交易日收盘价的百分比
+
+    参数:
+        point: 包含当前交易日数据的Series对象，需包含 'high' 和 'low' 字段
+        df: 包含历史数据的DataFrame对象，用于获取前一个交易日的收盘价
+
+    返回值:
+        float: 振幅占前一个交易日收盘价的百分比
+    """
+    # 计算当前交易日的振幅（最高价与最低价的差值）
+    amplitude = point['high'] - point['low']
+
+    # 获取前一个交易日的数据点
+    prev_point = df.iloc[df.index.get_loc(point.name) - 1]
+
+    # 计算振幅占前一个交易日收盘价的百分比
+    amplitude_percentage = (amplitude / prev_point['close']) * 100
+    return amplitude_percentage

@@ -1,4 +1,4 @@
-from calculate.service import get_recent_price, get_distance, is_hammer_strict
+from calculate.service import get_recent_price, get_distance, is_hammer_strict, get_amplitude, is_hangingman_strict
 from indicator.candlestick import Candlestick
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
@@ -52,7 +52,7 @@ class HammerTradingModel(TradingModel):
         ):
             k = df.loc[candlestick.match_indexes[-1]]
             latest_swing_high = swing_highs.iloc[-1] if len(swing_highs) >= 1 else None
-            if latest_swing_high is not None and is_hammer_strict(k, df):
+            if latest_swing_high is not None and is_hammer_strict(k) and get_amplitude(k, df) > 1:
                 # 获取最后一个匹配的K线标签及其在数据框中的位置
                 # 计算两个位置之间的距离
                 l = get_distance(df, df.loc[candlestick.match_indexes[-1]], latest_swing_high)
@@ -70,8 +70,9 @@ class HammerTradingModel(TradingModel):
         if (candlestick.match(stock, df, trending, direction)
             and trend_down
         ):
+            k = df.loc[candlestick.match_indexes[-1]]
             latest_swing_low = swing_lows.iloc[-1] if len(swing_lows) >= 1 else None
-            if latest_swing_low is not None:
+            if latest_swing_low is not None and is_hangingman_strict(k) and get_amplitude(k, df) > 1:
                 # 计算两个位置之间的距离
                 l = get_distance(df, df.loc[candlestick.match_indexes[-1]], latest_swing_low)
                 # 如果距离大于等于3，则进行后续判断
