@@ -30,15 +30,6 @@ class HammerTradingModel(TradingModel):
         # ---- 均线准备 ----
         sma20_series = df['SMA20']
         sma50_series = df['SMA50']
-        latest_sma20_price = sma20_series.iloc[-1]
-        prev_sma20_price = sma20_series.iloc[-2]
-        latest_sma50_price = sma50_series.iloc[-1]
-        prev_sma50_price = sma50_series.iloc[-2]
-
-        # ---- 当日价格 ----
-        close_price = df.iloc[-1]['close']
-        low_price = df.iloc[-1]['low']
-        high_price = df.iloc[-1]['high']
 
         swing_highs = df[df['turning'] == -1]
         swing_lows = df[df['turning'] == 1]
@@ -58,6 +49,13 @@ class HammerTradingModel(TradingModel):
                 l = get_distance(df, df.loc[candlestick.match_indexes[-1]], latest_swing_high)
                 # 如果距离大于等于3，则进行后续判断
                 if l >= 3:
+                    close_price = k['close']
+                    low_price = k['low']
+                    loc = df.index.get_loc(k.name)
+                    latest_sma20_price = sma20_series.iloc[loc]
+                    prev_sma20_price = sma20_series.iloc[loc - 1]
+                    latest_sma50_price = sma50_series.iloc[loc]
+                    prev_sma50_price = sma50_series.iloc[loc - 1]
                     # 检查是否满足20日均线突破条件：最低价接近20日均线且收盘价突破20日均线（当前大于前一个）
                     if low_price <= latest_sma20_price * 1.001 and close_price >= latest_sma20_price > prev_sma20_price:
                         return 1
@@ -77,6 +75,13 @@ class HammerTradingModel(TradingModel):
                 l = get_distance(df, df.loc[candlestick.match_indexes[-1]], latest_swing_low)
                 # 如果距离大于等于3，则进行后续判断
                 if l >= 3:
+                    loc = df.index.get_loc(k.name)
+                    close_price = k['close']
+                    high_price = k['high']
+                    latest_sma20_price = sma20_series.iloc[loc]
+                    prev_sma20_price = sma20_series.iloc[loc - 1]
+                    latest_sma50_price = sma50_series.iloc[loc]
+                    prev_sma50_price = sma50_series.iloc[loc - 1]
                     if high_price >= latest_sma20_price * 0.999 and close_price <= latest_sma20_price < prev_sma20_price:
                         return -1
                     if high_price >= latest_sma50_price * 0.999 and close_price <= latest_sma50_price < prev_sma50_price:
