@@ -21,6 +21,14 @@ class ICTTradingModel(TradingModel):
         self.ob_min_body_pct = ob_min_body_pct
         self.fvg_atr_mult = fvg_atr_mult
         self.ob_buffer_pct = ob_buffer_pct
+        self.bos_found = False
+        self.bos_idx = None
+        self.bos_dir = None
+        self.prev_swing_pos = None
+        self.ob_type = None
+        self.ob_idx = None
+        self.ob_low = None
+        self.ob_high = None
 
     def find_recent_bos(self, df):
         """
@@ -36,9 +44,9 @@ class ICTTradingModel(TradingModel):
         start = max(3, n - self.lookback_bos)
         # 从最近往前找
         for i in range(n - 2, start - 1, -1):
-            close_i = df['close'].iloc[i]
-            open_i = df['open'].iloc[i]
-            prev_close_i = df['close'].iloc[i - 1]
+            close_price = df['close'].iloc[i]
+            open_price = df['open'].iloc[i]
+            prev_close_price = df['close'].iloc[i - 1]
             # find previous swing high/low before i
             prev_high_idxes = np.where((turning_arr == -1) & (np.arange(n) < i))[0]
             prev_low_idxes = np.where((turning_arr == 1) & (np.arange(n) < i))[0]
@@ -47,14 +55,14 @@ class ICTTradingModel(TradingModel):
 
             # UP BOS: close > prev swing high and bullish candle
             if (prev_high_pos is not None
-                and prev_close_i < df['high'].iloc[prev_high_pos] < close_i
-                and close_i > open_i):
+                and prev_close_price < df['high'].iloc[prev_high_pos] < close_price
+                and close_price > open_price):
                 return True, i, 'UP', prev_high_pos
 
             # DOWN BOS: close < prev swing low and bearish candle
             if (prev_low_pos is not None
-                and close_i < df['low'].iloc[prev_low_pos] < prev_close_i
-                and close_i < open_i):
+                and close_price < df['low'].iloc[prev_low_pos] < prev_close_price
+                and close_price < open_price):
                 return True, i, 'DOWN', prev_low_pos
 
         return False, None, None, None
@@ -222,11 +230,18 @@ class ICTTradingModel(TradingModel):
         if not bos_found:
             return 0
 
+        self.bos_found = bos_found
+        self.bos_idx = bos_idx
+        self.bos_dir = bos_dir
+        self.prev_swing_pos = prev_swing_pos
+
         ob_type, ob_idx, ob_low, ob_high = self.identify_strict_ob_before_bos(df, bos_idx, bos_dir)
         # print(f"OB found: {ob_type}, idx: {ob_idx}, low: {ob_low}, high: {ob_high}")
         # print(f'ob index date: {df.iloc[ob_idx].name.strftime("%Y-%m-%d")}')
         if ob_type is None:
             return 0
+
+        self.ob_type, self.ob_idx, self.ob_low, self.ob_high = ob_type, ob_idx, ob_low, ob_high
 
         swallowed = False
         for k in range(ob_idx + 1, len(df)):
@@ -262,8 +277,7 @@ class ICTTradingModel(TradingModel):
         - 止盈 = RR = 2:1
         """
         # re-identify BOS & OB to get positions/values (could cache to avoid double compute)
-        bos_found, bos_idx, bos_dir, prev_swing_pos = self.find_recent_bos(df)
-        ob_type, ob_idx, ob_low, ob_high = self.identify_strict_ob_before_bos(df, bos_idx, bos_dir)
+        ob_type, ob_idx, ob_low, ob_high = self.ob_type, self.ob_idx, self.ob_low, self.ob_high
 
         last_close = float(df['close'].iloc[-1])
         n_digits = 3 if stock.get('stock_type') == 'Fund' else 2
