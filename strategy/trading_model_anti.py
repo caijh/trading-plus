@@ -37,8 +37,8 @@ class AntiTradingModel(TradingModel):
         k_series, d_series = kdj_df['K'], kdj_df['D']
 
         # EMA 均线
-        ema20 = ta.ema(df['close'], length=20)
-        ema50 = ta.ema(df['close'], length=50)
+        sma20 = df['SMA20']
+        sma50 = df['SMA50']
 
         # 最新值
         k_now, d_now = k_series.iloc[-1], d_series.iloc[-1]
@@ -51,8 +51,8 @@ class AntiTradingModel(TradingModel):
         # ========== 2. 多头信号 ==========
         bullish_kdj = (d_now > d_turning_points.iloc[-1]) and (k_prev_prev > k_prev < k_now) and (k_now >= d_now)
         bullish_trend = (
-            ema20.iloc[-1] > ema50.iloc[-1] > ema50.iloc[-2] and
-            ema20.iloc[-1] > ema20.iloc[-2]
+            sma20.iloc[-1] > sma50.iloc[-1] > sma50.iloc[-2] and
+            sma20.iloc[-1] > sma20.iloc[-2]
         )
 
         if bullish_kdj and bullish_trend:
@@ -61,8 +61,8 @@ class AntiTradingModel(TradingModel):
         # ========== 3. 空头信号 ==========
         bearish_kdj = (d_now < d_turning_points.iloc[-1]) and (k_prev_prev < k_prev > k_now) and (k_now <= d_now)
         bearish_trend = (
-            ema20.iloc[-1] < ema50.iloc[-1] < ema50.iloc[-2] and
-            ema20.iloc[-1] < ema20.iloc[-2]
+            sma20.iloc[-1] < sma50.iloc[-1] < sma50.iloc[-2] and
+            sma20.iloc[-1] < sma20.iloc[-2]
         )  # 均线空头排列
 
         if bearish_kdj and bearish_trend:
