@@ -4,16 +4,16 @@ from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
 
 
-def support_by_sma(sma_series, loc, close, low):
+def is_support_sma(sma_series, loc, close, low):
     latest_sma_price = sma_series.iloc[loc]
     prev_sma_price = sma_series.iloc[loc - 1]
-    return low <= latest_sma_price * 1.001 and close >= latest_sma_price > prev_sma_price
+    return low <= latest_sma_price * 1.0015 and close >= latest_sma_price > prev_sma_price
 
 
-def resistance_by_sma(sma_series, loc, close, high):
+def is_resistance_sma(sma_series, loc, close, high):
     latest_sma_price = sma_series.iloc[loc]
     prev_sma_price = sma_series.iloc[loc - 1]
-    return high >= latest_sma_price * 0.999 and close <= latest_sma_price < prev_sma_price
+    return high >= latest_sma_price * 0.9985 and close <= latest_sma_price < prev_sma_price
 
 class HammerTradingModel(TradingModel):
     def __init__(self):
@@ -68,13 +68,13 @@ class HammerTradingModel(TradingModel):
                     close_price = k['close']
                     low_price = k['low']
                     loc = df.index.get_loc(k.name)
-                    if support_by_sma(sma20_series, loc, close_price, low_price):
+                    if is_support_sma(sma20_series, loc, close_price, low_price):
                         return 1
-                    if support_by_sma(sma50_series, loc, close_price, low_price):
+                    if is_support_sma(sma50_series, loc, close_price, low_price):
                         return 1
-                    if support_by_sma(sma120_series, loc, close_price, low_price):
+                    if is_support_sma(sma120_series, loc, close_price, low_price):
                         return 1
-                    if support_by_sma(sma200_series, loc, close_price, low_price):
+                    if is_support_sma(sma200_series, loc, close_price, low_price):
                         return 1
         # ---- Hangingman (空头) ----
         candlestick = Candlestick({"name": "hangingman", "description": "上吊线", "signal": -1, "weight": 0}, -1)
@@ -94,13 +94,13 @@ class HammerTradingModel(TradingModel):
                     loc = df.index.get_loc(k.name)
                     close_price = k['close']
                     high_price = k['high']
-                    if resistance_by_sma(sma20_series, loc, close_price, high_price):
+                    if is_resistance_sma(sma20_series, loc, close_price, high_price):
                         return -1
-                    if resistance_by_sma(sma50_series, loc, close_price, high_price):
+                    if is_resistance_sma(sma50_series, loc, close_price, high_price):
                         return -1
-                    if resistance_by_sma(sma120_series, loc, close_price, high_price):
+                    if is_resistance_sma(sma120_series, loc, close_price, high_price):
                         return -1
-                    if resistance_by_sma(sma200_series, loc, close_price, high_price):
+                    if is_resistance_sma(sma200_series, loc, close_price, high_price):
                         return -1
 
         return 0
