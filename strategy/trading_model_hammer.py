@@ -24,13 +24,15 @@ def is_support_sma(sma_series, loc, close, low, tolerance=0.002):
     return trend_ok and touch_support and support_held
 
 
-def is_resistance_sma(sma_series, loc, close, high, tolerance=0.002):
+def is_resistance_sma(sma_series, loc, close, high, tolerance=0.0015):
     latest_sma_price = sma_series.iloc[loc]
     prev_sma_price = sma_series.iloc[loc - 1]
     trend_down = latest_sma_price < prev_sma_price
     touch_resistance = high >= latest_sma_price * (1 - tolerance)
     resistance_held = close < latest_sma_price
     return trend_down and touch_resistance and resistance_held
+
+
 class HammerTradingModel(TradingModel):
     def __init__(self):
         """
