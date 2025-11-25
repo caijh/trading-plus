@@ -30,6 +30,8 @@ class HammerTradingModel(TradingModel):
         # ---- 均线准备 ----
         sma20_series = df['SMA20']
         sma50_series = df['SMA50']
+        sma120_series = df['SMA120']
+        sma200_series = df['SMA200']
 
         swing_highs = df[df['turning'] == -1]
         swing_lows = df[df['turning'] == 1]
@@ -59,13 +61,20 @@ class HammerTradingModel(TradingModel):
                     prev_sma20_price = sma20_series.iloc[loc - 1]
                     latest_sma50_price = sma50_series.iloc[loc]
                     prev_sma50_price = sma50_series.iloc[loc - 1]
+                    latest_sma120_price = sma120_series.iloc[loc]
+                    prev_sma120_price = sma120_series.iloc[loc - 1]
+                    latest_sma200_price = sma200_series.iloc[loc]
+                    prev_sma200_price = sma200_series.iloc[loc - 1]
                     # 检查是否满足20日均线突破条件：最低价接近20日均线且收盘价突破20日均线（当前大于前一个）
                     if low_price <= latest_sma20_price * 1.001 and close_price >= latest_sma20_price > prev_sma20_price:
                         return 1
                     # 检查是否满足50日均线突破条件：最低价接近50日均线且收盘价突破50日均线（当前大于前一个）
                     if low_price <= latest_sma50_price * 1.001 and close_price >= latest_sma50_price > prev_sma50_price:
                         return 1
-
+                    if low_price <= latest_sma120_price * 1.001 and close_price >= latest_sma120_price > prev_sma120_price:
+                        return 1
+                    if low_price <= latest_sma200_price * 1.001 and close_price >= latest_sma200_price > prev_sma200_price:
+                        return 1
         # ---- Hangingman (空头) ----
         candlestick = Candlestick({"name": "hangingman", "description": "上吊线", "signal": -1, "weight": 0}, -1)
         if (candlestick.match(stock, df, trending, direction)
@@ -85,9 +94,18 @@ class HammerTradingModel(TradingModel):
                     prev_sma20_price = sma20_series.iloc[loc - 1]
                     latest_sma50_price = sma50_series.iloc[loc]
                     prev_sma50_price = sma50_series.iloc[loc - 1]
+                    prev_sma120_price = sma120_series.iloc[loc - 1]
+                    latest_sma120_price = sma120_series.iloc[loc]
+                    prev_sma200_price = sma200_series.iloc[loc - 1]
+                    latest_sma200_price = sma200_series.iloc[loc]
+
                     if high_price >= latest_sma20_price * 0.999 and close_price <= latest_sma20_price < prev_sma20_price:
                         return -1
                     if high_price >= latest_sma50_price * 0.999 and close_price <= latest_sma50_price < prev_sma50_price:
+                        return -1
+                    if high_price >= latest_sma120_price * 0.999 and close_price <= latest_sma120_price < prev_sma120_price:
+                        return -1
+                    if high_price >= latest_sma200_price * 0.999 and close_price <= latest_sma200_price < prev_sma200_price:
                         return -1
 
         return 0
