@@ -1,8 +1,19 @@
-from calculate.service import get_recent_price, get_distance, is_hammer_strict, get_amplitude, is_hangingman_strict
+from calculate.service import get_recent_price, get_distance, is_hammer_strict, is_hangingman_strict
 from indicator.candlestick import Candlestick
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
 
+
+def support_by_sma(sma_series, loc, close, low):
+    latest_sma_price = sma_series.iloc[loc]
+    prev_sma_price = sma_series.iloc[loc - 1]
+    return low <= latest_sma_price * 1.001 and close >= latest_sma_price > prev_sma_price
+
+
+def resistance_by_sma(sma_series, loc, close, high):
+    latest_sma_price = sma_series.iloc[loc]
+    prev_sma_price = sma_series.iloc[loc - 1]
+    return high >= latest_sma_price * 0.999 and close <= latest_sma_price < prev_sma_price
 
 class HammerTradingModel(TradingModel):
     def __init__(self):
@@ -47,7 +58,7 @@ class HammerTradingModel(TradingModel):
             k = df.loc[candlestick.match_indexes[-1]]
             if (latest_swing_high is not None
                 and is_hammer_strict(k)
-                and get_amplitude(k, df) > 1
+                # and get_amplitude(k, df) > 1
             ):
                 # 获取最后一个匹配的K线标签及其在数据框中的位置
                 # 计算两个位置之间的距离
@@ -57,23 +68,13 @@ class HammerTradingModel(TradingModel):
                     close_price = k['close']
                     low_price = k['low']
                     loc = df.index.get_loc(k.name)
-                    latest_sma20_price = sma20_series.iloc[loc]
-                    prev_sma20_price = sma20_series.iloc[loc - 1]
-                    latest_sma50_price = sma50_series.iloc[loc]
-                    prev_sma50_price = sma50_series.iloc[loc - 1]
-                    latest_sma120_price = sma120_series.iloc[loc]
-                    prev_sma120_price = sma120_series.iloc[loc - 1]
-                    latest_sma200_price = sma200_series.iloc[loc]
-                    prev_sma200_price = sma200_series.iloc[loc - 1]
-                    # 检查是否满足20日均线突破条件：最低价接近20日均线且收盘价突破20日均线（当前大于前一个）
-                    if low_price <= latest_sma20_price * 1.001 and close_price >= latest_sma20_price > prev_sma20_price:
+                    if support_by_sma(sma20_series, loc, close_price, low_price):
                         return 1
-                    # 检查是否满足50日均线突破条件：最低价接近50日均线且收盘价突破50日均线（当前大于前一个）
-                    if low_price <= latest_sma50_price * 1.001 and close_price >= latest_sma50_price > prev_sma50_price:
+                    if support_by_sma(sma50_series, loc, close_price, low_price):
                         return 1
-                    if low_price <= latest_sma120_price * 1.001 and close_price >= latest_sma120_price > prev_sma120_price:
+                    if support_by_sma(sma120_series, loc, close_price, low_price):
                         return 1
-                    if low_price <= latest_sma200_price * 1.001 and close_price >= latest_sma200_price > prev_sma200_price:
+                    if support_by_sma(sma200_series, loc, close_price, low_price):
                         return 1
         # ---- Hangingman (空头) ----
         candlestick = Candlestick({"name": "hangingman", "description": "上吊线", "signal": -1, "weight": 0}, -1)
@@ -82,7 +83,10 @@ class HammerTradingModel(TradingModel):
         ):
             k = df.loc[candlestick.match_indexes[-1]]
             latest_swing_low = swing_lows.iloc[-1] if len(swing_lows) > 0 else None
-            if latest_swing_low is not None and is_hangingman_strict(k) and get_amplitude(k, df) > 1:
+            if (latest_swing_low is not None
+                and is_hangingman_strict(k)
+                # and get_amplitude(k, df) > 1
+            ):
                 # 计算两个位置之间的距离
                 l = get_distance(df, df.loc[candlestick.match_indexes[-1]], latest_swing_low)
                 # 如果距离大于等于3，则进行后续判断
@@ -90,22 +94,13 @@ class HammerTradingModel(TradingModel):
                     loc = df.index.get_loc(k.name)
                     close_price = k['close']
                     high_price = k['high']
-                    latest_sma20_price = sma20_series.iloc[loc]
-                    prev_sma20_price = sma20_series.iloc[loc - 1]
-                    latest_sma50_price = sma50_series.iloc[loc]
-                    prev_sma50_price = sma50_series.iloc[loc - 1]
-                    prev_sma120_price = sma120_series.iloc[loc - 1]
-                    latest_sma120_price = sma120_series.iloc[loc]
-                    prev_sma200_price = sma200_series.iloc[loc - 1]
-                    latest_sma200_price = sma200_series.iloc[loc]
-
-                    if high_price >= latest_sma20_price * 0.999 and close_price <= latest_sma20_price < prev_sma20_price:
+                    if resistance_by_sma(sma20_series, loc, close_price, high_price):
                         return -1
-                    if high_price >= latest_sma50_price * 0.999 and close_price <= latest_sma50_price < prev_sma50_price:
+                    if resistance_by_sma(sma50_series, loc, close_price, high_price):
                         return -1
-                    if high_price >= latest_sma120_price * 0.999 and close_price <= latest_sma120_price < prev_sma120_price:
+                    if resistance_by_sma(sma120_series, loc, close_price, high_price):
                         return -1
-                    if high_price >= latest_sma200_price * 0.999 and close_price <= latest_sma200_price < prev_sma200_price:
+                    if resistance_by_sma(sma200_series, loc, close_price, high_price):
                         return -1
 
         return 0
