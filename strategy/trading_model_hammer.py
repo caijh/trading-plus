@@ -4,17 +4,33 @@ from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
 
 
-def is_support_sma(sma_series, loc, close, low):
+def is_support_sma(sma_series, loc, close, low, tolerance=0.002):
+    """
+    增加 tolerance 参数，默认 0.2%
+    """
+    if loc < 1: return False  # 边界检查
+
+    latest_sma = sma_series.iloc[loc]
+    prev_sma = sma_series.iloc[loc - 1]
+
+    # 判定：
+    # 1. 均线向上 (latest > prev)
+    # 2. 最低价触及均线范围 (low <= sma * (1 + tolerance))
+    # 3. 收盘价在均线之上 (close >= sma) -> 确认支撑有效
+    trend_ok = latest_sma > prev_sma
+    touch_support = low <= latest_sma * (1 + tolerance)
+    support_held = close > latest_sma
+
+    return trend_ok and touch_support and support_held
+
+
+def is_resistance_sma(sma_series, loc, close, high, tolerance=0.002):
     latest_sma_price = sma_series.iloc[loc]
     prev_sma_price = sma_series.iloc[loc - 1]
-    return low <= latest_sma_price * 1.0015 and close >= latest_sma_price > prev_sma_price
-
-
-def is_resistance_sma(sma_series, loc, close, high):
-    latest_sma_price = sma_series.iloc[loc]
-    prev_sma_price = sma_series.iloc[loc - 1]
-    return high >= latest_sma_price * 0.9985 and close <= latest_sma_price < prev_sma_price
-
+    trend_down = latest_sma_price < prev_sma_price
+    touch_resistance = high >= latest_sma_price * (1 - tolerance)
+    resistance_held = close < latest_sma_price
+    return trend_down and touch_resistance and resistance_held
 class HammerTradingModel(TradingModel):
     def __init__(self):
         """
@@ -77,7 +93,7 @@ class HammerTradingModel(TradingModel):
                     if is_support_sma(sma200_series, loc, close_price, low_price):
                         return 1
         # ---- Hangingman (空头) ----
-        candlestick = Candlestick({"name": "hangingman", "description": "上吊线", "signal": -1, "weight": 0}, -1)
+        candlestick = Candlestick({"name": "shootingstar", "description": "流星线", "signal": -1, "weight": 0}, -1)
         if (candlestick.match(stock, df, trending, direction)
             and trend_down
         ):
@@ -145,7 +161,7 @@ class HammerTradingModel(TradingModel):
             strategy_name=self.name,
             stock_code=stock['code'],
             stock_name=stock['name'],
-            entry_patterns=['hammer', 'SMA', 'UP'] if signal == 1 else ['hangingman', 'SMA', 'DOWN'],
+            entry_patterns=['hammer', 'SMA', 'UP'] if signal == 1 else ['shootingstar', 'SMA', 'DOWN'],
             exit_patterns=[],
             exchange=stock['exchange'],
             entry_price=float(round(entry_price, n_digits)),
