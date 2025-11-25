@@ -5,8 +5,8 @@ flask_apscheduler==1.13.1
 Flask_Executor==1.0.0
 flask_sqlalchemy==3.1.1
 keras==3.9.0
-numpy>=2.3
-pandas==2.3.3
+numpy>=2
+pandas==2.3.0
 pandas-ta @ git+https://github.com/caijh/pandas-ta.git@7be9bf7bc1ef537da7626502354afcfedaefcb6a
 python-dotenv==1.2.1
 Requests==2.32.5
