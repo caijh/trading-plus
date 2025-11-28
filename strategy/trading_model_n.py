@@ -48,7 +48,8 @@ class NTradingModel(TradingModel):
             and point_2['high'] > point_4['high'] > point_3['low']
             and point_1['low'] < (point_3['low'] + point_2['high']) / 2
             and point_1['turning'] == 1
-            # and volume_cur > volume_point4
+            and get_distance(df, df.iloc[-1], point_1) < 4
+            and volume_cur > volume_point4
         ):
             signal = 1
         # 最后一个拐点前是下跌N
@@ -56,7 +57,8 @@ class NTradingModel(TradingModel):
               and point_3['high'] > point_4['low'] > point_2['low']
               and point_1['high'] > ((point_2['low'] + point_3['high']) / 2)
               and point_1['turning'] == -1
-            # and volume_cur < volume_point3
+              and get_distance(df, df.iloc[-1], point_1) < 4
+              and volume_cur < volume_point3
         ):
             signal = -1
 
