@@ -58,7 +58,7 @@ class NTradingModel(TradingModel):
               and point_1['high'] > ((point_2['low'] + point_3['high']) / 2)
               and point_1['turning'] == -1
               and get_distance(df, df.iloc[-1], point_1) < 4
-              and volume_cur > volume_point3
+              and volume_cur < volume_point3
         ):
             signal = -1
 
