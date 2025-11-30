@@ -1,4 +1,4 @@
-from calculate.service import get_distance, get_total_volume_around
+from calculate.service import get_distance
 from indicator.pvi import PVI
 from indicator.rsi import RSI
 from indicator.wr import WR
@@ -36,29 +36,27 @@ class NTradingModel(TradingModel):
         point_4 = turning_points.iloc[-4]
         point = df.iloc[-1]
         close = point['close']
-        if get_distance(df, point_1, point) > 3:
+        if get_distance(df, point, point_1) > 3:
             return 0
         signal = 0
 
-        volume_point3 = get_total_volume_around(df, point_3.name, 3)
-        volume_point4 = get_total_volume_around(df, point_4.name, 3)
-        volume_cur = get_total_volume_around(df, point_1.name, 3)
+        # volume_point3 = get_total_volume_around(df, point_3.name, 3)
+        # volume_point4 = get_total_volume_around(df, point_4.name, 3)
+        # volume_cur = get_total_volume_around(df, point_1.name, 3)
         # 最一个拐点前是上涨N
         if (point_3['low'] < point_1['low'] < close < point_2['high']
-            and point_2['high'] > point_4['high'] > point_3['low']
-            and point_1['low'] < (point_3['low'] + point_2['high']) / 2
+            and point_2['high'] > point_3['low']
+            and point_1['low'] < ((point_3['low'] + point_2['high']) / 3)
             and point_1['turning'] == 1
-            and get_distance(df, df.iloc[-1], point_1) < 4
-            and volume_cur < volume_point4
+            # and volume_cur < volume_point4
         ):
             signal = 1
         # 最后一个拐点前是下跌N
         elif (point_2['low'] < close < point_1['high'] < point_3['high']
-              and point_3['high'] > point_4['low'] > point_2['low']
-              and point_1['high'] > ((point_2['low'] + point_3['high']) / 2)
+              and point_3['high'] > point_2['low']
+              and point_1['high'] > ((point_2['low'] + point_3['high']) / 3)
               and point_1['turning'] == -1
-              and get_distance(df, df.iloc[-1], point_1) < 4
-              and volume_cur < volume_point3
+            # and volume_cur < volume_point3
         ):
             signal = -1
 
