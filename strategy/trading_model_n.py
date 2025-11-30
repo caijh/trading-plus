@@ -83,8 +83,7 @@ class NTradingModel(TradingModel):
 
         # 计算 ATR (真实波动率)
         atr_series = ta.atr(df['high'], df['low'], df['close'], length=14)  # 假设 ATR 计算函数返回的是一个包含 ATR 值的 Series
-        atr_value = atr_series.iloc[-1]  # 获取最新的 ATR 值
-
+        atr_value = atr_series.iloc[df.index.get_loc(point_1.name)]
         patterns = []
         if signal == 1:  # 多头信号
             # 根据 ATR 调整 entry_price, stop_loss, take_profit
