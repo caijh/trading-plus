@@ -1,3 +1,5 @@
+import pandas_ta as ta
+
 from calculate.service import get_distance
 from indicator.pvi import PVI
 from indicator.rsi import RSI
@@ -78,19 +80,30 @@ class NTradingModel(TradingModel):
         turning_points = df[df['turning'] != 0]
         point_1 = turning_points.iloc[-1]
         point_2 = turning_points.iloc[-2]
+
+        # 计算 ATR (真实波动率)
+        atr_series = ta.atr(df['high'], df['low'], df['close'], length=14)  # 假设 ATR 计算函数返回的是一个包含 ATR 值的 Series
+        atr_value = atr_series.iloc[-1]  # 获取最新的 ATR 值
+
         patterns = []
-        if signal == 1:  # 多头
-            stop_loss = point_1['low']
-            entry_price = last_close * 0.995
+        if signal == 1:  # 多头信号
+            # 根据 ATR 调整 entry_price, stop_loss, take_profit
+            stop_loss = point_1['low'] - atr_value * 0.5  # 止损基于低点，加入 ATR 增加灵活性
+            entry_price = last_close * 0.998  # 入场价格略低于当前收盘价
             target_high = point_2['high']
-            take_profit = target_high * 0.995
+            take_profit = target_high - atr_value * 0.5  # 止盈价格加入 ATR 调整
+
             patterns.extend(['N', 'UP', 'WR', 'PVI'])
-        elif signal == -1:  # 空头
-            stop_loss = point_1['high']
-            entry_price = last_close * 1.005
+
+        elif signal == -1:  # 空头信号
+            # 根据 ATR 调整 entry_price, stop_loss, take_profit
+            stop_loss = point_1['high'] + atr_value * 0.5  # 止损基于高点，加入 ATR 增加灵活性
+            entry_price = last_close * 1.002  # 入场价格略高于当前收盘价
             target_low = point_2['low']
-            take_profit = target_low * 1.005
+            take_profit = target_low + atr_value * 0.5  # 止盈价格加入 ATR 调整
+
             patterns.extend(['N', 'DOWN', 'WR', 'PVI'])
+
         else:
             return None
 
