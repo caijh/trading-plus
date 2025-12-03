@@ -1,7 +1,7 @@
 import pandas_ta as ta
 
 from calculate.service import get_distance
-from indicator.pvi import PVI
+from indicator.obv import OBV
 from indicator.rsi import RSI
 from indicator.wr import WR
 from stock.constant import Trend
@@ -12,7 +12,7 @@ from strategy.trading_model import TradingModel
 def confirm_trend(stock, df, trending, direction, signal):
     if (
         (WR(signal).match(stock, df, trending, direction) or RSI(signal).match(stock, df, trending, direction))
-        and PVI(signal).match(stock, df, trending, direction)
+        and OBV(signal).match(stock, df, trending, direction)
     ):
         if signal == 1:
             return Trend.UP
