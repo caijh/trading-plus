@@ -76,7 +76,7 @@ class HammerTradingModel(TradingModel):
             k = df.loc[candlestick.match_indexes[-1]]
             if (latest_swing_high is not None
                 and is_hammer_strict(k)
-                and get_amplitude(k, df) > 1
+                and get_amplitude(k, df) >= 1
             ):
                 # 获取最后一个匹配的K线标签及其在数据框中的位置
                 # 计算两个位置之间的距离
@@ -103,7 +103,7 @@ class HammerTradingModel(TradingModel):
             latest_swing_low = swing_lows.iloc[-1] if len(swing_lows) > 0 else None
             if (latest_swing_low is not None
                 and is_hangingman_strict(k)
-                and get_amplitude(k, df) > 1
+                and get_amplitude(k, df) >= 1
             ):
                 # 计算两个位置之间的距离
                 l = get_distance(df, df.loc[candlestick.match_indexes[-1]], latest_swing_low)
