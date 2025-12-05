@@ -48,7 +48,7 @@ class NTradingModel(TradingModel):
         # 最一个拐点前是上涨N
         if (point_3['low'] < point_1['low'] < close < point_2['high']
             and point_2['high'] > point_3['low']
-            and point_1['low'] < ((point_3['low'] + point_2['high']) / 3)
+            and point_1['low'] < (point_3['low'] + (point_2['high'] - point_3['low']) * 0.382)
             and point_1['turning'] == 1
             # and volume_cur < volume_point4
         ):
@@ -56,7 +56,7 @@ class NTradingModel(TradingModel):
         # 最后一个拐点前是下跌N
         elif (point_2['low'] < close < point_1['high'] < point_3['high']
               and point_3['high'] > point_2['low']
-              and point_1['high'] > ((point_2['low'] + point_3['high']) / 3)
+              and point_1['high'] > (point_3['high'] - (point_3['high'] - point_2['low']) * 0.382)
               and point_1['turning'] == -1
             # and volume_cur < volume_point3
         ):
