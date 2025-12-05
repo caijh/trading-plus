@@ -1,3 +1,5 @@
+import statistics
+
 import numpy as np
 import pandas_ta as ta
 
@@ -226,8 +228,8 @@ def calculate_support_resistance(stock, df, window=20, num_std=2):
 
     n_digits = 3 if stock['stock_type'] == 'Fund' else 2
     # 计算最终的支撑位和阻力位
-    s = round(float(min(latest_data['S1'], latest_data['S2'], latest_data['S3'])), n_digits)
-    r = round(float(max(latest_data['R1'], latest_data['R2'], latest_data['R3'])), n_digits)
+    s = round(float(statistics.mean([latest_data['S1'], latest_data['S2'], latest_data['S3']])), n_digits)
+    r = round(float(statistics.mean([latest_data['R1'], latest_data['R2'], latest_data['R3']])), n_digits)
     s = round(float(s + latest_data['Lower']) / 2, n_digits)
     r = round(float(r + latest_data['Upper']) / 2, n_digits)
 
