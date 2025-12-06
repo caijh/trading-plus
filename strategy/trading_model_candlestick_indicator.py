@@ -20,7 +20,6 @@ class CandlestickIndicatorTradingModel(TradingModel):
 
     def create_trading_strategy(self, stock, df, signal):
         patterns = []
-        last_close = df['close'].iloc[-1]
         if signal == 1:  # 多头
             stop_loss = stock['support'] * 0.998
             entry_price = stock['support']
