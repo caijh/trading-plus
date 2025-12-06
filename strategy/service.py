@@ -57,6 +57,8 @@ def add_update_strategy(stock):
             db.session.add(strategy)
             db.session.commit()
             print(f"✅ 插入新交易策略：{stock_code} - {stock_name}")
+        else:
+            print(f"🚀 交易策略：{stock_code} - {stock_name} 已经存在")
 
         return None
 
