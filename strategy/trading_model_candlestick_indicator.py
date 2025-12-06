@@ -12,6 +12,11 @@ class CandlestickIndicatorTradingModel(TradingModel):
     def get_trading_signal(self, stock, df, trending, direction):
         candlestick_signal = stock['candlestick_signal']
         indicator_signal = stock['indicator_signal']
+        patterns = []
+        patterns.extend(stock['primary_patterns'])
+        patterns.extend(stock['secondary_patterns'])
+        if len(patterns) < 2:
+            return 0
         if candlestick_signal == 1 and indicator_signal == 1:
             return 1
         elif candlestick_signal == -1 and indicator_signal == -1:
