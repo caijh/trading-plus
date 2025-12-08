@@ -15,7 +15,7 @@ class CandlestickIndicatorTradingModel(TradingModel):
         patterns = []
         patterns.extend(stock['primary_patterns'])
         patterns.extend(stock['secondary_patterns'])
-        if len(stock['candlestick_patterns']) < 2 or len(patterns) < 3:
+        if len(stock['candlestick_patterns']) < 3 or len(patterns) < 3:
             return 0
         if candlestick_signal == 1 and indicator_signal == 1:
             return 1
