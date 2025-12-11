@@ -70,7 +70,7 @@ class HammerTradingModel(TradingModel):
         # ---- Hammer (多头) ----
         candlestick = Candlestick({"name": "hammer", "description": "锤子线", "signal": 1, "weight": 1}, 1)
         if (candlestick.match(stock, df, trending, direction)
-            and trend_up
+            # and trend_up
         ):
             latest_swing_high = swing_highs.iloc[-1] if len(swing_highs) > 0 else None
             k = df.loc[candlestick.match_indexes[-1]]
@@ -97,7 +97,7 @@ class HammerTradingModel(TradingModel):
         # ---- Hangingman (空头) ----
         candlestick = Candlestick({"name": "shootingstar", "description": "流星线", "signal": -1, "weight": 0}, -1)
         if (candlestick.match(stock, df, trending, direction)
-            and trend_down
+            # and trend_down
         ):
             k = df.loc[candlestick.match_indexes[-1]]
             latest_swing_low = swing_lows.iloc[-1] if len(swing_lows) > 0 else None
