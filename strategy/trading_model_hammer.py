@@ -4,7 +4,7 @@ from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
 
 
-def is_support_sma(sma_series, loc, close, low, tolerance=0.002):
+def is_support_sma(sma_series, loc, close, low, tolerance=0.0025):
     """
     增加 tolerance 参数，默认 0.2%
     """
@@ -24,7 +24,7 @@ def is_support_sma(sma_series, loc, close, low, tolerance=0.002):
     return trend_ok and touch_support and support_held
 
 
-def is_resistance_sma(sma_series, loc, close, high, tolerance=0.0015):
+def is_resistance_sma(sma_series, loc, close, high, tolerance=0.0025):
     latest_sma_price = sma_series.iloc[loc]
     prev_sma_price = sma_series.iloc[loc - 1]
     trend_down = latest_sma_price < prev_sma_price
