@@ -138,7 +138,7 @@ class Candlestick(Indicator):
         :return: 布尔值，表示是否匹配到了指定的K线形态。
         """
         # 用最近20根K线计算形态
-        pattern_df = df.tail(20).copy()
+        pattern_df = df.tail(60).copy()
 
         # 计算K线形态，结果列为 self.column
         pattern_df[self.column] = ta.cdl_pattern(
