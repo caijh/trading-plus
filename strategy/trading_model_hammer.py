@@ -1,4 +1,4 @@
-from calculate.service import get_recent_price, get_distance, is_hammer_strict, is_hangingman_strict, get_amplitude
+from calculate.service import get_recent_price, get_distance, is_hangingman_strict, get_amplitude
 from indicator.candlestick import Candlestick, HammerCandlestick
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
@@ -70,7 +70,6 @@ class HammerTradingModel(TradingModel):
             latest_swing_high = swing_highs.iloc[-1] if len(swing_highs) > 0 else None
             k = df.loc[candlestick.match_indexes[-1]]
             if (latest_swing_high is not None
-                and is_hammer_strict(k)
                 and get_amplitude(k, df) > 1
             ):
                 # 获取最后一个匹配的K线标签及其在数据框中的位置
