@@ -900,7 +900,7 @@ def is_hammer_strict(point):
     length = get_price_range(point)
 
     # 判断下影线长度占整体波动范围的比例是否大于等于2/3
-    return (lower_shadow / length) > 0.618
+    return (lower_shadow / length) > (2 / 3)
 
 
 def is_hangingman_strict(point):
@@ -923,7 +923,7 @@ def is_hangingman_strict(point):
     length = get_price_range(point)
 
     # 判断上影线长度占价格波动范围的比例是否超过0.618黄金分割比例
-    return (up_shadow / length) > 0.618
+    return (up_shadow / length) > (2 / 3)
 
 
 def get_amplitude(point, df):

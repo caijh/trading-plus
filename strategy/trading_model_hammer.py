@@ -1,5 +1,5 @@
 from calculate.service import get_recent_price, get_distance, is_hammer_strict, is_hangingman_strict, get_amplitude
-from indicator.candlestick import Candlestick
+from indicator.candlestick import Candlestick, HammerCandlestick
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
 
@@ -65,7 +65,7 @@ class HammerTradingModel(TradingModel):
         swing_highs = df[df['turning'] == -1]
         swing_lows = df[df['turning'] == 1]
         # ---- Hammer (多头) ----
-        candlestick = Candlestick({"name": "hammer", "description": "锤子线", "signal": 1, "weight": 1}, 1)
+        candlestick = HammerCandlestick()
         if candlestick.match(stock, df, trending, direction):
             latest_swing_high = swing_highs.iloc[-1] if len(swing_highs) > 0 else None
             k = df.loc[candlestick.match_indexes[-1]]

@@ -1,6 +1,6 @@
 import pandas_ta as ta
 
-from calculate.service import get_distance
+from calculate.service import get_distance, is_hammer_strict
 from indicator.base import Indicator
 
 BULLISH_PATTERNS = [
@@ -188,3 +188,61 @@ def get_bearish_candlestick_patterns():
         patterns.append(Candlestick(PATTERN, -1))
 
     return patterns
+
+
+class HammerCandlestick(Indicator):
+    """
+    锤子线形态检测器类
+
+    用于检测K线图表中的锤子线形态，继承自Indicator基类
+    """
+    name = ''
+    label = ''
+    signal = 1
+    weight = 1
+    recent = 3
+
+    def __init__(self):
+        """
+        初始化锤子线检测器
+        """
+        self.name = 'Hammer'
+        self.label = 'Hammer'
+        self.description = 'Hammer'
+        self.match_indexes = []
+
+    def match(self, stock, df, trending, direction):
+        """
+        检测锤子线形态
+
+        Args:
+            stock: 股票对象
+            df: K线数据DataFrame
+            trending: 趋势信息
+            direction: 方向信息
+
+        Returns:
+            bool: 如果检测到锤子线形态返回True，否则返回False
+        """
+        # 获取最近recent期的K线数据
+        k_lines = df.tail(self.recent).copy()
+        k_line = None
+        k_index = None
+
+        # 从最近到旧的顺序遍历k_lines, 判断是否是hammer形态
+        # 如果发现多个锤子线，选择最低点的那个
+        for i in range(self.recent - 1, -1, -1):
+            if is_hammer_strict(k_lines.iloc[i]):
+                if k_line is None:
+                    k_line = k_lines.iloc[i]
+                    k_index = k_lines.index[i]
+                else:
+                    if k_line['low'] > k_lines.iloc[i]['low']:
+                        k_line = k_lines.iloc[i]
+                        k_index = k_lines.index[i]
+
+        # 如果找到锤子线形态，记录其索引并返回True
+        if k_line is not None:
+            self.match_indexes.append(k_index)
+            return True
+        return False
