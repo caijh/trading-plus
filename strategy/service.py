@@ -230,12 +230,7 @@ def analyze_stock_prices(stock, df, strategy_name=None,
         # 检查策略信号是否与K线信号或指标信号匹配
         if candlestick_signal == strategy.signal or indicator_signal == strategy.signal:
             # 根据买卖信号和价格位置判断是否符合策略条件
-            if strategy.signal == 1 and (stock['price'] < ((stock['support'] + stock['resistance']) / 2) * 1.0):
-                stock['strategy'] = strategy.to_dict()
-                break
-            elif strategy.signal == -1 and (stock['price'] > ((stock['support'] + stock['resistance']) / 2) * 1.0):
-                stock['strategy'] = strategy.to_dict()
-                break
+            stock['strategy'] = strategy.to_dict()
 
         strategy = None
     signal = 0
