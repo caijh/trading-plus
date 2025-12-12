@@ -231,6 +231,7 @@ def analyze_stock_prices(stock, df, strategy_name=None,
         if candlestick_signal == strategy.signal or indicator_signal == strategy.signal:
             # 根据买卖信号和价格位置判断是否符合策略条件
             stock['strategy'] = strategy.to_dict()
+            break
 
         strategy = None
     signal = 0
