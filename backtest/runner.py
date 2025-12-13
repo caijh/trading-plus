@@ -15,7 +15,7 @@ from indicator.mfi import MFI
 from indicator.obv import OBV
 from indicator.rsi import RSI
 from indicator.sar import SAR
-from indicator.service import get_match_ma_patterns, get_exit_patterns
+from indicator.service import get_exit_patterns
 from indicator.sma import SMA
 from indicator.vol import VOL
 from indicator.vpt import VPT
@@ -114,39 +114,6 @@ def run_backtest(strategy: TradingStrategy):
             analyze_stock(stock, k_type=KType.DAY, strategy_name=strategy.strategy_name)
             if len(stock['patterns']) > 0:
                 strategy.signal = -1
-
-    return records
-
-
-def run_backtest_patterns(stock_code, entry_patterns, exit_patterns):
-    stock = get_stock(stock_code)
-    prices = get_stock_prices(stock_code)
-    df = create_dataframe(stock, prices)
-    if df is None or df.empty:
-        return []
-
-    records = []
-    holding = False
-    entry_price, entry_time = None, None
-    for i in range(len(df)):
-        sub_df = df.iloc[:i + 1]
-        price = sub_df['close'].iloc[-1]
-        time = sub_df.index[-1]
-
-        if not holding:
-            _, ma_weight, _ = get_match_ma_patterns(entry_patterns, stock, sub_df, None, None, volume_weight_limit=2)
-            if ma_weight >= 2:
-                entry_price, entry_time = price, time
-                holding = True
-        else:
-            _, ma_weight, _ = get_match_ma_patterns(exit_patterns, stock, sub_df, None, None, volume_weight_limit=1)
-            if ma_weight >= 1:
-                if price > entry_price:
-                    records.append((entry_time, time, entry_price, price, 'take_profit'))
-                    holding = False
-                else:
-                    records.append((entry_time, time, entry_price, price, 'stop_loss'))
-                    holding = False
 
     return records
 

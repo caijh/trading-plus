@@ -1,7 +1,6 @@
 import pandas_ta as ta
 
 from indicator.base import Indicator
-from indicator.volume_registry import volume_registry
 
 
 class MACD(Indicator):
@@ -13,7 +12,7 @@ class MACD(Indicator):
         signal (int): 信号类型，1表示买入信号（金叉），-1表示卖出信号（死叉）。
         weight (int): 指标权重，默认为1。
         recent (int): 判断最近几根K线的交叉情况，默认为3。
-        name (str): 指标名称，固定为'MACD'。
+        name (str): 指标名称，固定为 'MACD'。
     """
 
     label = ''
@@ -40,7 +39,7 @@ class MACD(Indicator):
 
         Args:
             stock (str): 股票代码（未使用，保留接口兼容性）。
-            df (pd.DataFrame): 包含股票历史价格的数据框，需包含'close'列
+            df (pd.DataFrame): 包含股票历史价格的数据框，需包含 'close' 列
             trending: 趋势
             direction: 方向
 
@@ -79,12 +78,3 @@ class MACD(Indicator):
                 return True
 
         return False
-
-    def get_volume_confirm_patterns(self):
-        """
-        获取与当前MACD信号对应的成交量确认模式。
-
-        Returns:
-            list or None: 成交量确认模式列表，如果没有匹配项则返回None。
-        """
-        return volume_registry.get(self.name).get(self.signal)

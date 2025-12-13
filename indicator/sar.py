@@ -1,7 +1,6 @@
 import pandas_ta as ta
 
 from indicator.base import Indicator
-from indicator.volume_registry import volume_registry
 
 
 class SAR(Indicator):
@@ -58,6 +57,3 @@ class SAR(Indicator):
             return df['prev_sar_is_below'].iloc[-1] == True and df['sar_is_below'].iloc[-1] == False
 
         return False
-
-    def get_volume_confirm_patterns(self):
-        return volume_registry.get(self.name).get(self.signal)

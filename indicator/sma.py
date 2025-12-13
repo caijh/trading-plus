@@ -1,7 +1,6 @@
 import pandas_ta as ta
 
 from indicator.base import Indicator
-from indicator.volume_registry import volume_registry
 
 
 class SMA(Indicator):
@@ -82,11 +81,4 @@ class SMA(Indicator):
                     and (close_price <= latest_ema_price))
         return False
 
-    def get_volume_confirm_patterns(self):
-        """
-        获取与当前 SMA 信号相关的成交量确认模式。
 
-        返回:
-            list: 与当前 SMA 信号类型对应的成交量确认模式列表。
-        """
-        return volume_registry.get(self.name).get(self.signal)

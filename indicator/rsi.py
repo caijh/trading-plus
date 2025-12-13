@@ -1,7 +1,6 @@
 import pandas_ta as ta
 
 from indicator.base import Indicator
-from indicator.volume_registry import volume_registry
 
 
 class RSI(Indicator):
@@ -36,6 +35,3 @@ class RSI(Indicator):
         rsi_signal = recent_signals[f'{self.label}_Signal'].any()
 
         return rsi_signal
-
-    def get_volume_confirm_patterns(self):
-        return volume_registry.get(self.name).get(self.signal)

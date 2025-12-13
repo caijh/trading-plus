@@ -1,5 +1,4 @@
 from indicator.base import Indicator
-from indicator.volume_registry import volume_registry
 
 
 class KDJ(Indicator):
@@ -48,6 +47,3 @@ class KDJ(Indicator):
         # 最近 N 天是否有信号
         return df[f'{self.label}_Signal'].tail(self.recent).any()
 
-
-    def get_volume_confirm_patterns(self):
-        return volume_registry.get(self.name).get(self.signal)

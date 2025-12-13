@@ -1,7 +1,6 @@
 import pandas_ta as ta
 
 from indicator.base import Indicator
-from indicator.volume_registry import volume_registry
 
 
 class BIAS(Indicator):
@@ -46,6 +45,3 @@ class BIAS(Indicator):
         else:
             # 上涨，达到偏差值
             return latest_bias > self.bias
-
-    def get_volume_confirm_patterns(self):
-        return volume_registry.get(self.name).get(self.signal)
