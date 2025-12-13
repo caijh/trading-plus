@@ -58,6 +58,17 @@ def get_candlestick_signal(stock, df, candlestick_weight):
     return 0, []
 
 
+def get_indicator_patterns(stock, df, trending, direction, ma_weight_limit, volume_weight_limit,
+                           primary_patterns, secondary_patterns):
+    matched_patterns, ma_weight = get_match_patterns(primary_patterns, stock, df, trending, direction)
+    if ma_weight >= ma_weight_limit:
+        matched_secondary_patterns, volume_weight = get_match_patterns(secondary_patterns, stock, df, trending,
+                                                                       direction)
+        if volume_weight >= volume_weight_limit:
+            return ma_weight, matched_patterns, matched_secondary_patterns
+    return 0, [], []
+
+
 def get_indicator_signal(stock, df, trending, direction, ma_weight_limit, volume_weight_limit):
     """
     获取股票技术指标信号
@@ -74,28 +85,26 @@ def get_indicator_signal(stock, df, trending, direction, ma_weight_limit, volume
         tuple: (信号值, 匹配的主要模式列表, 匹配的次要模式列表)
                信号值：-1表示卖出信号，1表示买入信号，0表示无信号
     """
-    # 检查下跌模式信号
-    patterns = get_down_primary_patterns()
+    down_weight, down_matched_patterns, down_matched_secondary_patterns = get_indicator_patterns(stock, df, trending,
+                                                                                                 direction,
+                                                                                                 ma_weight_limit,
+                                                                                                 volume_weight_limit,
+                                                                                                 get_down_primary_patterns(),
+                                                                                                 get_down_secondary_patterns())
 
-    matched_patterns, weight = get_match_patterns(patterns, stock, df, trending, direction)
-    matched_secondary_patterns = []
-    if weight >= ma_weight_limit:
-        patterns = get_down_secondary_patterns()
-        matched_secondary_patterns, weight = get_match_patterns(patterns, stock, df, trending, direction)
-        if weight >= volume_weight_limit:
-            return -1, matched_patterns, matched_secondary_patterns
+    up_weight, up_matched_patterns, up_matched_secondary_patterns = get_indicator_patterns(stock, df, trending,
+                                                                                           direction,
+                                                                                           ma_weight_limit,
+                                                                                           volume_weight_limit,
+                                                                                           get_up_primary_patterns(),
+                                                                                           get_up_secondary_patterns())
 
-    # 检查上涨模式信号
-    patterns = get_up_primary_patterns()
-    matched_patterns, weight = get_match_patterns(patterns, stock, df, trending, direction)
+    if up_weight > down_weight:
+        return 1, up_matched_patterns, up_matched_secondary_patterns
+    if down_weight > up_weight:
+        return -1, down_matched_patterns, down_matched_secondary_patterns
 
-    if weight >= ma_weight_limit:
-        patterns = get_up_secondary_patterns()
-        matched_secondary_patterns, weight = get_match_patterns(patterns, stock, df, trending, direction)
-        if weight >= volume_weight_limit:
-            return 1, matched_patterns, matched_secondary_patterns
-
-    return 0, matched_patterns, matched_secondary_patterns
+    return 0, [], []
 
 
 def get_up_primary_patterns():
