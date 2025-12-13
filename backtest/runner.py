@@ -4,22 +4,22 @@ import pandas as pd
 
 from dataset.service import create_dataframe
 from environment.service import env_vars
-from indicator.adl import ADL
-from indicator.adoc import ADOSC
-from indicator.adx import ADX
-from indicator.bias import BIAS
-from indicator.cmf import CMF
-from indicator.kdj import KDJ
-from indicator.macd import MACD
-from indicator.mfi import MFI
-from indicator.obv import OBV
-from indicator.rsi import RSI
-from indicator.sar import SAR
+from indicator.primary.bias import BIAS
+from indicator.primary.kdj import KDJ
+from indicator.primary.macd import MACD
+from indicator.primary.rsi import RSI
+from indicator.primary.sar import SAR
+from indicator.primary.sma import SMA
+from indicator.primary.wr import WR
+from indicator.secondary.adl import ADL
+from indicator.secondary.adoc import ADOSC
+from indicator.secondary.adx import ADX
+from indicator.secondary.cmf import CMF
+from indicator.secondary.mfi import MFI
+from indicator.secondary.obv import OBV
+from indicator.secondary.vol import VOL
+from indicator.secondary.vpt import VPT
 from indicator.service import get_exit_patterns
-from indicator.sma import SMA
-from indicator.vol import VOL
-from indicator.vpt import VPT
-from indicator.wr import WR
 from stock.service import get_stock_prices, get_stock, KType
 from strategy.model import TradingStrategy
 from strategy.service import analyze_stock, analyze_stock_prices

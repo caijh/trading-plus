@@ -1,24 +1,24 @@
-from indicator.adl import ADL
-from indicator.adoc import ADOSC
-from indicator.adx import ADX
-from indicator.ar import AR
-from indicator.aroon import AROON
-from indicator.bias import BIAS
-from indicator.candlestick import get_bullish_candlestick_patterns, get_bearish_candlestick_patterns
-from indicator.chaikin import Chaikin
-from indicator.cmf import CMF
-from indicator.kdj import KDJ
-from indicator.kvo import KVO
-from indicator.macd import MACD
-from indicator.mfi import MFI
-from indicator.nvi import NVI
-from indicator.obv import OBV
-from indicator.pvi import PVI
-from indicator.rsi import RSI
-from indicator.sar import SAR
-from indicator.sma import SMA
-from indicator.vpt import VPT
-from indicator.wr import WR
+from indicator.primary.bias import BIAS
+from indicator.primary.candlestick import get_bullish_candlestick_patterns, get_bearish_candlestick_patterns
+from indicator.primary.kdj import KDJ
+from indicator.primary.macd import MACD
+from indicator.primary.rsi import RSI
+from indicator.primary.sar import SAR
+from indicator.primary.sma import SMA
+from indicator.primary.wr import WR
+from indicator.secondary.adl import ADL
+from indicator.secondary.adoc import ADOSC
+from indicator.secondary.adx import ADX
+from indicator.secondary.ar import AR
+from indicator.secondary.aroon import AROON
+from indicator.secondary.chaikin import Chaikin
+from indicator.secondary.cmf import CMF
+from indicator.secondary.kvo import KVO
+from indicator.secondary.mfi import MFI
+from indicator.secondary.nvi import NVI
+from indicator.secondary.obv import OBV
+from indicator.secondary.pvi import PVI
+from indicator.secondary.vpt import VPT
 
 
 def get_candlestick_signal(stock, df, candlestick_weight):

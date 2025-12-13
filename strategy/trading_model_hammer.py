@@ -1,5 +1,5 @@
 from calculate.service import get_recent_price, get_distance, is_hangingman_strict, get_amplitude, hammer_is_effective
-from indicator.candlestick import Candlestick, HammerCandlestick
+from indicator.primary.candlestick import Candlestick, HammerCandlestick
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
 

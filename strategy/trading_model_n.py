@@ -1,9 +1,9 @@
 import pandas_ta as ta
 
 from calculate.service import get_distance
-from indicator.obv import OBV
-from indicator.rsi import RSI
-from indicator.wr import WR
+from indicator.primary.rsi import RSI
+from indicator.primary.wr import WR
+from indicator.secondary.obv import OBV
 from stock.constant import Trend
 from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
