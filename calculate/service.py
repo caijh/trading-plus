@@ -946,3 +946,13 @@ def get_amplitude(point, df):
     # 计算振幅占前一个交易日收盘价的百分比
     amplitude_percentage = (amplitude / prev_point['close']) * 100
     return amplitude_percentage
+
+
+def hammer_is_effective(point, df):
+    loc = df.index.get_loc(point.name)
+    # 从loc开始，如果最低价存在低于loc位置的最低价，返回false
+    for i in range(loc, len(df)):
+        if df.iloc[i]['low'] < point['low']:
+            return False
+
+    return True
