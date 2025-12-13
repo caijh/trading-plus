@@ -252,10 +252,10 @@ def get_trading_models(stock):
         return [IndexTradingModel()]
     return [
         HammerTradingModel(),
+        NTradingModel(),
         # AntiTradingModel(),
         # ICTTradingModel(),
         # ZenTradingModel(),
         # AlBrooksProTradingModel(),
-        NTradingModel(),
         # CandlestickIndicatorTradingModel()
     ]
