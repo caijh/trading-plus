@@ -17,8 +17,8 @@ def create_app():
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
         "json_serializer": lambda obj: json.dumps(obj, ensure_ascii=False),
         "pool_pre_ping": True,
-        "pool_size": 3,
-        "max_overflow": 5,
+        "pool_size": 2,
+        "max_overflow": 3,
         "pool_timeout": 30,
         "pool_recycle": 1800,  # 每隔30分钟回收连接，避免被服务器断开
     }
