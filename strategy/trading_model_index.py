@@ -53,24 +53,27 @@ class IndexTradingModel(TradingModel):
         last_d = kdj_df['D'].iloc[-1]
         last_rsi = rsi_df['RSI'].iloc[-1]
         last_wr = wr_df.iloc[-1]
+
         # 超卖
+        self.patterns = []
         if last_k < 20 and last_d < 20:
             self.patterns.append('KDJ')
         if last_rsi < 30:
             self.patterns.append('RSI')
         if last_wr < -80:
             self.patterns.append('WR')
-        if len(self.patterns):
+        if len(self.patterns) > 0:
             return 1
 
         # 超买
+        self.patterns = []
         if last_k > 80 and last_d > 80:
             self.patterns.append('KDJ')
         if last_rsi > 70:
             self.patterns.append('RSI')
         if last_wr > -20:
             self.patterns.append('WR')
-        if len(self.patterns):
+        if len(self.patterns) > 0:
             return -1
         return 0
 
