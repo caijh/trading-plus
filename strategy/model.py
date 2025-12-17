@@ -22,7 +22,7 @@ class TradingStrategy(db.Model):
     updated_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now(), onupdate=db.func.now())  # 更新时间
 
     def __repr__(self):
-        return f"<TradingStrategy {self.stock_code} Buy:{self.entry_price} Sell:{self.take_profit} StopLoss:{self.stop_loss}>"
+        return f"<TradingStrategy {self.stock_code} strategyName: {self.strategy_name} signal: {self.signal} Buy:{self.entry_price} Sell:{self.take_profit} StopLoss:{self.stop_loss}>"
 
     def to_dict(self):
         return {
