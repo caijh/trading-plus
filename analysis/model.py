@@ -1,6 +1,9 @@
+from datetime import datetime
+
 from sqlalchemy import Numeric
 
 from extensions import db
+from timezone.zone import CN_TZ
 
 
 class AnalyzedStock(db.Model):
@@ -14,8 +17,9 @@ class AnalyzedStock(db.Model):
     support = db.Column(Numeric(38, 3), nullable=True)
     resistance = db.Column(Numeric(38, 3), nullable=True)
     price = db.Column(Numeric(38, 3), nullable=True)
-    created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())  # 记录创建时间
-    updated_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now(), onupdate=db.func.now())  # 更新时间
+    created_at = db.Column(db.DateTime(timezone=True), default=datetime.now(CN_TZ))  # 记录创建时间
+    updated_at = db.Column(db.DateTime(timezone=True), default=datetime.now(CN_TZ),
+                           onupdate=datetime.now(CN_TZ))  # 更新时间
 
     def __repr__(self):
         return f"<AnalyzedStock {self.code} - {self.name}>"

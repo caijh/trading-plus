@@ -1,12 +1,12 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 from dataset.service import create_dataframe
 from environment.service import env_vars
 from holdings.service import get_holdings
 from indicator.service import get_exit_patterns, get_candlestick_signal, get_indicator_signal
 from stock.service import get_stock, get_stock_prices, KType
+from timezone.zone import CN_TZ
 
-CN_TZ = timezone(timedelta(hours=8))  # 中国时区（UTC+8）
 
 def get_exit_signal(strategy):
     code = strategy.stock_code

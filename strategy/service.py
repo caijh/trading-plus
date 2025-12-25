@@ -12,6 +12,7 @@ from strategy.trading_model import TradingModel
 from strategy.trading_model_candlestick_indicator import CandlestickIndicatorTradingModel
 from strategy.trading_model_hammer import HammerTradingModel
 from strategy.trading_model_index import IndexTradingModel
+from timezone.zone import CN_TZ
 
 
 def add_update_strategy(stock):
@@ -98,7 +99,7 @@ def get_analyzed_stocks():
     :rtype: list of AnalyzedStock instances
     """
     # 获取今天的日期
-    today = datetime.today().date()
+    today = datetime.now(CN_TZ).today().date()
     # 查询数据库中今天创建的 AnalyzedStock 记录
     analyzed_stocks = AnalyzedStock.query.filter(db.func.date(AnalyzedStock.created_at) == today).all()
     # 返回查询结果
