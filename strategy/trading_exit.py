@@ -20,9 +20,6 @@ def get_exit_signal(strategy):
     # 如果没有持仓信息
     if holdings is None:
         # 更新太旧策略signal = -1
-        print(strategy.created_at)
-        print(datetime.now(CN_TZ))
-        print(timedelta(days=env_vars.STRATEGY_RETENTION_DAY))
         print(datetime.now(CN_TZ) - strategy.created_at > timedelta(days=env_vars.STRATEGY_RETENTION_DAY))
         if datetime.now(CN_TZ) - strategy.created_at > timedelta(days=env_vars.STRATEGY_RETENTION_DAY):
             return -1, '策略太久未执行', []
