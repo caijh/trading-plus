@@ -125,7 +125,7 @@ def check_strategy_reverse_task():
                 strategy.signal = -1
                 strategy.exit_patterns = patterns
                 strategy.remark = remark
-                strategy.updated_at = datetime.now()
+                strategy.updated_at = datetime.now(CN_TZ)
                 print(f'🔄 更新交易策略, 股票名称: {strategy.stock_name}, 股票代码: {strategy.stock_code}')
 
         # 提交数据库会话，保存所有更新
