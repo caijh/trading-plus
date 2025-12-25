@@ -7,7 +7,7 @@ from strategy.service import run_generate_strategy
 strategy_blueprint = Blueprint('strategy', __name__, url_prefix='/strategy')
 
 
-@strategy_blueprint.route('/generate-next-check-history', methods=['GET'])
+@strategy_blueprint.route('/check-strategy', methods=['GET'])
 def generate_next_check_history():
     executor.submit(run_generate_strategy)
 
