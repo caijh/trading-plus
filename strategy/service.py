@@ -117,6 +117,8 @@ def check_strategy_reverse_task():
     with db.session.begin():
         # 获取所有交易策略
         strategies = get_trading_strategies()
+        # fileter by signal = 1
+        strategies = [strategy for strategy in strategies if strategy.signal == 1]
 
         # 遍历每个策略进行更新
         for strategy in strategies:
