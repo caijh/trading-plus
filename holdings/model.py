@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy import BigInteger, Numeric
 
 from extensions import db
@@ -9,7 +11,7 @@ class Holdings(db.Model):
     stock_code = db.Column(db.String(10), unique=True, nullable=False)
     price = db.Column(Numeric(38, 3), nullable=False)
     holding_num = db.Column(Numeric(38, 2), nullable=False)
-    created_at = db.Column(db.DateTime(), default=db.func.now())  # 记录创建时间
+    created_at = db.Column(db.DateTime(), default=datetime.now())  # 记录创建时间
 
     def __repr__(self):
         return f"<Holdings {self.stock_code}, {self.holding_num}@{self.price}>"

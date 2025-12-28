@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy import Numeric
 
 from extensions import db
@@ -14,8 +16,8 @@ class AnalyzedStock(db.Model):
     support = db.Column(Numeric(38, 3), nullable=True)
     resistance = db.Column(Numeric(38, 3), nullable=True)
     price = db.Column(Numeric(38, 3), nullable=True)
-    created_at = db.Column(db.DateTime, default=db.func.now())  # 记录创建时间
-    updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())  # 更新时间
+    created_at = db.Column(db.DateTime, default=datetime.now())  # 记录创建时间
+    updated_at = db.Column(db.DateTime, default=datetime.now(), onupdate=datetime.now())  # 更新时间
 
     def __repr__(self):
         return f"<AnalyzedStock {self.code} - {self.name}>"
