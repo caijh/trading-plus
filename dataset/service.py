@@ -37,6 +37,8 @@ def create_dataframe(stock, prices):
 
     # 将日期格式从字符串转换为datetime对象
     df['date'] = pd.to_datetime(df['date'], format='%Y%m%d')
+    # 根据日期对DataFrame进行排序
+    df.sort_values('date', inplace=True)
     # 复权价处理
     df = apply_forward_adjustment_all_prices(stock, df)
 
@@ -62,9 +64,6 @@ def create_dataframe(stock, prices):
 
     # 标记向下拐点为 -1
     df.iloc[turning_down_idxes, turning_col_idx] = -1
-
-    # 根据日期对DataFrame进行排序
-    df.sort_values('date', inplace=True)
 
     # 设置日期列为DataFrame的索引
     df.set_index('date', inplace=True)
