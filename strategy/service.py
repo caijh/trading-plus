@@ -12,7 +12,6 @@ from strategy.trading_model import TradingModel
 from strategy.trading_model_candlestick_indicator import CandlestickIndicatorTradingModel
 from strategy.trading_model_hammer import HammerTradingModel
 from strategy.trading_model_index import IndexTradingModel
-from timezone.zone import CN_TZ
 
 
 def add_update_strategy(stock):
@@ -99,7 +98,7 @@ def get_analyzed_stocks():
     :rtype: list of AnalyzedStock instances
     """
     # 获取今天的日期
-    today = datetime.now(CN_TZ).today().date()
+    today = datetime.now().today().date()
     # 查询数据库中今天创建的 AnalyzedStock 记录
     analyzed_stocks = AnalyzedStock.query.filter(db.func.date(AnalyzedStock.created_at) == today).all()
     # 返回查询结果
@@ -127,7 +126,7 @@ def check_strategy_reverse_task():
                 strategy.signal = -1
                 strategy.exit_patterns = patterns
                 strategy.remark = remark
-                strategy.updated_at = datetime.now(CN_TZ)
+                strategy.updated_at = datetime.now()
                 print(f'🔄 更新交易策略, 股票名称: {strategy.stock_name}, 股票代码: {strategy.stock_code}')
 
         # 提交数据库会话，保存所有更新

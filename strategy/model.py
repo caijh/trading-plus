@@ -1,9 +1,6 @@
-from datetime import datetime
-
 from sqlalchemy import Numeric
 
 from extensions import db
-from timezone.zone import CN_TZ
 
 
 class TradingStrategy(db.Model):
@@ -21,9 +18,8 @@ class TradingStrategy(db.Model):
     signal = db.Column(db.INTEGER, nullable=False)  # 信号，执行买还是卖出
     exit_patterns = db.Column(db.JSON, nullable=True)  # 存储 JSON 格式的技术指标
     remark = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime(timezone=True), default=datetime.now(CN_TZ))  # 记录创建时间
-    updated_at = db.Column(db.DateTime(timezone=True), default=datetime.now(CN_TZ),
-                           onupdate=datetime.now(CN_TZ))  # 更新时间
+    created_at = db.Column(db.DateTime(), default=db.func.now())  # 记录创建时间
+    updated_at = db.Column(db.DateTime(), default=db.func.now(), onupdate=db.func.now())  # 更新时间
 
     def __repr__(self):
         return f"<TradingStrategy {self.stock_code} strategyName: {self.strategy_name} signal: {self.signal} Buy:{self.entry_price} Sell:{self.take_profit} StopLoss:{self.stop_loss}>"
