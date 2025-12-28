@@ -35,6 +35,11 @@ def create_dataframe(stock, prices):
     else:
         df = df[(df['close'] > 0) & (df['volume'] > 0)]
 
+    # 将日期格式从字符串转换为datetime对象
+    df['date'] = pd.to_datetime(df['date'], format='%Y%m%d')
+    # 复权价处理
+    df = apply_forward_adjustment_all_prices(stock, df)
+
     # 计算移动平均线和指数移动平均线，并保留三位小数
     df['EMA5'] = df['close'].ewm(span=5, adjust=False).mean().round(3)
     df['SMA5'] = df['close'].rolling(window=5).mean().round(3)
@@ -58,17 +63,13 @@ def create_dataframe(stock, prices):
     # 标记向下拐点为 -1
     df.iloc[turning_down_idxes, turning_col_idx] = -1
 
-    # 将日期格式从字符串转换为datetime对象
-    df['date'] = pd.to_datetime(df['date'], format='%Y%m%d')
-
     # 根据日期对DataFrame进行排序
     df.sort_values('date', inplace=True)
 
     # 设置日期列为DataFrame的索引
     df.set_index('date', inplace=True)
 
-    # 返回格式化后的DataFrame对象
-    return apply_forward_adjustment_all_prices(stock, df)
+    return df
 
 
 def apply_forward_adjustment_all_prices(stock, df):
@@ -83,16 +84,14 @@ def apply_forward_adjustment_all_prices(stock, df):
         return df
 
     adj_df = df.copy()
-
-    start_date = adj_df.index.min().strftime("%Y-%m-%d")
-    end_date = adj_df.index.max().strftime("%Y-%m-%d")
+    min_loc = adj_df.index.min()
+    max_loc = adj_df.index.max()
+    start_date = adj_df.iloc[min_loc]['date'].strftime("%Y-%m-%d")
+    end_date = adj_df.iloc[max_loc]['date'].strftime("%Y-%m-%d")
 
     factor_df = get_adj_factor(stock, start_date, end_date)
-
     adj_df = adj_df.merge(factor_df, on='date', how='left')
     adj_df = adj_df.dropna(subset=['close', 'adj_factor'])
-    adj_df.sort_values('date', inplace=True)
-    adj_df.set_index('date', inplace=True)
     n_digits = 3 if stock['stock_type'] == 'Fund' else 2
     for col in ['open', 'high', 'low', 'close']:
         adj_df[f'{col}'] = (adj_df[col].astype(float) * adj_df['adj_factor'].astype(float)).round(n_digits)
