@@ -46,9 +46,7 @@ def get_exit_signal(strategy):
 
         candlestick_signal, candlestick_patterns = get_candlestick_signal(stock, df, 1)
 
-        indicator_signal, primary_patterns, secondary_patterns = get_indicator_signal(stock, df, None, None,
-                                                                                      1,
-                                                                                      1)
+        indicator_signal, primary_patterns, secondary_patterns = get_indicator_signal(stock, df, None, None, 1, 1)
         if candlestick_signal == -1 and indicator_signal == -1:
             labels = []
             labels.extend([pattern.label for pattern in candlestick_patterns])

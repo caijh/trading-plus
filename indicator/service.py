@@ -61,7 +61,7 @@ def get_candlestick_signal(stock, df, candlestick_weight):
 def get_indicator_patterns(stock, df, trending, direction, primary_patterns, secondary_patterns):
     matched_patterns, ma_weight = get_match_patterns(primary_patterns, stock, df, trending, direction)
     matched_secondary_patterns, volume_weight = get_match_patterns(secondary_patterns, stock, df, trending, direction)
-    return ma_weight, matched_patterns, matched_secondary_patterns
+    return ma_weight, volume_weight, matched_patterns, matched_secondary_patterns
 
 
 def get_indicator_signal(stock, df, trending, direction, ma_weight_limit, volume_weight_limit):
@@ -80,19 +80,22 @@ def get_indicator_signal(stock, df, trending, direction, ma_weight_limit, volume
         tuple: (信号值, 匹配的主要模式列表, 匹配的次要模式列表)
                信号值：-1表示卖出信号，1表示买入信号，0表示无信号
     """
-    down_weight, down_matched_patterns, down_matched_secondary_patterns = get_indicator_patterns(stock, df, trending,
+    down_weight, volume_weight, down_matched_patterns, down_matched_secondary_patterns = get_indicator_patterns(stock,
+                                                                                                                df,
+                                                                                                                trending,
                                                                                                  direction,
                                                                                                  get_down_primary_patterns(),
                                                                                                  get_down_secondary_patterns())
 
-    up_weight, up_matched_patterns, up_matched_secondary_patterns = get_indicator_patterns(stock, df, trending,
+    up_weight, volume_weight, up_matched_patterns, up_matched_secondary_patterns = get_indicator_patterns(stock, df,
+                                                                                                          trending,
                                                                                            direction,
                                                                                            get_up_primary_patterns(),
                                                                                            get_up_secondary_patterns())
 
-    if up_weight > down_weight:
+    if up_weight > down_weight and up_weight >= ma_weight_limit and volume_weight >= volume_weight_limit:
         return 1, up_matched_patterns, up_matched_secondary_patterns
-    if down_weight > up_weight:
+    if down_weight > up_weight and down_weight >= ma_weight_limit and volume_weight >= volume_weight_limit:
         return -1, down_matched_patterns, down_matched_secondary_patterns
 
     return 0, [], []
