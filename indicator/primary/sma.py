@@ -74,11 +74,11 @@ class SMA(Indicator):
         if self.signal == 1:
             # 金叉条件：收盘价上穿EMA，且EMA上穿SMA
             return ((latest_ema_price > latest_ma_price) and (pre_ema_price < pre_ma_price)
-                    and (close_price >= latest_ema_price))
+                    and (close_price >= latest_ma_price))
         elif self.signal == -1:
             # 死叉条件：收盘价下穿EMA，且EMA下穿SMA
             return ((latest_ema_price < latest_ma_price) and (pre_ema_price > pre_ma_price)
-                    and (close_price <= latest_ema_price))
+                    and (close_price <= latest_ma_price))
         return False
 
 
