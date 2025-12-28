@@ -31,14 +31,14 @@ class KDJ(Indicator):
         # 构建信号条件
         if self.signal == 1:
             # 金叉条件
-            cond = (kdj_df['K'].shift(1) < kdj_df['D'].shift(1)) & (kdj_df['K'] > kdj_df['D']) & (kdj_df['D'] < 20)
+            cond = (kdj_df['K'].shift(1) < kdj_df['D'].shift(1)) & (kdj_df['K'] > kdj_df['D']) & (kdj_df['D'] < 30)
             if self.use_j_filter:
-                cond &= kdj_df['J'] < 30  # J 值辅助过滤，可调整阈值
+                cond &= kdj_df['J'] < 50  # J 值辅助过滤，可调整阈值
         elif self.signal == -1:
             # 死叉条件
-            cond = (kdj_df['K'].shift(1) > kdj_df['D'].shift(1)) & (kdj_df['K'] < kdj_df['D']) & (kdj_df['D'] > 80)
+            cond = (kdj_df['K'].shift(1) > kdj_df['D'].shift(1)) & (kdj_df['K'] < kdj_df['D']) & (kdj_df['D'] > 70)
             if self.use_j_filter:
-                cond &= kdj_df['J'] > 70  # J 值辅助过滤，可调整阈值
+                cond &= kdj_df['J'] > 50  # J 值辅助过滤，可调整阈值
         else:
             return False
 
