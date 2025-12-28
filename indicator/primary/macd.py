@@ -63,18 +63,18 @@ class MACD(Indicator):
         if len(dif) < self.recent + 1:
             return False
 
-        # 获取最近若干根K线的DIF和DEA值
-        recent_dif = dif.iloc[-self.recent:]
-        recent_dea = dea.iloc[-self.recent:]
+        # 获取最近的DIF和DEA值
+        latest_dif, latest_dea = dif.iloc[-1], dea.iloc[-1]
+        prev_dif, prev_dea = dif.iloc[-2], dea.iloc[-2]
 
         if self.signal == 1:  # 买入信号（金叉）
-            # 条件：最新一根 DIF 上穿 DEA
-            if recent_dif.iloc[-2] <= recent_dea.iloc[-2] and recent_dif.iloc[-1] > recent_dea.iloc[-1]:
+            # 金叉：DIF 上穿 DEA
+            if prev_dif <= prev_dea and latest_dif > latest_dea:
                 return True
 
         elif self.signal == -1:  # 卖出信号（死叉）
-            # 条件：最新一根 DIF 下穿 DEA
-            if recent_dif.iloc[-2] >= recent_dea.iloc[-2] and recent_dif.iloc[-1] < recent_dea.iloc[-1]:
+            # 死叉：DIF 下穿 DEA
+            if prev_dif >= prev_dea and latest_dif < latest_dea:
                 return True
 
         return False
