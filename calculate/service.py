@@ -899,6 +899,9 @@ def is_hammer_strict(point):
     # 计算K线整体波动范围
     length = get_price_range(point)
 
+    if length == 0:
+        return False
+
     # 判断下影线长度占整体波动范围的比例是否大于等于2/3
     return (lower_shadow / length) > (2 / 3)
 
