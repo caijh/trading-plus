@@ -58,15 +58,10 @@ def get_candlestick_signal(stock, df, candlestick_weight):
     return 0, []
 
 
-def get_indicator_patterns(stock, df, trending, direction, ma_weight_limit, volume_weight_limit,
-                           primary_patterns, secondary_patterns):
+def get_indicator_patterns(stock, df, trending, direction, primary_patterns, secondary_patterns):
     matched_patterns, ma_weight = get_match_patterns(primary_patterns, stock, df, trending, direction)
-    if ma_weight >= ma_weight_limit:
-        matched_secondary_patterns, volume_weight = get_match_patterns(secondary_patterns, stock, df, trending,
-                                                                       direction)
-        if volume_weight >= volume_weight_limit:
-            return ma_weight, matched_patterns, matched_secondary_patterns
-    return 0, [], []
+    matched_secondary_patterns, volume_weight = get_match_patterns(secondary_patterns, stock, df, trending, direction)
+    return ma_weight, matched_patterns, matched_secondary_patterns
 
 
 def get_indicator_signal(stock, df, trending, direction, ma_weight_limit, volume_weight_limit):
@@ -87,15 +82,11 @@ def get_indicator_signal(stock, df, trending, direction, ma_weight_limit, volume
     """
     down_weight, down_matched_patterns, down_matched_secondary_patterns = get_indicator_patterns(stock, df, trending,
                                                                                                  direction,
-                                                                                                 ma_weight_limit,
-                                                                                                 volume_weight_limit,
                                                                                                  get_down_primary_patterns(),
                                                                                                  get_down_secondary_patterns())
 
     up_weight, up_matched_patterns, up_matched_secondary_patterns = get_indicator_patterns(stock, df, trending,
                                                                                            direction,
-                                                                                           ma_weight_limit,
-                                                                                           volume_weight_limit,
                                                                                            get_up_primary_patterns(),
                                                                                            get_up_secondary_patterns())
 
