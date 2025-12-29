@@ -18,7 +18,7 @@ class Holdings(db.Model):
 
     def to_dict(self):
         return {
-            "stock_code": self.code,
+            "stock_code": self.stock_code,
             "price": self.price,
             "holding_num": self.holding_num,
         }
