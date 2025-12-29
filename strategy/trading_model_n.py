@@ -1,6 +1,6 @@
 import pandas_ta as ta
 
-from calculate.service import get_distance
+from calculate.service import get_distance, get_total_volume_around
 from indicator.primary.rsi import RSI
 from indicator.primary.wr import WR
 from indicator.secondary.obv import OBV
@@ -35,22 +35,20 @@ class NTradingModel(TradingModel):
         point_1 = turning_points.iloc[-1]
         point_2 = turning_points.iloc[-2]
         point_3 = turning_points.iloc[-3]
-        point_4 = turning_points.iloc[-4]
         point = df.iloc[-1]
         close = point['close']
         if get_distance(df, point, point_1) > 3:
             return 0
         signal = 0
 
-        # volume_point3 = get_total_volume_around(df, point_3.name, 3)
-        # volume_point4 = get_total_volume_around(df, point_4.name, 3)
-        # volume_cur = get_total_volume_around(df, point_1.name, 3)
+        volume_point3 = get_total_volume_around(df, point_3.name, 2)
+        volume_cur = get_total_volume_around(df, point_1.name, 2)
         # 最一个拐点前是上涨N
         if (point_3['low'] < point_1['low'] < close < point_2['high']
             and point_2['high'] > point_3['low']
             and point_1['low'] < (point_3['low'] + (point_2['high'] - point_3['low']) * 0.382)
             and point_1['turning'] == 1
-            # and volume_cur < volume_point4
+            and volume_cur > volume_point3
         ):
             signal = 1
         # 最后一个拐点前是下跌N
@@ -58,7 +56,7 @@ class NTradingModel(TradingModel):
               and point_3['high'] > point_2['low']
               and point_1['high'] > (point_3['high'] - (point_3['high'] - point_2['low']) * 0.382)
               and point_1['turning'] == -1
-            # and volume_cur < volume_point3
+              and volume_cur > volume_point3
         ):
             signal = -1
 
