@@ -244,6 +244,7 @@ def analyze_stock_prices(stock, df, strategy_name=None,
     else:
         signal = strategy.signal
         patterns.extend(strategy.entry_patterns)
+        stock['patterns'] = patterns
     print(
         f'Analyzing Complete code = {stock['code']}, name = {stock['name']}, trending = {stock["trending"]}, direction = {stock["direction"]}, signal= {signal}, patterns = {patterns}, support = {stock["support"]} resistance = {stock["resistance"]} price = {stock["price"]}')
     return strategy
