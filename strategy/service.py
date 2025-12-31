@@ -9,9 +9,9 @@ from stock.service import KType, get_stock_prices
 from strategy.model import TradingStrategy
 from strategy.trading_exit import get_exit_signal
 from strategy.trading_model import TradingModel
-from strategy.trading_model_candlestick_indicator import CandlestickIndicatorTradingModel
 from strategy.trading_model_hammer import HammerTradingModel
 from strategy.trading_model_index import IndexTradingModel
+from strategy.trading_model_indicator import IndicatorTradingModel
 from strategy.trading_model_n import NTradingModel
 
 
@@ -254,7 +254,7 @@ def get_trading_models(stock):
     if stock['stock_type'] == 'Index':
         return [
             IndexTradingModel(),
-            CandlestickIndicatorTradingModel()
+            IndicatorTradingModel()
         ]
     return [
         HammerTradingModel(),
@@ -263,5 +263,5 @@ def get_trading_models(stock):
         # ICTTradingModel(),
         # ZenTradingModel(),
         # AlBrooksProTradingModel(),
-        # CandlestickIndicatorTradingModel()
+        IndicatorTradingModel()
     ]

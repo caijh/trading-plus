@@ -2,12 +2,12 @@ from strategy.model import TradingStrategy
 from strategy.trading_model import TradingModel
 
 
-class CandlestickIndicatorTradingModel(TradingModel):
+class IndicatorTradingModel(TradingModel):
     def __init__(self):
         """
          k线与指标共振策略
         """
-        super().__init__('CandlestickIndicatorTradingModel')
+        super().__init__('IndicatorTradingModel')
 
     def get_trading_signal(self, stock, df, trending, direction):
         candlestick_signal = stock['candlestick_signal']

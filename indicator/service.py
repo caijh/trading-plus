@@ -3,7 +3,6 @@ from indicator.primary.candlestick import get_bullish_candlestick_patterns, get_
 from indicator.primary.kdj import KDJ
 from indicator.primary.macd import MACD
 from indicator.primary.rsi import RSI
-from indicator.primary.sar import SAR
 from indicator.primary.sma import SMA
 from indicator.primary.wr import WR
 from indicator.secondary.adl import ADL
@@ -115,7 +114,7 @@ def get_up_primary_patterns():
         SMA(50, 1),
         SMA(120, 1),
         MACD(1),
-        SAR(1),
+        # SAR(1),
         BIAS(20, -0.09, 1),
         KDJ(1),
         RSI(1),
@@ -138,7 +137,7 @@ def get_down_primary_patterns():
         SMA(50, -1),
         SMA(120, -1),
         MACD(-1),
-        SAR(-1),
+        # SAR(-1),
         BIAS(20, 0.09, -1),
         KDJ(-1),
         RSI(-1),
