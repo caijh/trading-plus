@@ -137,7 +137,6 @@ def get_trading_strategies(db: Session):
 
 def run_generate_strategy(_id, db: Session):
     try:
-        print(1)
         check_strategy_reverse_task(db)
     except Exception as e:
         db.rollback()
