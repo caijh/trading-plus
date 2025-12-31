@@ -13,7 +13,7 @@ def get_consul_server():
 
 
 # 注册到 Consul的函数
-def register_service():
+async def register_service():
     consul = get_consul_server()
     service_id = f"{SERVICE_NAME}@{SERVICE_HOST}"
     service_address = SERVICE_HOST
@@ -41,7 +41,7 @@ def register_service():
 
 
 # 注销服务
-def deregister_service():
+async def deregister_service():
     consul = get_consul_server()
     service_id = f"{SERVICE_NAME}@{SERVICE_HOST}"
 

@@ -10,7 +10,7 @@ databases
 pydantic_settings
 akshare
 redis
-# ta-lib @ git+https://github.com/TA-Lib/ta-lib-python.git@831e3b4c85465e23eeab9be7757567aaf51b4728
+ta-lib @ git+https://github.com/TA-Lib/ta-lib-python.git@831e3b4c85465e23eeab9be7757567aaf51b4728
 pandas
 pandas-ta @ git+https://github.com/caijh/pandas-ta.git@7be9bf7bc1ef537da7626502354afcfedaefcb6a
 scipy

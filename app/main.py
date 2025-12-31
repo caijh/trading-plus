@@ -18,12 +18,12 @@ async def lifespan(_app: FastAPI):
         raise HTTPException(status_code=500, detail="Redis connection failed")
 
     # 启动时注册到 Consul
-    register_service()
+    await register_service()
 
     # 结束时注销服务
     yield
 
-    deregister_service()
+    await deregister_service()
 
 
 app = FastAPI(lifespan=lifespan)
