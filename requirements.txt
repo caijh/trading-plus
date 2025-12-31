@@ -1,6 +1,7 @@
 fastapi[all]
 uvicorn[standard]
 numpy
+python-consul2
 python-dotenv
 psycopg2
 sqlalchemy
