@@ -1,13 +1,14 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
 
 from app.calculate.service import calculate_trending_direction
+from app.core.env import STRATEGY_RETENTION_DAY
 from app.dataset.service import create_dataframe
-from app.indicator.service import get_candlestick_signal, get_indicator_signal
-from app.stock.service import KType, get_stock_prices
+from app.holdings.service import get_holdings
+from app.indicator.service import get_candlestick_signal, get_indicator_signal, get_exit_patterns
+from app.stock.service import KType, get_stock_prices, get_stock
 from app.strategy.model import TradingStrategy
-from app.strategy.trading_exit import get_exit_signal
 from app.strategy.trading_model import TradingModel
 from app.strategy.trading_model_hammer import HammerTradingModel
 from app.strategy.trading_model_index import IndexTradingModel
@@ -95,23 +96,24 @@ def check_strategy_reverse_task(db: Session):
     本函数旨在更新数据库中所有交易策略。
     它通过分析股票的最新数据来更新策略的买入价、卖出价和止损价，并设置信号为-1，表示卖出交易信号。
     """
-    with db.begin():
-        # 获取所有交易策略
-        strategies = db.query(TradingStrategy).filter_by(signal=1).all()
 
+    # 获取所有交易策略
+    strategies = db.query(TradingStrategy).filter_by(signal=1).all()
+
+    with db.begin():
         # 遍历每个策略进行更新
         for strategy in strategies:
-            signal, remark, patterns = get_exit_signal(strategy, db)
+            code = strategy.stock_code
+            holdings = get_holdings(code, db)
+            signal, remark, patterns = get_exit_signal(strategy, holdings)
             if signal == -1:
                 strategy.signal = -1
                 strategy.exit_patterns = patterns
                 strategy.remark = remark
                 strategy.updated_at = datetime.now()
                 print(f'🔄 更新交易策略, 股票名称: {strategy.stock_name}, 股票代码: {strategy.stock_code}')
-
         # 提交数据库会话，保存所有更新
         db.commit()
-
     # 打印任务完成的日志信息
     print("🚀 check_strategy_reverse_task: 交易策略检查更新完成！")
     return None
@@ -133,8 +135,9 @@ def get_trading_strategies(db: Session):
     return strategies
 
 
-async def run_generate_strategy(_id, db: Session):
+def run_generate_strategy(_id, db: Session):
     try:
+        print(1)
         check_strategy_reverse_task(db)
     except Exception as e:
         db.rollback()
@@ -244,3 +247,55 @@ def get_trading_models(stock):
         # AlBrooksProTradingModel(),
         IndicatorTradingModel()
     ]
+
+
+def get_exit_signal(strategy, holdings):
+    code = strategy.stock_code
+    # 根据代码获取股票的最新数据
+    # 如果没有持仓信息
+    if holdings is None:
+        # 更新太旧策略signal = -1
+        if datetime.now() - strategy.created_at > timedelta(days=STRATEGY_RETENTION_DAY):
+            return -1, '策略太久未执行', []
+    else:
+        stock = get_stock(code)
+        # 如果获取失败，则跳过当前策略
+        if stock is None:
+            return 0, '无法获取股票信息', []
+
+        prices = get_stock_prices(code, KType.DAY)
+        if prices is None or len(prices) == 0:
+            print(f'No prices get for  stock {stock['code']}')
+            return 0, '无法获取股票价格序列', []
+        df = create_dataframe(stock, prices)
+
+        # 是否有提前退出信号
+        exit_patterns = get_exit_patterns()
+        matched_patterns = []
+        for pattern in exit_patterns:
+            if pattern.match(stock, df, None, None):
+                matched_patterns.append(pattern)
+        if len(matched_patterns) > 0:
+            labels = []
+            for matched_pattern in matched_patterns:
+                labels.append(matched_pattern.label)
+            return -1, '策略有退出信号', labels
+
+        analyze_stock_prices(stock, df)
+
+        candlestick_patterns = stock['candlestick_patterns']
+        primary_patterns = stock['primary_patterns']
+        secondary_patterns = stock['secondary_patterns']
+        if stock['signal'] == -1:
+            labels = []
+            labels.extend([pattern.label for pattern in candlestick_patterns])
+            labels.extend(primary_patterns)
+            labels.extend(secondary_patterns)
+            return -1, '策略有退出信号', labels
+
+        price = float(prices[-1])
+        if price > float(holdings.price):
+            if datetime.now() - strategy.created_at > timedelta(days=14):
+                return -1, '持仓太久卖出', []
+
+    return 0, '继续持有', []
