@@ -1,0 +1,67 @@
+import requests
+
+from app.core.env import TRADING_DATA_URL
+from app.stock.service import KType
+from app.strategy.service import analyze_stock
+
+
+def get_funds(exchange):
+    url = f'{TRADING_DATA_URL}/exchange/{exchange}/funds'
+    print(f'从交易所获取基金列表数据，url: {url}')
+    # 尝试最多3次请求
+    for attempt in range(3):
+        try:
+            # 发送GET请求并解析响应内容为JSON格式
+            data = requests.get(url).json()
+            # 检查响应状态码是否为0，表示请求成功
+            if data['code'] == 0:
+                # 提取并返回基金数据
+                return data['data']
+        except requests.RequestException as e:
+            print(f'Request failed: {e}. Retrying... {attempt + 1}')
+    # 如果所有尝试都失败，返回空列表
+    return []
+
+
+def analyze_funds(exchange):
+    """
+    分析给定交易所，返回具有特定模式的基金列表。
+
+    该函数首先从指定交易所获取所有基金列表，然后逐个分析每只基金。
+    分析时，会特别关注在日K线图中出现的模式。只有那些具有至少一个识别模式的股票才会被记录并返回。
+
+    参数:
+    exchange: str, 指定要分析的交易所名称。
+
+    返回:
+    list, 包含具有特定模式的股票信息列表。
+    """
+    # 获取指定交易所的所有股票资金数据
+    data = get_funds(exchange)
+
+    # 初始化用于存储具有分析模式的股票列表
+    funds = []
+
+    # 遍历每只股票进行分析
+    for item in data:
+        # 将数据项初始化为股票对象，这里假设股票对象可以直接从数据项转换而来
+        stock = item
+        code = stock['code']
+        # 排除封闭式基金（如 500xxx、184xxx）和 REITs（如 508xxx、180xxx）
+        if code.startswith(('500', '184', '508', '180')):
+            continue
+        name = stock['name']
+        if '債' in name or '债' in name or '幣' in name or '币' in name:
+            continue
+        stock['stock_type'] = 'Fund'
+
+        # 调用函数分析股票，专注于日K线图中的模式
+        try:
+            strategy = analyze_stock(stock, k_type=KType.DAY)
+            if strategy is not None and strategy.signal == 1:
+                funds.append(stock)
+        except Exception as e:
+            print(f'Failed to analyze stock {code}: {e}')
+
+    # 返回具有特定模式的股票列表
+    return funds

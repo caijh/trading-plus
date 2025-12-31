@@ -1,32 +1,24 @@
 # Use the official Python image from the Docker Hub
-FROM python:3.12.11-slim
+FROM caijunhui/ta-lib:latest
 
-# Set the working directory in the container
-WORKDIR /app
-
-COPY . .
-
-RUN apt-get update
-
-# 设置时区为 Asia/Shanghai
+RUN useradd -m -u 1000 user
+USER user
+ENV PATH="/home/user/.local/bin:$PATH"
 ENV TZ=Asia/Shanghai
 
+WORKDIR /app
+
+RUN apt-get update
 RUN apt-get install -y tzdata && \
     ln -sf /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone
 
-# Install the dependencies specified in the requirements file
-RUN apt-get install -y build-essential git && \
-    dpkg -i lib/ta-lib_0.6.4_amd64.deb && \
-    pip install -r requirements.txt && \
-    apt-get autoremove -y && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+COPY --chown=user ./requirements.txt requirements.txt
+RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
-# Set the environment variable to tell Flask to run in production
-ENV FLASK_ENV=production
 
-# Expose the port on which the Flask app will run
+COPY --chown=user . /app
+
 EXPOSE 5000
 
-# Command to run the Flask application
-CMD ["python", "run.py"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "5000"]
