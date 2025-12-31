@@ -9,9 +9,9 @@ from app.stock.service import KType, get_stock_prices
 from app.strategy.model import TradingStrategy
 from app.strategy.trading_exit import get_exit_signal
 from app.strategy.trading_model import TradingModel
-from app.strategy.trading_model_candlestick_indicator import IndicatorTradingModel
 from app.strategy.trading_model_hammer import HammerTradingModel
 from app.strategy.trading_model_index import IndexTradingModel
+from app.strategy.trading_model_indicator import IndicatorTradingModel
 from app.strategy.trading_model_n import NTradingModel
 
 

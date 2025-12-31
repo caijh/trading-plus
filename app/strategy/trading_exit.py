@@ -3,8 +3,9 @@ from datetime import datetime, timedelta
 from app.core.env import STRATEGY_RETENTION_DAY
 from app.dataset.service import create_dataframe
 from app.holdings.service import get_holdings
-from app.indicator.service import get_exit_patterns, get_candlestick_signal, get_indicator_signal
+from app.indicator.service import get_exit_patterns
 from app.stock.service import get_stock, KType, get_stock_prices
+from app.strategy.service import analyze_stock_prices
 
 
 def get_exit_signal(strategy, db):
@@ -40,14 +41,16 @@ def get_exit_signal(strategy, db):
                 labels.append(matched_pattern.label)
             return -1, '策略有退出信号', labels
 
-        candlestick_signal, candlestick_patterns = get_candlestick_signal(stock, df, 1)
+        analyze_stock_prices(stock, df)
 
-        indicator_signal, primary_patterns, secondary_patterns = get_indicator_signal(stock, df, None, None, 1, 1)
-        if candlestick_signal == -1 and indicator_signal == -1:
+        candlestick_patterns = stock['candlestick_patterns']
+        primary_patterns = stock['primary_patterns']
+        secondary_patterns = stock['secondary_patterns']
+        if stock['signal'] == -1:
             labels = []
             labels.extend([pattern.label for pattern in candlestick_patterns])
-            labels.extend([pattern.label for pattern in primary_patterns])
-            labels.extend([pattern.label for pattern in secondary_patterns])
+            labels.extend(primary_patterns)
+            labels.extend(secondary_patterns)
             return -1, '策略有退出信号', labels
 
         price = float(prices[-1])
