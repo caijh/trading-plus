@@ -1,12 +1,12 @@
 import redis
 from fastapi import HTTPException
 
-from app.core.env import REDIS_HOST, REDIS_PORT, REDIS_USER, REDIS_PASSWORD
+from app.core.env import REDIS_HOST, REDIS_PORT, REDIS_USER, REDIS_PASSWORD, REDIS_SSL
 
 # 创建 Redis 连接池
 redis_client = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT,
                                  username=REDIS_USER, password=REDIS_PASSWORD,
-                                 db=0, decode_responses=True)
+                                 db=0, decode_responses=True, ssl=REDIS_SSL)
 
 
 # 测试 Redis 连接

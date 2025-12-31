@@ -26,7 +26,7 @@ async def lifespan(_app: FastAPI):
     deregister_service()
 
 
-app = FastAPI(lifespan=lifespan, debug=True)
+app = FastAPI(lifespan=lifespan)
 
 # 创建数据库表（如果没有的话）
 if DATABASE_URL is not None:  # 仅在有数据库 URL 的时候创建表
