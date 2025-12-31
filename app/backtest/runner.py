@@ -2,27 +2,27 @@ import re
 
 import pandas as pd
 
-from dataset.service import create_dataframe
-from environment.service import env_vars
-from indicator.primary.bias import BIAS
-from indicator.primary.kdj import KDJ
-from indicator.primary.macd import MACD
-from indicator.primary.rsi import RSI
-from indicator.primary.sar import SAR
-from indicator.primary.sma import SMA
-from indicator.primary.wr import WR
-from indicator.secondary.adl import ADL
-from indicator.secondary.adoc import ADOSC
-from indicator.secondary.adx import ADX
-from indicator.secondary.cmf import CMF
-from indicator.secondary.mfi import MFI
-from indicator.secondary.obv import OBV
-from indicator.secondary.vol import VOL
-from indicator.secondary.vpt import VPT
-from indicator.service import get_exit_patterns
-from stock.service import get_stock_prices, get_stock, KType
-from strategy.model import TradingStrategy
-from strategy.service import analyze_stock, analyze_stock_prices
+from app.core.env import STRATEGY_RETENTION_DAY
+from app.dataset.service import create_dataframe
+from app.indicator.primary.bias import BIAS
+from app.indicator.primary.kdj import KDJ
+from app.indicator.primary.macd import MACD
+from app.indicator.primary.rsi import RSI
+from app.indicator.primary.sar import SAR
+from app.indicator.primary.sma import SMA
+from app.indicator.primary.wr import WR
+from app.indicator.secondary.adl import ADL
+from app.indicator.secondary.adoc import ADOSC
+from app.indicator.secondary.adx import ADX
+from app.indicator.secondary.cmf import CMF
+from app.indicator.secondary.mfi import MFI
+from app.indicator.secondary.obv import OBV
+from app.indicator.secondary.vol import VOL
+from app.indicator.secondary.vpt import VPT
+from app.indicator.service import get_exit_patterns
+from app.stock.service import get_stock_prices, get_stock, KType
+from app.strategy.model import TradingStrategy
+from app.strategy.service import analyze_stock, analyze_stock_prices
 
 
 def build_pattern_objects(pattern_names, signal=1):
@@ -167,7 +167,7 @@ def alpha_run_backtest(stock_code, strategy_name, start=61):
             # 策略过期
             if not holding:
                 strategy.updated_at = pd.to_datetime(time)
-                if i - strategy_idx > env_vars.STRATEGY_RETENTION_DAY:
+                if i - strategy_idx > STRATEGY_RETENTION_DAY:
                     strategy = None
             continue
 

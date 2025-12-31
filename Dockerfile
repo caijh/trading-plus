@@ -1,8 +1,6 @@
 # Use the official Python image from the Docker Hub
 FROM caijunhui/ta-lib:latest
 
-RUN useradd -m -u 1000 user
-USER user
 ENV PATH="/home/user/.local/bin:$PATH"
 ENV TZ=Asia/Shanghai
 
@@ -17,7 +15,7 @@ COPY --chown=user ./requirements.txt requirements.txt
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
 
-COPY --chown=user . /app
+COPY . /app
 
 EXPOSE 5000
 
