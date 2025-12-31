@@ -1,12 +1,10 @@
-import logging
-
 from consul import Consul
 from fastapi import APIRouter
 
 from app.core.env import CONSUL_PORT, CONSUL_HOST, CONSUL_TOKEN, SERVICE_NAME, SERVICE_HOST, \
     SERVICE_PORT
+from app.core.logger import logger
 
-logger = logging.getLogger(__name__)
 
 def get_consul_server():
     scheme = 'http'
