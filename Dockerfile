@@ -11,7 +11,7 @@ RUN apt-get install -y tzdata && \
     ln -sf /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone
 
-COPY --chown=user ./requirements.txt requirements.txt
+COPY ./requirements.txt requirements.txt
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
 
