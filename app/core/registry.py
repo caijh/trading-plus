@@ -1,9 +1,12 @@
+import logging
+
 from consul import Consul
 from fastapi import APIRouter
 
 from app.core.env import CONSUL_PORT, CONSUL_HOST, CONSUL_TOKEN, SERVICE_NAME, SERVICE_HOST, \
     SERVICE_PORT
 
+logger = logging.getLogger(__name__)
 
 def get_consul_server():
     scheme = 'http'
@@ -37,7 +40,7 @@ async def register_service():
             "interval": "30s"
         }
     )
-    print(f"Service {SERVICE_NAME} registered with Consul at {service_address}:{SERVICE_PORT}")
+    logger.info(f"Service {SERVICE_NAME} registered with Consul at {service_address}:{SERVICE_PORT}")
 
 
 # 注销服务
@@ -47,7 +50,7 @@ async def deregister_service():
 
     # 服务注销
     consul.agent.service.deregister(service_id)
-    print(f"Service {SERVICE_NAME} deregistered from Consul")
+    logger.info(f"Service {SERVICE_NAME} deregistered from Consul")
 
 
 actuator_router = APIRouter()
