@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, BackgroundTasks
+import threading
+
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
@@ -31,8 +33,7 @@ async def analysis_index_stocks():
 
 
 @analysis_router.get('/index/stock')
-async def analysis_index(background_tasks: BackgroundTasks,
-                         db: Session = Depends(get_db),
+async def analysis_index(db: Session = Depends(get_db),
                          code: str = None):
     """
     分析指数中成分股。
@@ -81,12 +82,13 @@ async def analysis_index(background_tasks: BackgroundTasks,
                 content={"msg": "Index pattern not match, analysis_index_task not run.", "code": 0}
             )
 
-    background_tasks.add_task(analysis_index_task, code, db)
+    thread = threading.Thread(target=analysis_index_task, args=(code, db))
+    thread.start()
 
     return {'code': 0, 'msg': 'Job running'}
 
 
-async def analysis_index_task(index, db: Session):
+def analysis_index_task(index, db: Session):
     stocks = analyze_index_stocks(index)
     try:
         save_analyzed_stocks(stocks, db)
@@ -134,7 +136,7 @@ async def analysis_stock(code: str = None):
 
 
 @analysis_router.get('/funds')
-async def analysis_funds(background_tasks: BackgroundTasks, db: Session = Depends(get_db),
+async def analysis_funds(db: Session = Depends(get_db),
                          exchange: str = None):
     # 从请求参数中获取股票指数代码
     # 检查是否提供了code参数
@@ -170,7 +172,8 @@ async def analysis_funds(background_tasks: BackgroundTasks, db: Session = Depend
             content={'code': 0, 'msg': 'Index pattern not match, analysis_funds_task not run.'}
         )
 
-    background_tasks.add_task(analysis_funds_task, exchange, db)
+    thread = threading.Thread(target=analysis_funds_task, args=(exchange, db))
+    thread.start()
 
     # 返回任务id和200状态码
     return JSONResponse(
@@ -179,7 +182,7 @@ async def analysis_funds(background_tasks: BackgroundTasks, db: Session = Depend
     )
 
 
-async def analysis_funds_task(exchange, db: Session):
+def analysis_funds_task(exchange, db: Session):
     """
     分析基金任务
 

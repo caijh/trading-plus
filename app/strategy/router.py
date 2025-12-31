@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, BackgroundTasks
+import threading
+
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
@@ -11,8 +13,9 @@ strategy_router = APIRouter()
 
 
 @strategy_router.get('/check-strategy')
-async def generate_next_check_history(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
-    background_tasks.add_task(run_generate_strategy, '', db)
+async def generate_next_check_history(db: Session = Depends(get_db)):
+    thread = threading.Thread(target=run_generate_strategy, args=('', db))
+    thread.start()
     return {'code': 0, 'msg': 'Job running'}
 
 
