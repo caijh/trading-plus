@@ -13,7 +13,9 @@ def get_recent_extreme_idx(df, index, price_type, recent=2):
     start_idx = max(0, index - recent)
     end_idx = min(len(df), index + recent + 1)
     window_slice = df.iloc[start_idx:end_idx]
-
+    # Ensure the window is not empty
+    if window_slice.empty:
+        return None
     if price_type == "low":
         return window_slice["low"].idxmin()
     elif price_type == "high":
