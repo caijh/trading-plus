@@ -17,6 +17,9 @@ class RSI(Indicator):
     def match(self, stock, df, trending, direction):
         # 计算 RSI 指标
         rsi_df = ta.rsi(df['close'], length=14, signal_indicators=True)  # type: ignore
+        if rsi_df is None or rsi_df.empty:
+            return False
+
         # 重命名列
         rsi_df.rename(columns={'RSI_14': 'RSI'}, inplace=True)  # type: ignore
         df[f'{self.label}'] = rsi_df['RSI']

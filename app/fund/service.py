@@ -1,13 +1,14 @@
 import requests
 
 from app.core.env import TRADING_DATA_URL
+from app.core.logger import logger
 from app.stock.service import KType
 from app.strategy.service import analyze_stock
 
 
 def get_funds(exchange):
     url = f'{TRADING_DATA_URL}/exchange/{exchange}/funds'
-    print(f'从交易所获取基金列表数据，url: {url}')
+    logger.info(f'从交易所获取基金列表数据，url: {url}')
     # 尝试最多3次请求
     for attempt in range(3):
         try:
@@ -18,7 +19,7 @@ def get_funds(exchange):
                 # 提取并返回基金数据
                 return data['data']
         except requests.RequestException as e:
-            print(f'Request failed: {e}. Retrying... {attempt + 1}')
+            logger.info(f'Request failed: {e}. Retrying... {attempt + 1}')
     # 如果所有尝试都失败，返回空列表
     return []
 
@@ -61,7 +62,7 @@ def analyze_funds(exchange):
             if strategy is not None and strategy.signal == 1:
                 funds.append(stock)
         except Exception as e:
-            print(f'Failed to analyze stock {code}: {e}')
+            logger.info(f'Failed to analyze stock {code}: {e}')
 
     # 返回具有特定模式的股票列表
     return funds

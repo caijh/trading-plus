@@ -52,6 +52,8 @@ def group_and_refine(points, df, price_type, merge_window=4, recent=3):
         last_idx = None
         for e in g:
             idx = get_recent_extreme_idx(df, e, price_type, recent)
+            if idx is None:
+                continue
             if last_idx is None:
                 last_idx = idx
             else:
@@ -61,7 +63,8 @@ def group_and_refine(points, df, price_type, merge_window=4, recent=3):
                 if price_type == 'high':
                     if df.loc[idx]['high'] > df.loc[last_idx]['high']:
                         last_idx = idx
-        refined.append(last_idx)
+        if last_idx is not None:
+            refined.append(last_idx)
     return refined
 
 
@@ -83,10 +86,14 @@ def detect_turning_point_indexes(series, df=None, merge_window=4):
     up_points = series[(prev > series) & (series < next_)].index.tolist()
     down_points = series[(prev < series) & (series > next_)].index.tolist()
 
-    # 精炼
     if df is not None:
         up_points = group_and_refine(up_points, df, "low", merge_window, recent=3)
         down_points = group_and_refine(down_points, df, "high", merge_window, recent=3)
+
+    if up_points is None or len(up_points) < 0:
+        up_points = []
+    if down_points is None or len(down_points) < 0:
+        down_points = []
 
     all_points = sorted(set(up_points + down_points))
 

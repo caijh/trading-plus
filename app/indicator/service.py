@@ -1,3 +1,4 @@
+from app.core.logger import logger
 from app.indicator.primary.bias import BIAS
 from app.indicator.primary.candlestick import get_bullish_candlestick_patterns, get_bearish_candlestick_patterns
 from app.indicator.primary.kdj import KDJ
@@ -188,11 +189,11 @@ def get_match_patterns(patterns, stock, df, trending, direction):
     try:
         for pattern in patterns:
             if pattern.match(stock, df, trending, direction):
-                print(f'{stock['code']} {stock['name']} Match {pattern.label}')
+                logger.info(f'{stock['code']} {stock['name']} Match {pattern.label}')
                 weight += pattern.weight
                 matched_patterns.append(pattern)
     except Exception as e:
-        print(e)
+        logger.info(e, exc_info=True)
     return matched_patterns, weight
 
 
