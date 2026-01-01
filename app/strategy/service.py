@@ -295,7 +295,7 @@ def get_exit_signal(strategy, holdings):
             labels.extend(secondary_patterns)
             return -1, '策略有退出信号', labels
 
-        price = float(prices[-1])
+        price = float(prices[-1]['close'])
         if price > float(holdings.price):
             if datetime.now() - strategy.created_at > timedelta(days=14):
                 return -1, '持仓太久卖出', []
