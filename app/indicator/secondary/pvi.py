@@ -60,21 +60,10 @@ class PVI(Indicator):
             return False
 
         pvi_series = pvi_df['PVI']
-
-        # 根据信号类型和方向判断
+        latest = pvi_series.iloc[-1]
+        prev = pvi_series.iloc[-2]
         if self.signal == 1:
-            if direction == 'UP':
-                # 看涨趋势确认: PVI 在上涨
-                return Indicator.trend_confirmation(pvi_series, "bullish")
-            elif direction == 'DOWN':
-                # 看涨背离: 价格下跌但 PVI 上升（底部背离）
-                return Indicator.divergence(pvi_series, divergence="bullish")
+            return latest > prev
         elif self.signal == -1:
-            if direction == 'UP':
-                # 看跌背离: 价格上涨但 PVI 下跌（顶部背离）
-                return Indicator.divergence(pvi_series, divergence="bearish")
-            elif direction == 'DOWN':
-                # 看跌趋势确认: PVI 在下跌
-                return Indicator.trend_confirmation(pvi_series, "bearish")
-
+            return latest < prev
         return False
