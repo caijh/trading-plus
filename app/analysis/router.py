@@ -131,8 +131,7 @@ async def analysis_stock(code: str = None):
 
     analyze_stock(stock)
 
-    # 返回分析后的股票信息
-    return stock
+    return {'code': 0, 'data': stock, 'msg': 'success'}
 
 
 @analysis_router.get('/funds')
