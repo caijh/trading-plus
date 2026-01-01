@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.calculate.service import calculate_trending_direction
 from app.core.env import STRATEGY_RETENTION_DAY
+from app.core.logger import logger
 from app.dataset.service import create_dataframe
 from app.holdings.service import get_holdings
 from app.indicator.service import get_candlestick_signal, get_indicator_signal, get_exit_patterns
@@ -57,9 +58,9 @@ def add_update_strategy(stock, db: Session):
         if existing_strategy is None:
             db.add(strategy)
             db.commit()
-            print(f"✅ 插入新交易策略：{stock_code} - {stock_name}")
+            logger.info(f"✅ 插入新交易策略：{stock_code} - {stock_name}")
         else:
-            print(f"🚀 交易策略：{stock_code} - {stock_name} 已经存在")
+            logger.info(f"🚀 交易策略：{stock_code} - {stock_name} 已经存在")
 
         return None
 
@@ -75,18 +76,18 @@ def generate_strategies(stocks, db):
             analyzed_stocks.append(stock)
 
     if len(analyzed_stocks) == 0:
-        print("🚀 没有有买入策略的股票")
+        logger.info("🚀 没有有买入策略的股票")
         return
 
-    print("================================================")
-    print(f"🚀 开始生成交易策略，共有{len(analyzed_stocks)}只股票")
+    logger.info("================================================")
+    logger.info(f"🚀 开始生成交易策略，共有{len(analyzed_stocks)}只股票")
     for stock in analyzed_stocks:
         try:
             add_update_strategy(stock, db)
         except Exception as e:
-            print(e)
+            logger.info(e, exc_info=True)
 
-    print("🚀 交易策略生成完成!!!")
+    logger.info("🚀 交易策略生成完成!!!")
 
 
 def check_strategy_reverse_task(db: Session):
@@ -111,11 +112,11 @@ def check_strategy_reverse_task(db: Session):
                 strategy.exit_patterns = patterns
                 strategy.remark = remark
                 strategy.updated_at = datetime.now()
-                print(f'🔄 更新交易策略, 股票名称: {strategy.stock_name}, 股票代码: {strategy.stock_code}')
+                logger.info(f'🔄 更新交易策略, 股票名称: {strategy.stock_name}, 股票代码: {strategy.stock_code}')
         # 提交数据库会话，保存所有更新
         db.commit()
     # 打印任务完成的日志信息
-    print("🚀 check_strategy_reverse_task: 交易策略检查更新完成！")
+    logger.info("🚀 check_strategy_reverse_task: 交易策略检查更新完成！")
     return None
 
 
@@ -140,22 +141,22 @@ def run_generate_strategy(_id, db: Session):
         check_strategy_reverse_task(db)
     except Exception as e:
         db.rollback()
-        print(f"Error: {e}")
+        logger.info(f"Error: {e}", e, exc_info=True)
 
 
 def analyze_stock(stock, k_type=KType.DAY, strategy_name=None,
                   candlestick_weight=1, ma_weight=1, volume_weight=1):
-    print("=====================================================")
+    logger.info("=====================================================")
     prices = get_stock_prices(stock['code'], k_type)
     if prices is None or len(prices) == 0:
-        print(f'No prices get for  stock {stock['code']}')
+        logger.info(f'No prices get for  stock {stock['code']}')
         return None
 
     try:
         df = create_dataframe(stock, prices)
         return analyze_stock_prices(stock, df, strategy_name, candlestick_weight, ma_weight, volume_weight)
     except Exception as e:
-        print(e)
+        logger.info(e, exc_info=True)
         return None
 
 
@@ -178,8 +179,8 @@ def analyze_stock_prices(stock, df, strategy_name=None,
     Returns:
         TradingStrategy: 生成的交易策略对象，如果未找到合适的策略则返回None
     """
-    print("=====================================================")
-    print(f'Analyzing Stock, code = {stock['code']}, name = {stock['name']}')
+    logger.info("=====================================================")
+    logger.info(f'Analyzing Stock, code = {stock['code']}, name = {stock['name']}')
 
     trading_models = get_trading_models(stock)
 
@@ -205,7 +206,8 @@ def analyze_stock_prices(stock, df, strategy_name=None,
     stock['primary_patterns'] = [pattern.label for pattern in primary_patterns]
     stock['secondary_patterns'] = [pattern.label for pattern in secondary_patterns]
 
-    print(f'code = {stock['code']} candlestick_signal = {candlestick_signal}, indicator_signal = {indicator_signal}')
+    logger.info(
+        f'code = {stock['code']} candlestick_signal = {candlestick_signal}, indicator_signal = {indicator_signal}')
     strategy = None
     for model in trading_models:
         strategy = model.get_trading_strategy(stock, df)
@@ -226,7 +228,8 @@ def analyze_stock_prices(stock, df, strategy_name=None,
         signal = strategy.signal
         patterns.extend(strategy.entry_patterns)
         stock['patterns'] = patterns
-    print(
+        stock['signal'] = signal
+    logger.info(
         f'Analyzing Complete code = {stock['code']}, name = {stock['name']}, trending = {stock["trending"]}, direction = {stock["direction"]}, signal= {signal}, patterns = {patterns}, support = {stock["support"]} resistance = {stock["resistance"]} price = {stock["price"]}')
     return strategy
 
@@ -264,7 +267,7 @@ def get_exit_signal(strategy, holdings):
 
         prices = get_stock_prices(code, KType.DAY)
         if prices is None or len(prices) == 0:
-            print(f'No prices get for  stock {stock['code']}')
+            logger.info(f'No prices get for  stock {stock['code']}')
             return 0, '无法获取股票价格序列', []
         df = create_dataframe(stock, prices)
 
