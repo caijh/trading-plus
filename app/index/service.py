@@ -1,4 +1,5 @@
 from app.core.env import TRADING_DATA_URL
+from app.core.logger import logger
 from app.core.request import http_get_with_retries
 from app.stock.service import KType, get_stock
 from app.strategy.service import analyze_stock
@@ -33,7 +34,7 @@ def get_index_stocks(code):
     # 构造获取指数成分股的URL
     url = f'{TRADING_DATA_URL}/index/{code}/stocks'
 
-    print(f'从数据源获取指数成分股数据，url: {url}')
+    logger.info(f'从数据源获取指数成分股数据，url: {url}')
 
     return http_get_with_retries(url, 3, [])
 

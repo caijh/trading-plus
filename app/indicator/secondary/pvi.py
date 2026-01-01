@@ -4,23 +4,6 @@ import pandas_ta as ta
 from app.indicator.base import Indicator
 
 
-def _pvi_divergence(pvi_series, divergence):
-    """
-    判断 PVI 的背离信号
-    """
-    # PVI 下降，表明在放量情况下股价下跌，是熊市信号
-    latest = pvi_series.iloc[-1]
-    prev = pvi_series.iloc[-2]
-    if divergence == 'bullish':
-        # 底背离：价格下跌但 PVI 上涨，暗示买盘力量增强
-        return latest > prev
-    elif divergence == 'bearish':
-        # 顶背离：价格上涨但 PVI 下跌，暗示卖盘力量增强
-        return latest < prev
-
-    return False
-
-
 class PVI(Indicator):
     def __init__(self, signal):
         """
