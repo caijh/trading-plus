@@ -25,7 +25,7 @@ class GetAnalyzedStocksReqBody(BaseModel):
 
 
 @strategy_router.post('/trading')
-async def get_analyzed_stocks(page: int = 1, page_size: int = 10, req_body: GetAnalyzedStocksReqBody | None = None,
+async def get_trading_strategy(page: int = 1, page_size: int = 10, req_body: GetAnalyzedStocksReqBody | None = None,
                               db: Session = Depends(get_db)):
     try:
         # 从请求体中获取 exchange 和 code 参数
@@ -33,7 +33,7 @@ async def get_analyzed_stocks(page: int = 1, page_size: int = 10, req_body: GetA
         code = req_body.code if req_body else None
 
         # 构建基础查询
-        query = db.query(TradingStrategy).order_by(TradingStrategy.updated_at.desc())
+        query = db.query(TradingStrategy).order_by(TradingStrategy.updated_at.desc()).filter_by(signal=1)
 
         # 按 exchange 和 code 添加过滤条件（如果存在）
         if exchange:
