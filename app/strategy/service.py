@@ -100,11 +100,12 @@ def check_strategy_reverse_task(db: Session):
 
     # 获取所有交易策略
     strategies = db.query(TradingStrategy).filter_by(signal=1).all()
-
+    logger.info(f"🚀 共有{len(strategies)}个交易策略")
     with db.begin():
         # 遍历每个策略进行更新
         for strategy in strategies:
             code = strategy.stock_code
+            logger.info(f'🚀 检测交易策略, 股票名称: {strategy.stock_name}, 股票代码: {strategy.stock_code}')
             holdings = get_holdings(code, db)
             signal, remark, patterns = get_exit_signal(strategy, holdings)
             if signal == -1:
@@ -253,48 +254,47 @@ def get_trading_models(stock):
 
 def get_exit_signal(strategy, holdings):
     code = strategy.stock_code
-    # 根据代码获取股票的最新数据
+    stock = get_stock(code)
+    # 如果获取失败，则跳过当前策略
+    if stock is None:
+        return 0, '无法获取股票信息', []
+
+    prices = get_stock_prices(code, KType.DAY)
+    if prices is None or len(prices) == 0:
+        logger.info(f'No prices get for  stock {stock['code']}')
+        return 0, '无法获取股票价格序列', []
+    df = create_dataframe(stock, prices)
+
+    # 是否有提前退出信号
+    exit_patterns = get_exit_patterns()
+    matched_patterns = []
+    for pattern in exit_patterns:
+        if pattern.match(stock, df, None, None):
+            matched_patterns.append(pattern)
+    if len(matched_patterns) > 0:
+        labels = []
+        for matched_pattern in matched_patterns:
+            labels.append(matched_pattern.label)
+        return -1, '策略有退出信号', labels
+
+    analyze_stock_prices(stock, df)
+
+    candlestick_patterns = stock['candlestick_patterns']
+    primary_patterns = stock['primary_patterns']
+    secondary_patterns = stock['secondary_patterns']
+    if stock['signal'] == -1:
+        labels = []
+        labels.extend([pattern.label for pattern in candlestick_patterns])
+        labels.extend(primary_patterns)
+        labels.extend(secondary_patterns)
+        return -1, '策略有退出信号', labels
+
     # 如果没有持仓信息
     if holdings is None:
         # 更新太旧策略signal = -1
         if datetime.now() - strategy.created_at > timedelta(days=STRATEGY_RETENTION_DAY):
             return -1, '策略太久未执行', []
     else:
-        stock = get_stock(code)
-        # 如果获取失败，则跳过当前策略
-        if stock is None:
-            return 0, '无法获取股票信息', []
-
-        prices = get_stock_prices(code, KType.DAY)
-        if prices is None or len(prices) == 0:
-            logger.info(f'No prices get for  stock {stock['code']}')
-            return 0, '无法获取股票价格序列', []
-        df = create_dataframe(stock, prices)
-
-        # 是否有提前退出信号
-        exit_patterns = get_exit_patterns()
-        matched_patterns = []
-        for pattern in exit_patterns:
-            if pattern.match(stock, df, None, None):
-                matched_patterns.append(pattern)
-        if len(matched_patterns) > 0:
-            labels = []
-            for matched_pattern in matched_patterns:
-                labels.append(matched_pattern.label)
-            return -1, '策略有退出信号', labels
-
-        analyze_stock_prices(stock, df)
-
-        candlestick_patterns = stock['candlestick_patterns']
-        primary_patterns = stock['primary_patterns']
-        secondary_patterns = stock['secondary_patterns']
-        if stock['signal'] == -1:
-            labels = []
-            labels.extend([pattern.label for pattern in candlestick_patterns])
-            labels.extend(primary_patterns)
-            labels.extend(secondary_patterns)
-            return -1, '策略有退出信号', labels
-
         price = float(prices[-1]['close'])
         if price > float(holdings.price):
             if datetime.now() - strategy.created_at > timedelta(days=14):

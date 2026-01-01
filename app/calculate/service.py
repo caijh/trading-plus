@@ -832,7 +832,13 @@ def get_distance(df, point, other_point):
         int: 两个点在DataFrame索引中的位置差的绝对值
     """
     # 获取两个点在DataFrame索引中的位置差的绝对值
-    return abs(df.index.get_loc(point.name) - df.index.get_loc(other_point.name))
+    idx_point = df.index.get_loc(point.name)
+    idx_other_point = df.index.get_loc(other_point.name)
+    if isinstance(idx_point, slice):
+        idx_point = idx_point.start
+    if isinstance(idx_other_point, slice):
+        idx_other_point = idx_other_point.start
+    return abs(idx_point - idx_other_point)
 
 
 def get_lower_shadow(point):
