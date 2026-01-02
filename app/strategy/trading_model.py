@@ -1,5 +1,6 @@
 from app.calculate.service import calculate_support_resistance, calculate_support_resistance_by_turning_points
 from app.core.env import MIN_PROFIT_RATE
+from app.core.logger import logger
 
 
 class TradingModel:
@@ -47,20 +48,25 @@ class TradingModel:
         take_profit = strategy.take_profit
         signal = strategy.signal
         if signal == 1:
+            if entry_price == stop_loss:
+                stop_loss = entry_price * 0.95
             # 止损空间过滤
             loss_ratio = (entry_price - stop_loss) / entry_price
             if loss_ratio > max_loss_ratio:
-                print(f"{stock['code']} {stock['name']} 止损空间过大 ({loss_ratio:.2%})，跳过")
+                logger.info(f"{stock['code']} {stock['name']} 止损空间过大 ({loss_ratio:.2%})，跳过")
                 return False
         elif signal == -1:
+            if entry_price == stop_loss:
+                stop_loss = entry_price * 1.05
             # 止损空间过滤
             loss_ratio = (stop_loss - entry_price) / entry_price
             if loss_ratio > max_loss_ratio:
-                print(f"{stock['code']} {stock['name']} 止损空间过大 ({loss_ratio:.2%})，跳过")
+                logger.info(f"{stock['code']} {stock['name']} 止损空间过大 ({loss_ratio:.2%})，跳过")
                 return False
+
         profit_rate = (take_profit - entry_price) / (entry_price - stop_loss)
         if profit_rate < MIN_PROFIT_RATE:
-            print(f"{stock['code']} {stock['name']} 盈亏比过小 ({profit_rate:.2%})，跳过")
+            logger.info(f"{stock['code']} {stock['name']} 盈亏比过小 ({profit_rate:.2})，跳过")
             return False
         return True
 
