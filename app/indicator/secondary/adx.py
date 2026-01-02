@@ -1,5 +1,6 @@
 import pandas_ta as ta
 
+from app.core.logger import logger
 from app.indicator.base import Indicator
 
 
@@ -23,7 +24,7 @@ class ADX(Indicator):
 
     def match(self, stock, df, trending, direction):
         if df is None or len(df) < self.period + 2:
-            print(f'{stock["code"]} 数据不足，无法计算 DMI')
+            logger.info(f'{stock["code"]} 数据不足，无法计算 DMI')
             return False
 
         # 使用 ta.adx 计算 +DI, -DI 和 ADX

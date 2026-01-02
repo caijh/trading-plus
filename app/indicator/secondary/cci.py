@@ -1,3 +1,4 @@
+from app.core.logger import logger
 from app.indicator.base import Indicator
 
 
@@ -29,7 +30,7 @@ class CCI(Indicator):
 
         # 确保 CCI 计算不为空
         if df[f'{self.label}'].isnull().all():
-            print(f"CCI 计算失败，数据为空: {stock['code']}")
+            logger.info(f"CCI 计算失败，数据为空: {stock['code']}")
             return False
 
         cci_df = df[f'{self.label}']

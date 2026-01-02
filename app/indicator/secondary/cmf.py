@@ -1,6 +1,7 @@
 import pandas as pd
 import pandas_ta as ta
 
+from app.core.logger import logger
 from app.indicator.base import Indicator
 
 
@@ -31,7 +32,7 @@ class CMF(Indicator):
         """
         # 确保数据量足够计算 CMF
         if df is None or len(df) < self.period + 1:
-            print(f'{stock.get("code", "未知")} 数据不足，无法计算 CMF 指标')
+            logger.info(f'{stock.get("code", "未知")} 数据不足，无法计算 CMF 指标')
             return False
 
         # 使用 pandas_ta 计算 CMF

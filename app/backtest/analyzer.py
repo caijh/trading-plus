@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 
+from app.core.logger import logger
+
 
 def evaluate_strategy(records, risk_free_rate=0.0):
     """
@@ -16,7 +18,7 @@ def evaluate_strategy(records, risk_free_rate=0.0):
         dict: 策略各指标和综合评分
     """
     if not records:
-        print("无交易记录，无法评价策略")
+        logger.info("无交易记录，无法评价策略")
         return {}
 
     df = pd.DataFrame(records, columns=['entry_time', 'exit_time', 'entry_price', 'exit_price', 'reason'])
@@ -73,8 +75,8 @@ def evaluate_strategy(records, risk_free_rate=0.0):
         "score": round(score, 2),  # 综合评分
     }
 
-    print("==== 策略评价结果 ====")
+    logger.info("==== 策略评价结果 ====")
     for k, v in result.items():
-        print(f"{k}: {v}")
+        logger.info(f"{k}: {v}")
 
     return result

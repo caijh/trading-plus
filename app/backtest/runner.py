@@ -3,6 +3,7 @@ import re
 import pandas as pd
 
 from app.core.env import STRATEGY_RETENTION_DAY
+from app.core.logger import logger
 from app.dataset.service import create_dataframe
 from app.indicator.primary.bias import BIAS
 from app.indicator.primary.kdj import KDJ
@@ -73,7 +74,7 @@ def build_pattern_objects(pattern_names, signal=1):
         elif key == 'VPT':
             pattern_objects.append(VPT(signal=signal))
         else:
-            print(f"未识别的策略名: {name}")
+            logger.info(f"未识别的策略名: {name}")
 
     return pattern_objects
 

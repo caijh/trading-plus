@@ -1,6 +1,7 @@
 import pandas as pd
 import pandas_ta as ta
 
+from app.core.logger import logger
 from app.dataset.service import create_dataframe
 from app.stock.service import get_stock_prices, KType
 from app.strategy.model import TradingStrategy
@@ -38,7 +39,7 @@ class IndexTradingModel(TradingModel):
         if index_no_volume:
             prices = get_stock_prices(index_fund['code'], KType.DAY)
             if prices is None or len(prices) == 0:
-                print(f'No prices get for  stock {index_fund['code']}')
+                logger.info(f'No prices get for  stock {index_fund['code']}')
                 return 0
 
             index_fund_df = create_dataframe(index_fund, prices)

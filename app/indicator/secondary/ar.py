@@ -1,3 +1,4 @@
+from app.core.logger import logger
 from app.indicator.base import Indicator
 
 
@@ -60,5 +61,5 @@ class AR(Indicator):
             else:
                 return False
         except Exception as e:
-            print(f"匹配信号时发生错误: {e}")
+            logger.info(f"匹配信号时发生错误: {e}", exc_info=True)
             return False

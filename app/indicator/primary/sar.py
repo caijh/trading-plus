@@ -1,5 +1,6 @@
 import pandas_ta as ta
 
+from app.core.logger import logger
 from app.indicator.base import Indicator
 
 
@@ -23,7 +24,7 @@ class SAR(Indicator):
 
     def match(self, stock, df, trending, direction):
         if df is None or len(df) < 3:
-            print(f'{stock["code"]} 数据不足，无法计算 PSAR')
+            logger.info(f'{stock["code"]} 数据不足，无法计算 PSAR')
             return False
 
         # 动态生成 PSAR 列名
@@ -34,7 +35,7 @@ class SAR(Indicator):
 
         # 检查 PSAR 计算结果是否有效
         if not all(col in psar.columns for col in psar_columns):
-            print(f'{stock["code"]} PSAR计算失败，请检查参数或数据')
+            logger.info(f'{stock["code"]} PSAR计算失败，请检查参数或数据')
             return False
 
         # 合并多余的列，只保留 SAR 点位和收盘价

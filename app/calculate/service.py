@@ -3,6 +3,7 @@ import statistics
 import numpy as np
 import pandas_ta as ta
 
+from app.core.logger import logger
 from app.stock.constant import Direction, Trend
 
 
@@ -672,7 +673,7 @@ def score_turning_point(
         }
     except Exception as e:
         # 异常处理，打印错误信息并返回0分
-        print(f"[score_turning_point] Error at {point_index}: {e}")
+        logger.info(f"[score_turning_point] Error at {point_index}: {e}", exc_info=True)
         return {"score": 0}
 
 
@@ -692,7 +693,7 @@ def calculate_vwap_support_resistance(stock, df, window=14, multiplier=2):
     """
 
     if len(df) < max(60, window):
-        print(f"{stock['code']} 数据不足以计算VWAP支撑/阻力")
+        logger.info(f"{stock['code']} 数据不足以计算VWAP支撑/阻力")
         return None, None
 
     # 1. 计算典型价格
@@ -719,7 +720,7 @@ def calculate_vwap_support_resistance(stock, df, window=14, multiplier=2):
     r = round(r_vwap, n_digits)
 
     # 打印计算结果
-    print(f'{stock["code"]} calculate_vwap_support_resistance Support = {s}, Resistance = {r}')
+    logger.info(f'{stock["code"]} calculate_vwap_support_resistance Support = {s}, Resistance = {r}')
 
     return s, r
 

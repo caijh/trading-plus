@@ -7,6 +7,7 @@ from starlette.responses import JSONResponse
 
 from app.analysis.service import save_analyzed_stocks, get_page_analyzed_stocks
 from app.core.dependencies import get_db
+from app.core.logger import logger
 from app.fund.service import analyze_funds
 from app.index.service import analyze_index, analyze_index_stocks
 from app.stock.service import KType, get_stock
@@ -92,11 +93,11 @@ def analysis_index_task(index, db: Session):
     stocks = analyze_index_stocks(index)
     try:
         save_analyzed_stocks(stocks, db)
-        print("🚀 分析指数中股票完成!!!")
+        logger.info("🚀 分析指数中股票完成!!!")
         generate_strategies(stocks, db)
     except Exception as e:
         db.rollback()  # 出错回滚
-        print(f"❌ 任务出错: {e}")
+        logger.info(f"❌ 任务出错: {e}")
 
 
 @analysis_router.get('/stock')
@@ -200,7 +201,7 @@ def analysis_funds_task(exchange, db: Session):
 
     generate_strategies(stocks, db)
 
-    print("🚀 分析基金ETF完成!!!")
+    logger.info("🚀 分析基金ETF完成!!!")
 
     # 返回分析后的股票列表
     return stocks
@@ -221,7 +222,7 @@ async def get_analyzed_stocks(page: int | None = 1, page_size: int | None = 10,
         page = get_page_analyzed_stocks(db, exchange, code, page, page_size)
         return {"code": 0, 'data': page, "msg": "success"}
     except Exception as e:
-        print(e)
+        logger.info(e, exc_info=True)
         return JSONResponse(
             status_code=500,
             content={"error": str(e)}

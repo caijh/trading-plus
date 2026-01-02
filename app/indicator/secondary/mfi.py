@@ -1,5 +1,6 @@
 import pandas_ta as ta
 
+from app.core.logger import logger
 from app.indicator.base import Indicator
 
 
@@ -19,7 +20,7 @@ class MFI(Indicator):
 
     def match(self, stock, df, trending, direction, overbought=80, oversold=20):
         if df is None or len(df) < self.period + 3:
-            print(f'{stock["code"]} 数据不足，无法计算 MFI 指标')
+            logger.info(f'{stock["code"]} 数据不足，无法计算 MFI 指标')
             return False
 
         # 获取最新价格信息

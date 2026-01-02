@@ -3,6 +3,7 @@ from starlette.responses import JSONResponse
 
 from app.backtest.analyzer import evaluate_strategy
 from app.backtest.runner import alpha_run_backtest
+from app.core.logger import logger
 
 router = APIRouter()
 
@@ -30,10 +31,10 @@ def analysis_stock(stick_code: str = None, strategy_name: str = None):
     #     return jsonify({'msg': 'strategy not found'}), 404
 
     results, win_patterns, loss_patterns, trending_list, direction_list = alpha_run_backtest(stick_code, strategy_name)
-    print(win_patterns)
-    print(loss_patterns)
-    print(trending_list)
-    print(direction_list)
+    logger.info(win_patterns)
+    logger.info(loss_patterns)
+    logger.info(trending_list)
+    logger.info(direction_list)
     result = evaluate_strategy(results)
 
     # 返回分析后的股票信息

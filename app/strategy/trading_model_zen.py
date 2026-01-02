@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import pandas_ta as ta
 
+from app.core.logger import logger
 from app.strategy.model import TradingStrategy
 from app.strategy.trading_model import TradingModel
 
@@ -446,7 +447,7 @@ class ZenTradingModel(TradingModel):
         try:
             meta = getattr(self, '_last_signal_meta', {}) or {}
         except Exception as ex:
-            print(ex)
+            logger.info(ex, exc_info=True)
             meta = {}
 
         strategy = TradingStrategy(
@@ -467,7 +468,7 @@ class ZenTradingModel(TradingModel):
             # 一般 strategy 对象会接受额外字段或 meta；如果没有，请替换为 strategy.extra = meta
             setattr(strategy, 'meta', meta)
         except Exception as exception:
-            print(exception)
+            logger.info(exception, exc_info=True)
             pass
 
         return strategy

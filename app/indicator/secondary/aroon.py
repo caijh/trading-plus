@@ -1,5 +1,6 @@
 import pandas_ta as ta
 
+from app.core.logger import logger
 from app.indicator.base import Indicator
 
 
@@ -25,7 +26,7 @@ class AROON(Indicator):
         - 空头确认: Aroon Down >= down_threshold 且 Aroon Up <= (100 - down_threshold)
         """
         if df is None or len(df) < self.period + 1:
-            print(f'{stock["code"]} 数据不足，无法计算 Aroon 指标')
+            logger.info(f'{stock["code"]} 数据不足，无法计算 Aroon 指标')
             return False
 
         # 计算 Aroon Up 和 Aroon Down

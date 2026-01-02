@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.analysis.model import AnalyzedStock
+from app.core.logger import logger
 
 
 def save_analyzed_stocks(stocks, db: Session):
@@ -30,10 +31,10 @@ def save_analyzed_stocks(stocks, db: Session):
                     price=stock.get("price", None)
                 )
                 db.add(analyzed_stock)
-                print(f"Add {analyzed_stock} to AnalyzedStock")
+                logger.info(f"Add {analyzed_stock} to AnalyzedStock")
             db.commit()
         except Exception as e:
-            print(f"处理 stock 出错: {stock['code']}, 错误信息: {e}")
+            logger.info(f"处理 stock 出错: {stock['code']}, 错误信息: {e}")
 
 
 def get_page_analyzed_stocks(db: Session, exchange=None, code=None, page=1, page_size=10):

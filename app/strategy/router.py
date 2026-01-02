@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
 
 from app.core.dependencies import get_db
+from app.core.logger import logger
 from app.strategy.model import TradingStrategy
 from app.strategy.service import run_generate_strategy
 
@@ -62,7 +63,7 @@ async def get_trading_strategy(page: int = 1, page_size: int = 10, req_body: Get
         # 返回格式化数据
         return {"code": 0, 'data': data, "msg": "success"}
     except Exception as e:
-        print(e)
+        logger.info(e, exc_info=True)
         return JSONResponse(
             status_code=500,
             content={"error": str(e)}
