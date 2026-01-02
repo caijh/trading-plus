@@ -38,8 +38,12 @@ class NVI(Indicator):
         nvi_series = ta.nvi(close=df['close'], volume=df['volume'])
         nvi_sma_series = ta.sma(nvi_series, length=10)
 
-        if nvi_series.empty:
+        if nvi_series is None or nvi_series.empty:
             return False
+
+        if nvi_sma_series is None or nvi_sma_series.empty:
+            return False
+
         last_nvi = nvi_series.iloc[-1]
         prev_nvi = nvi_series.iloc[-2]
         last_nvi_sma = nvi_sma_series.iloc[-1]

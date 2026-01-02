@@ -31,6 +31,9 @@ class WR(Indicator):
         wr_df = ta.willr(high=df['high'], low=df['low'], close=df['close'], length=14)
         df[self.label] = wr_df
 
+        if len(wr_df) < 2:
+            return False
+
         if self.signal == 1:
             # 买入信号：WR 上穿 -80（从超卖区域反弹）
             df[f'{self.label}_Signal'] = (wr_df.shift(1) < -80) & (wr_df > wr_df.shift(1))

@@ -38,6 +38,8 @@ class ADOSC(Indicator):
 
         # 计算 ADOSC 指标
         adosc = ta.adosc(df['high'], df['low'], df['close'], df['volume'])
+        if adosc is None or adosc.empty:
+            return False
         latest = adosc.iloc[-1]
         prev = adosc.iloc[-2]
 
