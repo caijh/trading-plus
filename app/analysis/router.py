@@ -91,13 +91,9 @@ async def analysis_index(db: Session = Depends(get_db),
 
 def analysis_index_task(index, db: Session):
     stocks = analyze_index_stocks(index)
-    try:
-        save_analyzed_stocks(stocks, db)
-        logger.info("🚀 分析指数中股票完成!!!")
-        generate_strategies(stocks, db)
-    except Exception as e:
-        db.rollback()  # 出错回滚
-        logger.info(f"❌ 任务出错: {e}")
+    save_analyzed_stocks(stocks, db)
+    logger.info("🚀 分析指数中股票完成!!!")
+    generate_strategies(stocks, db)
 
 
 @analysis_router.get('/stock')

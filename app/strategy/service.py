@@ -30,40 +30,37 @@ def add_update_strategy(stock, db: Session):
     返回:
     无直接返回值，但会根据条件打印相关信息并更新或插入数据库记录。
     """
-    with db.begin():
-        stock_code = stock['code']
-        stock_name = stock['name']
-        strategy = stock['strategy']
+    stock_code = stock['code']
+    stock_name = stock['name']
+    strategy = stock['strategy']
 
-        if strategy is None:
-            return None
-
-        strategy = TradingStrategy(
-            strategy_name=strategy['strategy_name'],
-            stock_code=stock_code,
-            stock_name=stock_name,
-            exchange=strategy['exchange'],
-            entry_patterns=strategy['entry_patterns'],
-            entry_price=strategy['entry_price'],
-            take_profit=strategy['take_profit'],
-            stop_loss=strategy['stop_loss'],
-            exit_patterns=strategy['exit_patterns'],
-            signal=strategy['signal']
-        )
-        if not TradingModel.check_trading_strategy(stock, strategy):
-            return None
-
-        # 查询是否已存在该股票的交易策略
-        existing_strategy = get_strategy_by_stock_code(stock_code, db)
-        if existing_strategy is None:
-            db.add(strategy)
-            db.commit()
-            logger.info(f"✅ 插入新交易策略：{stock_code} - {stock_name}")
-        else:
-            logger.info(f"🚀 交易策略：{stock_code} - {stock_name} 已经存在")
-
+    if strategy is None:
         return None
 
+    strategy = TradingStrategy(
+        strategy_name=strategy['strategy_name'],
+        stock_code=stock_code,
+        stock_name=stock_name,
+        exchange=strategy['exchange'],
+        entry_patterns=strategy['entry_patterns'],
+        entry_price=strategy['entry_price'],
+        take_profit=strategy['take_profit'],
+        stop_loss=strategy['stop_loss'],
+        exit_patterns=strategy['exit_patterns'],
+        signal=strategy['signal']
+    )
+    if not TradingModel.check_trading_strategy(stock, strategy):
+        return None
+
+    # 查询是否已存在该股票的交易策略
+    existing_strategy = get_strategy_by_stock_code(stock_code, db)
+    if existing_strategy is None:
+        db.add(strategy)
+        db.commit()
+        logger.info(f"✅ 插入新交易策略：{stock_code} - {stock_name}")
+    else:
+        logger.info(f"🚀 交易策略：{stock_code} - {stock_name} 已经存在")
+    return None
 
 def get_strategy_by_stock_code(stock_code, db: Session):
     return db.query(TradingStrategy).filter_by(stock_code=stock_code).first()
@@ -101,21 +98,20 @@ def check_strategy_reverse_task(db: Session):
     # 获取所有交易策略
     strategies = db.query(TradingStrategy).filter_by(signal=1).all()
     logger.info(f"🚀 共有{len(strategies)}个交易策略")
-    with db.begin():
-        # 遍历每个策略进行更新
-        for strategy in strategies:
-            code = strategy.stock_code
-            logger.info(f'🚀 检测交易策略, 股票名称: {strategy.stock_name}, 股票代码: {strategy.stock_code}')
-            holdings = get_holdings(code, db)
-            signal, remark, patterns = get_exit_signal(strategy, holdings)
-            if signal == -1:
-                strategy.signal = -1
-                strategy.exit_patterns = patterns
-                strategy.remark = remark
-                strategy.updated_at = datetime.now()
-                logger.info(f'🔄 更新交易策略, 股票名称: {strategy.stock_name}, 股票代码: {strategy.stock_code}')
-        # 提交数据库会话，保存所有更新
-        db.commit()
+    # 遍历每个策略进行更新
+    for strategy in strategies:
+        code = strategy.stock_code
+        logger.info(f'🚀 检测交易策略, 股票名称: {strategy.stock_name}, 股票代码: {strategy.stock_code}')
+        holdings = get_holdings(code, db)
+        signal, remark, patterns = get_exit_signal(strategy, holdings)
+        if signal == -1:
+            strategy.signal = -1
+            strategy.exit_patterns = patterns
+            strategy.remark = remark
+            strategy.updated_at = datetime.now()
+            logger.info(f'🔄 更新交易策略, 股票名称: {strategy.stock_name}, 股票代码: {strategy.stock_code}')
+    # 提交数据库会话，保存所有更新
+    db.commit()
     # 打印任务完成的日志信息
     logger.info("🚀 check_strategy_reverse_task: 交易策略检查更新完成！")
     return None
@@ -138,11 +134,7 @@ def get_trading_strategies(db: Session):
 
 
 def run_generate_strategy(_id, db: Session):
-    try:
-        check_strategy_reverse_task(db)
-    except Exception as e:
-        db.rollback()
-        logger.info(f"Error: {e}", e, exc_info=True)
+    check_strategy_reverse_task(db)
 
 
 def analyze_stock(stock, k_type=KType.DAY, strategy_name=None,

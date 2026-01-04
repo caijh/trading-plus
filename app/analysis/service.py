@@ -18,23 +18,19 @@ def save_analyzed_stocks(stocks, db: Session):
         return
 
     # 把分析过股票插入数据中，根据code删除原有的，再插入AnalyzedStock对应的表中
-    with db.begin():
-        try:
-            for stock in stocks:
-                analyzed_stock = AnalyzedStock(
-                    code=stock["code"],
-                    name=stock["name"],
-                    exchange=stock["exchange"],
-                    patterns=stock.get("patterns", []),
-                    support=stock.get("support"),
-                    resistance=stock.get("resistance"),
-                    price=stock.get("price", None)
-                )
-                db.add(analyzed_stock)
-                logger.info(f"Add {analyzed_stock} to AnalyzedStock")
-            db.commit()
-        except Exception as e:
-            logger.info(f"处理 stock 出错: {stock['code']}, 错误信息: {e}")
+    for stock in stocks:
+        analyzed_stock = AnalyzedStock(
+            code=stock["code"],
+            name=stock["name"],
+            exchange=stock["exchange"],
+            patterns=stock.get("patterns", []),
+            support=stock.get("support"),
+            resistance=stock.get("resistance"),
+            price=stock.get("price", None)
+        )
+        db.add(analyzed_stock)
+        logger.info(f"Add {analyzed_stock} to AnalyzedStock")
+
 
 
 def get_page_analyzed_stocks(db: Session, exchange=None, code=None, page=1, page_size=10):
