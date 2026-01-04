@@ -53,7 +53,8 @@ def create_dataframe(stock, prices):
 
     # 找出均线的拐点位置
     turning_points_idxes, turning_up_idxes, turning_down_idxes = detect_turning_point_indexes(df['EMA5'], df)
-
+    turning_up_idxes = [idx for idx in turning_up_idxes if idx < df.shape[0]]
+    turning_down_idxes = [idx for idx in turning_down_idxes if idx < df.shape[0]]
     # 向上拐点turning_up_idxes, df['turning']=1, 向下拐点turning_down_idxes, df['turning']=-1,其他df['turning']=0
     # 新增 turning 列，默认值为 0
     df['turning'] = 0
