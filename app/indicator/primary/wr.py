@@ -29,8 +29,10 @@ class WR(Indicator):
         """
         # 计算 WR 指标，默认周期 14
         wr_df = ta.willr(high=df['high'], low=df['low'], close=df['close'], length=14)
-        df[self.label] = wr_df
+        if wr_df is None:
+            return False
 
+        df[self.label] = wr_df
         if len(wr_df) < 2:
             return False
 
