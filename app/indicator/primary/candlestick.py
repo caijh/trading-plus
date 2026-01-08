@@ -38,7 +38,7 @@ BULLISH_PATTERNS = [
     # {'name': 'tasukigap', 'description': '跳空并列：一个两日持续形态，可以是看涨或看跌。'},
     # {'name': 'thrusting', 'description': '插入线：一个两日的看跌持续形态。'},
     {'name': 'tristar', 'description': '三星：由三个十字星组成的三日反转形态。'},
-    {'name': 'unique3river', 'description': '独有三河：一个三日的看涨反转形态。'},
+    # {'name': 'unique3river', 'description': '独有三河：一个三日的看涨反转形态。'},
     # {'name': 'xsidegap3methods', 'description': '跳空三法：一个五日持续形态，可以是看涨或看跌。'}
 ]
 
