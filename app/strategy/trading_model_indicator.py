@@ -24,13 +24,13 @@ class IndicatorTradingModel(TradingModel):
     def create_trading_strategy(self, stock, df, signal):
         patterns = []
         if signal == 1:  # 多头
-            stop_loss = stock['support'] * 0.998
-            entry_price = stock['support']
+            entry_price = stock['support'] * 0.998
+            stop_loss = stock['support'] * 0.99
             target_high = stock['resistance']
             take_profit = target_high * 0.998
         elif signal == -1:  # 空头
-            stop_loss = stock['resistance'] * 1.002
-            entry_price = stock['resistance']
+            entry_price = stock['resistance'] * 1.002
+            stop_loss = stock['resistance'] * 1.01
             target_low = stock['support']
             take_profit = target_low * 1.002
         else:
